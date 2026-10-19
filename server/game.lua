@@ -71,6 +71,11 @@ function G:step(dt,elapsed,remaining)
  if self.phase=='lobby' then
   for i=#self.players,1,-1 do if self.players[i].removed then table.remove(self.players,i) end end
  end
+ if self.phase=='finished' then
+  local abandoned=true
+  for _,p in ipairs(self.players) do if p.connected or not p.removed then abandoned=false;break end end
+  if abandoned then self:again() end
+ end
  if self.phase~='playing' then return end
  self.remaining=remaining or math.max(0,self.remaining-elapsed)
  if self.remaining<=0 then self.phase='finished';return end
