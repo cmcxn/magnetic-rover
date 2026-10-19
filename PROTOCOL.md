@@ -1,3 +1,51 @@
+# Current multi-room protocol (2026-10-19)
+
+This section supersedes the historical single-room notes below. Guest sessions,
+rooms and scores are memory-only; a process restart clears them.
+
+## Directory and membership
+
+- `join {name,color,token?}` authenticates a guest. A new guest receives
+  `welcome {id:"",token,roomId:null,role:"directory"}` followed by `rooms`.
+- `rooms` requests the room directory. Entries have `roomId`, `roomCode`,
+  `phase`, `remaining`, `playerCount`, `readyCount`, `spectatorCount`,
+  `maxPlayers:8`, `maxSpectators:16`, `canJoin`, and `canSpectate`.
+- `create_room`, `join_room {roomId}` and `spectate {roomId}` enter a room.
+  A welcome identifies the new room and role (`player` or `spectator`), then
+  its state follows. Spectators have no player ID and do not occupy player seats.
+- `leave_room` returns a directory welcome. Tokens remain stable between rooms.
+  Reconnecting with a token resumes its membership; a live token cannot be taken over.
+- `ready {ready:boolean}` marks a participant ready or cancels readiness.
+  `start` is a compatibility alias for ready=true. At least two participants,
+  all connected and ready, are required; the server then starts automatically.
+- The 100-second match is authoritative. Finished results last 10 seconds,
+  then the room returns to its lobby and readiness resets. Spectators cannot
+  send gameplay, ready, start, or again commands successfully.
+- Room states include roomId/roomCode, playerCount/readyCount/spectatorCount,
+  maxPlayers/canStart, and each player's ready flag. Clients must reset transient
+  effects on room or role change, not merely on phase change.
+- Directory updates are approximately 1 Hz; room state updates 10 Hz. Ping/Pong
+  remains available for authenticated directory, player and spectator sessions.
+- Implementation safety limits: 32 rooms and 16 spectators per room; these
+  are resource caps, not measured capacity guarantees.
+
+## Match resources and movement
+
+- Duration 100 seconds. Base movement 240 units/s, reduced up to 20% at full load.
+  Dash is 3x cargo-adjusted speed for 0.32 seconds, cooldown 4 seconds.
+- Initial natural batteries: 36. Replenishment every 10 seconds, at most six
+  per batch, natural ground cap 42, no replenishment during the final 10 seconds.
+- Natural spawn annulus moves from outer radius band 320–470 toward inner band
+  60–210 through the match. Previously spawned and collision-dropped batteries
+  stay where they are; this is not a damaging or deleting shrinking circle.
+- Collision drops do not consume the natural spawn cap and are not deleted to
+  enforce it. Station zones remain excluded from natural spawns.
+- Existing authoritative collision, 20-unit pickup radius, cargo cap 20,
+  1-second stun and 24-unit knockback rules remain. Mobile car visuals are 2x;
+  shared collision geometry does not vary by client device.
+
+Historical implementation notes below are retained for background only.
+
 # Magnetic Rover v0 prototype protocol
 Local demonstration, guest-only. Browser WebSocket /ws, backend port 18080.
 Client sends JSON: {type:"join",name:string,color:hex,token?:string}; {type:"input",x:number,y:number,boost:boolean}; {type:"start"}; {type:"again"}.

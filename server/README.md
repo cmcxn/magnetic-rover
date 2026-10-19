@@ -1,3 +1,21 @@
+## Multi-room update
+
+`rooms.lua` owns guest sessions, the room directory and independent game/clock
+instances. The listener routes each player's input and each viewer's snapshots
+only to their selected room. This is one Skynet service with multiple in-memory
+rooms, not one separate OS process or Skynet service per room.
+
+New guests first see the directory. Create or join a room, then mark ready;
+2–8 players all ready starts a 100-second match. Spectators never become gameplay
+players. Room and spectator limits are 32 and 16 respectively; those are safety
+caps, not load-test results. Explicit leave returns to the directory. An empty
+room is reclaimed after disconnected reservations expire. Tokens are not accounts.
+
+Use `python tests/multi_room.py` against an isolated running server for the new
+full-match protocol test. The old global FIFO admission implementation is retained
+as legacy unit-tested code but is no longer wired into `main.lua`. The room directory
+replaces waiting for the single global match. See root PROTOCOL.md for current rules.
+
 # Magnetic Rover Skynet server
 
 This is an independent, local-only prototype. It does not alter the existing integration repository. One real Skynet service owns all game state; WebSocket clients provide normalized movement intent only. No public deployment, persistence, account registration, payments, or password handling.
@@ -20,7 +38,7 @@ To play two guests on one machine, use separate browser profiles/private windows
 ./server/test.sh
 ```
 
-Requires the existing Skynet Lua binary and Python `websockets` (tested with 16.0). The script refuses to run if port 18080 is occupied, launches an isolated server, runs two real WebSocket clients, and stops its own server. `test_game.lua` drives the exact production game core with a deterministic simulated clock, including a full 180-second match. It does not expose debug, score-changing, teleport, or time-control messages over the network.
+Requires the existing Skynet Lua binary and Python `websockets` (tested with 16.0). The script refuses to run if port 18080 is occupied, launches an isolated server, runs two real WebSocket clients, and stops its own server. `test_game.lua` drives the exact production game core with a deterministic simulated clock, including a full 100-second match. It does not expose debug, score-changing, teleport, or time-control messages over the network.
 
 Verified 2026-10-18:
 - Game-core tests pass: exactly-once pickup/deposit; malformed and oversized numeric inputs; NaN; normalized diagonal movement; circular world bound; stale input stop; collision drop amount; victim protection and drop lock; reconnect; ten-second removal; finish/restart.
@@ -45,7 +63,7 @@ Verified 2026-10-18:
 - Reconnect with the same token works during/after the ten-second grace period while that match still exists; live tokens cannot take over. A disconnected player's score is retained for results; after ten seconds their car is removed and cargo drops. A rematch removes disconnected guests and their old tokens.
 - Disconnected lobby guests reserve their slots for ten seconds, then are removed and slots become available.
 - No late new guests may enter a playing/finished room; reconnecting existing tokens may. Any joined guest may start once two are connected, or return a finished match to the lobby.
-- Dropped batteries landing inside a station are omitted because station zones exclude pickups. Match duration uses a monotonic 180-second deadline, independent of fixed 50 ms physics. Catch-up is capped at five steps; long pauses age timeouts and cooldowns while discarding stale movement, and never simulate physics after the deadline. Snapshots can arrive late if the process is stalled. No production-grade DoS defense or horizontal scaling is claimed.
+- Dropped batteries landing inside a station are omitted because station zones exclude pickups. Match duration uses a monotonic 100-second deadline, independent of fixed 50 ms physics. Catch-up is capped at five steps; long pauses age timeouts and cooldowns while discarding stale movement, and never simulate physics after the deadline. Snapshots can arrive late if the process is stalled. No production-grade DoS defense or horizontal scaling is claimed.
 
 Clock regressions: test_clock.lua verifies execution-overhead drift, exact deadline boundaries, bounded catch-up, stale-input/cooldown expiry during long pauses, expired boost suppression, no post-deadline movement, rematch reset, and backwards timestamp clamping.
 
@@ -53,7 +71,7 @@ Clock regressions: test_clock.lua verifies execution-overhead drift, exact deadl
 
 The current rules supersede the earlier boost-only collision and indefinitely-finished-room descriptions above. See `../PROTOCOL.md` for exact impact thresholds, RTT probe validation, ten-second results return and bounded FIFO waiting admission. Ordinary hits now drop 10% (1–2 batteries), boosted hits 25% (1–5), only for genuine closing motion. No rigid-body collision or client prediction is introduced.
 
-`./server/test.sh` also runs `test_collisions.lua`, `test_lifecycle.lua`, `test_latency.lua` and `test_admission.lua`. `python tests/waiting_match.py` against an isolated running server exercises a real 180-second match plus ten-second result display, waiting estimates, automatic join and cancelled-waiter cleanup; it intentionally takes approximately 190 seconds.
+`./server/test.sh` also runs `test_collisions.lua`, `test_lifecycle.lua`, `test_latency.lua` and `test_admission.lua`. `python tests/waiting_match.py` against an isolated running server exercises a real 100-second match plus ten-second result display, waiting estimates, automatic join and cancelled-waiter cleanup; it intentionally takes approximately 110 seconds.
 
 ### Cargo and impact controls
 

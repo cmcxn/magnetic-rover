@@ -1,0 +1,174 @@
+{
+  "method": "Real Skynet with independent Python WebSocket clients; full wall-clock match; not browser/mobile QA",
+  "started_utc": "2026-10-19T15:21:26.979373+00:00",
+  "checks": [
+    {
+      "name": "join opens directory without player seat",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "create produces two distinct rooms",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "one player cannot start even when ready",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "room players isolated",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "malformed and unknown room identifiers rejected",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "repeated room commands cannot duplicate membership or rooms",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "eight player cap enforced server-side",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "sixteen spectators independent from eight player seats",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "explicit leave frees lobby seats and spectators",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "stable guest token across rooms and repeated leave",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "one of two ready cannot start",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ready can be cancelled",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "all players ready autostarts; start aliases ready",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "other room remains pristine lobby",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "live spectator receives state but all mutations rejected",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "active token cannot take over connection",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real movement collects batteries and scores in room A",
+      "passed": true,
+      "detail": {
+        "score": 4
+      }
+    },
+    {
+      "name": "room A batteries and scores never appear in lobby B",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "disconnect/reconnect restores same room identity and score",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "rooms have independent match clocks and batteries",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "directory reflects authoritative room counts and admission",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "full match lasts real 100 seconds",
+      "passed": true,
+      "detail": {
+        "wall_seconds": 99.957
+      }
+    },
+    {
+      "name": "only room participants appear in identical player/spectator results",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "room B continues while room A is finished",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "finished match movement and results frozen",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "automatic results settle lasts real ten seconds",
+      "passed": true,
+      "detail": {
+        "wall_seconds": 10.017
+      }
+    },
+    {
+      "name": "next round clears scores batteries and all ready flags",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "next round cannot start from stale ready flag",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "next round starts only after fresh readiness from both players",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "all observed states restricted to joined or spectated rooms",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "leave returns active and finished participants to directory",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no unexpected protocol errors or receive failures",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "status": "passed",
+  "ended_utc": "2026-10-19T15:23:24.032903+00:00"
+}
