@@ -3,7 +3,7 @@ local colors={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=tru
 local function dist(a,b) return (a.x-b.x)^2+(a.y-b.y)^2 end
 local function clamp(p) local d=math.sqrt(p.x*p.x+p.y*p.y);if d>500 then p.x=p.x*500/d;p.y=p.y*500/d end end
 function G.new(tokenfn)
- return setmetatable({phase='lobby',remaining=180,time=0,players={},batteries={},nextid=0,nextbat=0,stations={{x=-330,y=-220,r=65},{x=330,y=-220,r=65},{x=0,y=380,r=65}},tokenfn=tokenfn},G)
+ return setmetatable({phase='lobby',remaining=180,time=0,players={},batteries={},contacts={},nextid=0,nextbat=0,stations={{x=-330,y=-220,r=65},{x=330,y=-220,r=65},{x=0,y=380,r=65}},tokenfn=tokenfn},G)
 end
 function G:station(p) for _,s in ipairs(self.stations) do if dist(p,s)<=s.r^2 then return true end end return false end
 function G:join(fd,name,color,token)
@@ -31,7 +31,7 @@ function G:input(p,m)
  if self.phase~='playing' then return false end
  local n=math.sqrt(x*x+y*y);if n>1 then x=x/n;y=y/n end
  p.ix=x;p.iy=y;p.last=self.time
- if m.boost and p.cooldown<=0 then p.boost=.35;p.cooldown=4 end
+ if m.boost and n>=.1 and p.cooldown<=0 then p.boost=.35;p.cooldown=4 end
  return true
 end
 function G:addbattery(x,y,unlock)
@@ -56,7 +56,7 @@ end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
  local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*2.4)*100;p.y=math.sin(#keep*2.4)*100;keep[#keep+1]=p end end
- self.players=keep;self.batteries={};self.phase='lobby';self.remaining=180;return true
+ self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=180;return true
 end
 function G:drop(p,n)
  p.cargo=p.cargo-n
@@ -80,7 +80,9 @@ function G:step(dt,elapsed,remaining)
  self.remaining=remaining or math.max(0,self.remaining-elapsed)
  if self.remaining<=0 then self.phase='finished';return end
  if self.time>=self.nextrefill and self.remaining>10 then self:replenish();self.nextrefill=self.time+5 end
+ local motion={}
  for _,p in ipairs(self.players) do
+  motion[p]={x=p.x,y=p.y}
   p.cooldown=math.max(0,p.cooldown-elapsed);p.protect=math.max(0,p.protect-elapsed)
   if dt==0 then p.boost=math.max(0,p.boost-elapsed) end
   if p.connected then
@@ -91,13 +93,40 @@ function G:step(dt,elapsed,remaining)
   end
  end
  if dt==0 then return end
- -- Resolve all collision losses together before pickups/deposits. Stations are safe.
- local hit={}
- for _,p in ipairs(self.players) do if p.connected and p.boost>0 and not self:station(p) then
-  for _,q in ipairs(self.players) do
-   if q~=p and q.connected and q.protect<=0 and q.cargo>0 and not self:station(q) and dist(p,q)<=32^2 then hit[q]=math.min(5,math.ceil(q.cargo*.25)) end
+ -- Resolve new contacts from pre-step positions and actual server displacement.
+ -- Hysteresis prevents a touching pair from farming drops after immunity expires.
+ local hit={};local contacts={}
+ for i,p in ipairs(self.players) do if p.connected then
+  for j=i+1,#self.players do local q=self.players[j]
+   if q.connected then
+    local key=tonumber(p.id)<tonumber(q.id) and p.id..':'..q.id or q.id..':'..p.id
+    local distance=dist(p,q)
+    if distance<=40^2 and self.contacts[key] then contacts[key]=true end
+    if distance<=32^2 then
+     contacts[key]=true
+     if not self.contacts[key] and not self:station(p) and not self:station(q) then
+      local a,b=motion[p],motion[q];local nx,ny=b.x-a.x,b.y-a.y
+      local length=math.sqrt(nx*nx+ny*ny)
+      if length>.001 then
+       nx=nx/length;ny=ny/length
+       local pv=((p.x-a.x)*nx+(p.y-a.y)*ny)/dt
+       local qv=-((q.x-b.x)*nx+(q.y-b.y)*ny)/dt
+       if pv+qv>=40 then
+        local function impact(attacker,victim,forward)
+         if forward>=30 and victim.protect<=0 and victim.cargo>0 then
+          local n=attacker.boost>0 and math.min(5,math.ceil(victim.cargo*.25)) or math.min(2,math.ceil(victim.cargo*.1))
+          hit[victim]=math.max(hit[victim] or 0,n)
+         end
+        end
+        impact(p,q,pv);impact(q,p,qv)
+       end
+      end
+     end
+    end
+   end
   end
  end end
+ self.contacts=contacts
  for p,n in pairs(hit) do self:drop(p,n);p.protect=1 end
  for _,p in ipairs(self.players) do if p.connected then
   if self:station(p) then p.score=p.score+p.cargo;p.cargo=0

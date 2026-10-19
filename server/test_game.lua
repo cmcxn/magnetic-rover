@@ -30,5 +30,5 @@ local abandoned=G.new();for i=1,8 do abandoned:join(i,'Guest','#38bdf8');abandon
 for _,reverse in ipairs({false,true}) do local duel=G.new();local aa=duel:join('a','A','#38bdf8');local bb=duel:join('b','B','#fb7185');duel:start();for _,p in ipairs({aa,bb}) do p.x=-330;p.y=-220;p.cargo=20;p.boost=.35 end;if reverse then duel.players={bb,aa} end;duel:step(.05);assert(aa.score==20 and bb.score==20,'station safety independent of join order') end
 print('PASS regressions: abandoned lobby frees slots; simultaneous station boost collisions are order-independent')
 
-for _,reverse in ipairs({false,true}) do local duel=G.new();local aa=duel:join('a','A','#38bdf8');local bb=duel:join('b','B','#fb7185');duel:start();duel.batteries={};for _,p in ipairs({aa,bb}) do p.x=0;p.y=0;p.cargo=20;p.boost=.35 end;if reverse then duel.players={bb,aa} end;duel:step(.05);assert(aa.cargo==15 and bb.cargo==15,'simultaneous outside collisions independent of join order') end
-print('PASS simultaneous outside collisions for both join orders; station safe-zone deposits both full cargo')
+for _,reverse in ipairs({false,true}) do local duel=G.new();local aa=duel:join('a','A','#38bdf8');local bb=duel:join('b','B','#fb7185');duel:start();duel.batteries={};for _,p in ipairs({aa,bb}) do p.x=0;p.y=0;p.cargo=20;p.boost=.35 end;if reverse then duel.players={bb,aa} end;duel:step(.05);assert(aa.cargo==20 and bb.cargo==20,'overlapping stationary cars cannot attack regardless of join order') end
+print('PASS overlapping stationary boost does not attack; station safe-zone deposits both full cargo')
