@@ -117,3 +117,10 @@ test("mobile camera uses the same current smoothed self position as the car", ()
   w.update(16, 16);
   assert.equal(w.ox + w.smooth.get("self").x * w.worldScale, w.scale.width / 2);
 });
+
+test("debug FPS measures render frames over elapsed time separately from network", () => {
+  const { w } = harness();
+  w.diagnostics = true;
+  for (let i = 0; i < 50; i++) w.update(i * 20, 20);
+  assert.equal(w.fps, 50);
+});

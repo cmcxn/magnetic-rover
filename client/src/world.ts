@@ -3,6 +3,10 @@ import { cameraPolicy, type State } from "./types";
 export class World extends Phaser.Scene {
   state: State | null = null;
   self = "";
+  diagnostics = false;
+  fps: number | null = null;
+  private frameCount = 0;
+  private frameElapsed = 0;
   g!: Phaser.GameObjects.Graphics;
   background!: Phaser.GameObjects.Image;
   labels = new Map<string, Phaser.GameObjects.Text>();
@@ -124,6 +128,19 @@ export class World extends Phaser.Scene {
   }
   update(_time: number, delta: number) {
     if (!this.g) return;
+    if (this.diagnostics) {
+      if (delta > 1000) {
+        this.frameCount = this.frameElapsed = 0;
+        this.fps = null;
+      } else if (delta > 0) {
+        this.frameCount++;
+        this.frameElapsed += delta;
+        if (this.frameElapsed >= 1000) {
+          this.fps = (this.frameCount * 1000) / this.frameElapsed;
+          this.frameCount = this.frameElapsed = 0;
+        }
+      }
+    }
     const g = this.g;
     g.clear();
     this.spriteIds.clear();

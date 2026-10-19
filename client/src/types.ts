@@ -14,6 +14,7 @@ export interface State {
   type: "state";
   phase: "lobby" | "playing" | "finished";
   remaining: number;
+  returnIn?: number;
   players: Player[];
   batteries: { id: string; x: number; y: number }[];
   stations: { x: number; y: number; r: number }[];

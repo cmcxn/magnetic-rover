@@ -686,3 +686,16 @@ details input {
   margin-top: 3px;
   font-variant-numeric: tabular-nums;
 }
+.diagnostics {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #fffbeddd;
+  color: #264d40;
+  font-size: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+}

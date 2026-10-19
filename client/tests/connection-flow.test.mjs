@@ -32,7 +32,7 @@ const compiled = ts.transpileModule(
   },
 ).outputText;
 
-function harness() {
+function harness(search = "") {
   const nodes = new Map();
   let now = 0,
     nextTimer = 0;
@@ -96,7 +96,7 @@ function harness() {
     innerWidth: 1200,
     innerHeight: 800,
     location: {
-      search: "",
+      search,
       protocol: "http:",
       hostname: "localhost",
       host: "localhost:18081",
@@ -373,4 +373,81 @@ test("waiting connections measure pong RTT and hidden late pong cannot revive it
   h.visibility(true);
   socket.onmessage({ data: JSON.stringify({ type: "pong", id: ping.id }) });
   assert.match(h.node("#latency").textContent, /后台/);
+});
+
+test("finished screen explains automatic return countdown", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  socket.onmessage({
+    data: JSON.stringify({
+      type: "state",
+      phase: "finished",
+      remaining: 0,
+      returnIn: 7.2,
+      players: [],
+      results: [],
+      stations: [],
+      batteries: [],
+    }),
+  });
+  assert.match(h.node("#return-countdown").textContent, /约 8 秒后返回大厅/);
+});
+test("debug diagnostics are opt-in and snapshots never become network RTT", () => {
+  assert.doesNotMatch(harness().node("#app").innerHTML, /id="diagnostics"/);
+  const h = harness("?debug=1");
+  h.connect();
+  const socket = welcome(h);
+  assert.match(h.node("#app").innerHTML, /id="diagnostics"/);
+  const snapshot = () =>
+    socket.onmessage({
+      data: JSON.stringify({
+        type: "state",
+        phase: "lobby",
+        remaining: 0,
+        players: [],
+        stations: [],
+        batteries: [],
+      }),
+    });
+  snapshot();
+  h.tick(50);
+  snapshot();
+  h.tick(1);
+  assert.match(h.node("#diagnostics").textContent, /快照间隔：50 ms/);
+  assert.doesNotMatch(h.node("#latency").textContent, /50 ms/);
+});
+
+test("automatic reconnect retries a transient old-socket guest conflict until release", () => {
+  const h = harness();
+  h.connect();
+  welcome(h).close();
+  h.tick(1000);
+  const retry = h.sockets[1];
+  retry.onopen();
+  retry.onmessage({
+    data: JSON.stringify({
+      type: "error",
+      message: "Guest already connected; close the other tab first",
+    }),
+  });
+  h.tick(2000);
+  assert.equal(h.sockets.length, 3);
+  welcome(h);
+  assert.match(h.node("#status").textContent, /在线/);
+});
+test("manual duplicate guest conflict does not retry or take over", () => {
+  const h = harness();
+  h.connect();
+  const socket = h.sockets[0];
+  socket.onopen();
+  socket.onmessage({
+    data: JSON.stringify({
+      type: "error",
+      message: "Guest already connected; close the other tab first",
+    }),
+  });
+  h.tick(30000);
+  assert.equal(h.sockets.length, 1);
+  assert.match(h.node("#surface").innerHTML, /Guest already connected/);
 });
