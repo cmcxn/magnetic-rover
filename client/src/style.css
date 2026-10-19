@@ -1366,3 +1366,198 @@ details input {
   font: inherit;
   color: inherit;
 }
+
+/* Waiting room fit: use the available viewport, retaining scroll for enlarged
+   text, errors and exceptionally short screens rather than clipping content. */
+.lobby .garage-center {
+  padding: max(70px, calc(env(safe-area-inset-top) + 54px))
+    max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom))
+    max(10px, env(safe-area-inset-left));
+}
+.lobby .card.garage {
+  display: grid;
+  grid-template-columns: minmax(74px, 1fr) minmax(0, 3fr);
+  grid-template-areas:
+    "logo logo"
+    "code code"
+    "roster roster"
+    "slots start"
+    "hint hint"
+    "error error"
+    "guide guide"
+    "leave leave";
+  gap: 6px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 10px 12px;
+  border-width: 3px;
+  align-items: center;
+}
+.lobby .race-logo {
+  grid-area: logo;
+  margin: 0;
+}
+.lobby .race-logo > strong {
+  font-size: 26px;
+  line-height: 1.2;
+  padding: 2px 18px 4px;
+  letter-spacing: 2px;
+}
+.lobby .race-logo h1 {
+  font-size: 14px;
+  padding: 2px 14px;
+}
+.lobby .room-code {
+  grid-area: code;
+  justify-self: center;
+  max-width: 100%;
+  gap: 10px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+.lobby .room-code strong {
+  font-size: 23px;
+  letter-spacing: 2px;
+}
+.lobby .copy-room,
+.lobby .leave-room {
+  min-height: 44px;
+  min-width: 44px;
+}
+.lobby .car-roster {
+  grid-area: roster;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 2px 0;
+}
+.lobby .car-art {
+  height: clamp(28px, 6dvh, 64px);
+}
+.lobby .toy-car {
+  transform: rotate(-28deg) scale(0.55);
+}
+.lobby .car-card {
+  border-radius: 14px;
+}
+.lobby .car-card > strong {
+  font-size: 12px;
+  line-height: 1.25;
+  padding: 4px 2px;
+}
+.lobby .ready-chip {
+  font-size: 12px;
+  line-height: 1.25;
+  padding: 2px 0;
+  margin: 2px 0 0;
+}
+.lobby .slots {
+  grid-area: slots;
+  margin: 0;
+  padding: 4px;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.lobby .slots strong {
+  font-size: 23px;
+}
+.lobby .race-start {
+  grid-area: start;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 4px;
+  font-size: 17px;
+  letter-spacing: 0;
+}
+.lobby .ready-hint {
+  grid-area: hint;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 3px 0 0;
+}
+.lobby .error {
+  grid-area: error;
+  margin: 0;
+  min-height: 0;
+}
+.lobby .error:empty {
+  display: none;
+}
+.lobby .race-guide {
+  grid-area: guide;
+  margin: 0;
+  padding: 3px 2px;
+  border-radius: 12px;
+  gap: 3px;
+}
+.lobby .race-guide div {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.lobby .race-guide b,
+.lobby .race-guide > span {
+  font-size: 14px;
+  line-height: 1;
+}
+.lobby .race-guide strong {
+  font-size: 11px;
+  line-height: 1.4;
+}
+.lobby .leave-room {
+  grid-area: leave;
+  justify-self: center;
+  padding: 8px 14px;
+}
+@media (max-height: 640px) and (orientation: portrait) {
+  .lobby .card.garage {
+    gap: 4px;
+    padding: 8px;
+  }
+  .lobby .car-art {
+    height: 28px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .lobby .garage-center {
+    padding-top: max(48px, calc(env(safe-area-inset-top) + 8px));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .lobby .card.garage {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-areas:
+      "logo logo code code code code"
+      "roster roster roster roster roster roster"
+      "slots start start start leave leave"
+      "hint hint hint hint hint hint"
+      "error error error error error error"
+      "guide guide guide guide guide guide";
+    gap: 4px;
+    padding: 6px 12px;
+  }
+  .lobby .race-logo > strong {
+    font-size: 20px;
+    padding: 0 8px 2px;
+    letter-spacing: 0;
+  }
+  .lobby .race-logo h1 {
+    font-size: 12px;
+    padding: 0 8px;
+  }
+  .lobby .car-art {
+    height: 26px;
+  }
+  .lobby .toy-car {
+    transform: rotate(-28deg) scale(0.38);
+  }
+  .lobby .car-card > strong {
+    padding-block: 2px;
+  }
+  .lobby .ready-chip {
+    padding-block: 1px;
+    margin-top: 0;
+  }
+  .lobby .race-start {
+    min-height: 44px;
+    padding-block: 6px;
+  }
+}

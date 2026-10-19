@@ -43,3 +43,21 @@ test("mobile secondary overlays and keyboard-only hint are hidden by default", (
   assert.match(rule(".playing .boost .keyboard-hint"), /display: none/);
   assert.match(rule(".playing .boost"), /width: 64px/);
 });
+
+test("waiting room reflows to fit available height without clipping scroll fallback", () => {
+  const lobby = normalized.slice(normalized.indexOf("/* Waiting room fit"));
+  assert.ok(lobby.startsWith("/* Waiting room fit"));
+  assert.match(lobby, /\.lobby \.garage-center \{[^}]*safe-area-inset-top/);
+  assert.match(
+    lobby,
+    /\.lobby \.card\.garage \{[^}]*max-height: 100%[^}]*overflow-y: auto/,
+  );
+  assert.match(
+    lobby,
+    /grid-template-areas: "logo logo" "code code" "roster roster" "slots start"/,
+  );
+  assert.match(lobby, /grid-template-areas: "logo logo code code code code"/);
+  assert.match(lobby, /\.lobby \.error:empty \{[^}]*display: none/);
+  assert.match(lobby, /\.lobby \.leave-room[^}]*min-height: 44px/);
+  assert.doesNotMatch(lobby, /overflow(?:-y)?: (?:hidden|clip)/);
+});

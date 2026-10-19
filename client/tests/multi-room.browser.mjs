@@ -30,7 +30,10 @@ const players = Array.from({ length: 8 }, (_, i) => ({
 }));
 try {
   for (const [width, height] of [
+    [320, 568],
+    [375, 667],
     [390, 740],
+    [740, 390],
     [844, 390],
     [1200, 900],
   ]) {
@@ -109,7 +112,70 @@ try {
     await page.screenshot({ path: `${out}/directory-${width}.png` });
     await page.locator("#create-room").click();
     await page.locator("#start").waitFor();
-    await page.locator("#start").scrollIntoViewIfNeeded();
+    // Never scroll before measuring: that would conceal the lobby overflow bug.
+    const layout = await page.locator(".garage").evaluate((panel) => {
+      const bounds = panel.getBoundingClientRect();
+      const selectors = [
+        ".car-card",
+        ".car-card > strong",
+        ".ready-chip",
+        "#start",
+        ".leave-room",
+        "#copy-room",
+      ];
+      return {
+        scrollHeight: panel.scrollHeight,
+        clientHeight: panel.clientHeight,
+        scrollWidth: panel.scrollWidth,
+        clientWidth: panel.clientWidth,
+        scrollTop: panel.scrollTop,
+        controls: selectors.flatMap((selector) =>
+          [...panel.querySelectorAll(selector)].map((node) => {
+            const r = node.getBoundingClientRect();
+            return {
+              selector,
+              text: node.textContent,
+              height: r.height,
+              visible:
+                r.width > 0 &&
+                r.height > 0 &&
+                r.left >= bounds.left &&
+                r.right <= bounds.right &&
+                r.top >= bounds.top &&
+                r.bottom <= bounds.bottom &&
+                r.left >= 0 &&
+                r.right <= innerWidth &&
+                r.top >= 0 &&
+                r.bottom <= innerHeight,
+              fontSize: parseFloat(getComputedStyle(node).fontSize),
+            };
+          }),
+        ),
+      };
+    });
+    assert.ok(
+      layout.scrollHeight <= layout.clientHeight + 1,
+      `lobby must fit ${width}x${height}: ${JSON.stringify(layout)}`,
+    );
+    assert.ok(
+      layout.scrollWidth <= layout.clientWidth + 1,
+      "no horizontal overflow",
+    );
+    assert.equal(layout.scrollTop, 0);
+    assert.equal(
+      layout.controls.length,
+      27,
+      "all 8 cards, 8 names, 8 statuses and 3 buttons measured",
+    );
+    for (const control of layout.controls) {
+      assert.ok(
+        control.visible,
+        `${control.selector} ${control.text} fully visible`,
+      );
+      assert.ok(control.fontSize >= 12, "names and statuses remain readable");
+      if (["#start", ".leave-room", "#copy-room"].includes(control.selector))
+        assert.ok(control.height >= 44, "44px action target");
+    }
     assert.equal(await page.locator(".car-card").count(), 8);
     await page.screenshot({ path: `${out}/lobby-${width}.png` });
     assert.ok(
@@ -117,6 +183,20 @@ try {
         .locator(".garage")
         .evaluate((e) => e.getBoundingClientRect().right <= innerWidth),
     );
+    // Emulate enlarged text and check that overflow stays reachable, not clipped.
+    await page.addStyleTag({
+      content: ".lobby .garage * { font-size: 24px !important; }",
+    });
+    const enlarged = await page.locator(".garage").evaluate((panel) => {
+      panel.scrollTop = panel.scrollHeight;
+      return {
+        overflow: getComputedStyle(panel).overflowY,
+        reachable:
+          panel.scrollHeight <= panel.clientHeight + 1 || panel.scrollTop > 0,
+      };
+    });
+    assert.equal(enlarged.overflow, "auto");
+    assert.ok(enlarged.reachable, "enlarged-text overflow remains scrollable");
     welcome("spectator", "9000");
     state("playing", "9000");
     await page.locator("#follow-player").waitFor();
