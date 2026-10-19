@@ -129,6 +129,20 @@ export class World extends Phaser.Scene {
     this.spriteIds.clear();
     const w = this.scale.width,
       h = this.scale.height;
+    // Smooth before camera placement so the local car and follow camera agree.
+    for (const p of this.state?.players ?? []) {
+      let v = this.smooth.get(p.id);
+      if (!v) {
+        v = { x: p.x, y: p.y, angle: p.angle };
+        this.smooth.set(p.id, v);
+      }
+      // Follow received authority more promptly for the local driver; no prediction.
+      const a = Math.min(1, delta / (p.id === this.self ? 25 : 65));
+      v.x += (p.x - v.x) * a;
+      v.y += (p.y - v.y) * a;
+      let da = Phaser.Math.Angle.Wrap(p.angle - v.angle);
+      v.angle += da * a;
+    }
     const me = this.state?.players.find((p) => p.id === this.self);
     const policy = cameraPolicy(
       w,
@@ -215,17 +229,7 @@ export class World extends Phaser.Scene {
     const present = new Set<string>();
     for (const p of this.state?.players ?? []) {
       present.add(p.id);
-      let v = this.smooth.get(p.id);
-      if (!v) {
-        v = { x: p.x, y: p.y, angle: p.angle };
-        this.smooth.set(p.id, v);
-      }
-      // Follow received authority more promptly for the local driver; no prediction.
-      const a = Math.min(1, delta / (p.id === this.self ? 25 : 65));
-      v.x += (p.x - v.x) * a;
-      v.y += (p.y - v.y) * a;
-      let da = Phaser.Math.Angle.Wrap(p.angle - v.angle);
-      v.angle += da * a;
+      const v = this.smooth.get(p.id)!;
       const c = Phaser.Display.Color.HexStringToColor(p.color).color;
       circle(v.x, v.y + 7, 21, 0x51694b, 0.16);
       circle(v.x, v.y, 28, c, 0.35);

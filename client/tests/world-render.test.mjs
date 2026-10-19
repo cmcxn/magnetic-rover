@@ -95,3 +95,25 @@ test("self converges faster than remote without extrapolating authoritative posi
   assert.ok(w.smooth.get("self").x > w.smooth.get("other").x);
   assert.ok(w.smooth.get("self").x <= 100);
 });
+
+test("mobile camera uses the same current smoothed self position as the car", () => {
+  const { w } = harness();
+  w.scale.width = 390;
+  w.scale.height = 844;
+  w.self = "self";
+  const p = {
+    id: "self",
+    x: 0,
+    y: 0,
+    angle: 0,
+    color: "#38bdf8",
+    cargo: 0,
+    connected: true,
+    name: "car",
+  };
+  w.state = { phase: "playing", players: [p], stations: [], batteries: [] };
+  w.update(0, 16);
+  p.x = 100;
+  w.update(16, 16);
+  assert.equal(w.ox + w.smooth.get("self").x * w.worldScale, w.scale.width / 2);
+});

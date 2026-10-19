@@ -284,3 +284,93 @@ test("pong from replaced socket cannot restore old RTT", () => {
   old.onmessage({ data: JSON.stringify({ type: "pong", id: ping?.id }) });
   assert.doesNotMatch(h.node("#latency").textContent, /100 ms/);
 });
+
+test("waiting join shows estimate, stays alive, and accepts welcome without sending join again", () => {
+  const h = harness();
+  h.connect();
+  const socket = h.sockets[0];
+  socket.onopen();
+  socket.onmessage({
+    data: JSON.stringify({
+      type: "waiting",
+      reason: "playing",
+      phase: "playing",
+      availableIn: 42,
+      remaining: 32,
+    }),
+  });
+  assert.match(h.node("#surface").innerHTML, /预计/);
+  assert.match(h.node("#wait-estimate").textContent, /42/);
+  for (let i = 0; i < 10; i++) {
+    h.tick(1000);
+    socket.onmessage({
+      data: JSON.stringify({
+        type: "waiting",
+        reason: "playing",
+        availableIn: 41 - i,
+        remaining: 31 - i,
+      }),
+    });
+  }
+  assert.equal(socket.readyState, 1);
+  assert.equal(socket.sent.filter((x) => x.type === "join").length, 1);
+  socket.onmessage({
+    data: JSON.stringify({ type: "welcome", id: "p1", token: "new-token" }),
+  });
+  assert.equal(h.storage.get(helpers.tokenStorageKey(socket.url)), "new-token");
+  assert.match(h.node("#status").textContent, /在线/);
+});
+test("waiting full has no invented ETA; cancel stops retries and invalidates old socket", () => {
+  const h = harness();
+  h.connect();
+  const socket = h.sockets[0];
+  socket.onopen();
+  socket.onmessage({
+    data: JSON.stringify({
+      type: "waiting",
+      reason: "full",
+      availableIn: null,
+      remaining: 0,
+    }),
+  });
+  assert.match(h.node("#wait-estimate").textContent, /预计.*暂无法确定/);
+  assert.equal(typeof h.node("#cancel-wait").onclick, "function");
+  h.node("#cancel-wait").onclick();
+  h.tick(30000);
+  h.visibility(true);
+  h.visibility(false);
+  assert.equal(h.sockets.length, 1);
+  socket.onmessage({
+    data: JSON.stringify({ type: "welcome", id: "p2", token: "stale" }),
+  });
+  assert.notEqual(h.storage.get(helpers.tokenStorageKey(socket.url)), "stale");
+});
+
+test("cancel during reconnect backoff prevents the scheduled attempt and foreground retry", () => {
+  const h = harness();
+  h.connect();
+  welcome(h).close();
+  h.node("#cancel-connect").onclick();
+  h.tick(30000);
+  h.visibility(true);
+  h.visibility(false);
+  assert.equal(h.sockets.length, 1);
+});
+test("waiting connections measure pong RTT and hidden late pong cannot revive it", () => {
+  const h = harness();
+  h.connect();
+  const socket = h.sockets[0];
+  socket.onopen();
+  socket.onmessage({
+    data: JSON.stringify({ type: "waiting", availableIn: 42 }),
+  });
+  h.tick(1);
+  const ping = socket.sent.find((x) => x.type === "ping");
+  assert.ok(ping);
+  h.tick(45);
+  socket.onmessage({ data: JSON.stringify({ type: "pong", id: ping.id }) });
+  assert.match(h.node("#latency").textContent, /45 ms/);
+  h.visibility(true);
+  socket.onmessage({ data: JSON.stringify({ type: "pong", id: ping.id }) });
+  assert.match(h.node("#latency").textContent, /后台/);
+});

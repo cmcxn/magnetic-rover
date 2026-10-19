@@ -27,6 +27,7 @@ let state: State | null = null,
   ws: WebSocket | null = null,
   connected = false,
   joined = false,
+  waiting = false,
   phase = "",
   color = COLORS.includes(localStorage.getItem("rover.color") || "")
     ? localStorage.getItem("rover.color")!
@@ -141,6 +142,7 @@ function connect(automatic = false) {
   resetLatency("测量中");
   error = "";
   joined = false;
+  waiting = false;
   connected = false;
   state = null;
   phase = "";
@@ -154,6 +156,7 @@ function connect(automatic = false) {
     old.onclose = null;
     old.close();
   }
+  ws = null;
   try {
     ws = new WebSocket(canonicalServerUrl(url));
   } catch {
@@ -197,7 +200,7 @@ function connect(automatic = false) {
       const now = performance.now();
       if (
         !document.hidden &&
-        joined &&
+        (joined || waiting) &&
         pendingPing &&
         data.id === pendingPing.id
       ) {
@@ -211,7 +214,18 @@ function connect(automatic = false) {
       }
       return;
     }
+    if (data.type === "waiting") {
+      received = true;
+      clearTimeout(timeout);
+      connecting = false;
+      retryAttempt = 0;
+      waiting = true;
+      lastState = performance.now();
+      showWaiting(data.availableIn);
+      return;
+    }
     if (data.type === "welcome") {
+      waiting = false;
       received = true;
       clearTimeout(timeout);
       connecting = false;
@@ -259,9 +273,43 @@ function connect(automatic = false) {
     scheduleReconnect();
   };
 }
+function cancelConnection() {
+  retryAllowed = false;
+  clearTimeout(retryTimer);
+  retryTimer = undefined;
+  connecting = connected = joined = waiting = false;
+  const old = ws;
+  ws = null; // Invalidate every old handler before closing.
+  old?.close();
+  keys.clear();
+  joy = { x: 0, y: 0 };
+  mouseDown = boost = false;
+  state = world.state = null;
+  phase = "";
+  error = "";
+  resetLatency("未连接");
+  status("已取消连接");
+  showJoin();
+}
+function showWaiting(availableIn: unknown) {
+  status("等待加入 · 将自动进入");
+  if (phase !== "waiting") {
+    phase = "waiting";
+    app.className = "";
+    surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">NEXT RACE / 等待加入</div><h2>下一趟，等你一起出发。</h2><p id="wait-estimate" class="subtitle">预计加入时间：正在更新</p><p class="subtitle">已保留昵称和小车颜色。<br>有空位且返回大厅时，将自动加入。</p><button class="secondary" id="cancel-wait">取消等待</button></section></div>`;
+    document.querySelector<HTMLButtonElement>("#cancel-wait")!.onclick =
+      cancelConnection;
+  }
+  document.querySelector("#wait-estimate")!.textContent =
+    typeof availableIn === "number" && Number.isFinite(availableIn)
+      ? `预计约 ${Math.max(0, Math.ceil(availableIn))} 秒后可加入（以实际空位为准）`
+      : "车位已满，预计加入时间暂无法确定。有空位后将自动加入。";
+}
 function showJoin(disconnected = false) {
   app.className = "";
-  surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">COLLECT · BOOST · BANK</div><h1>小车大电量。<br>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>3 分钟轻松竞速，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><span class="field-label">挑一辆喜欢的小车</span><div class="colors">${COLORS.map((c) => `<button class="color ${c === color ? "selected" : ""}" data-color="${c}" style="background:${c}" aria-label="选择${c}小车" aria-pressed="${c === color}"></button>`).join("")}</div><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button><div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>冲刺撞落对手货物</div><div><b>03</b>进站存入得分</div></div></section></div>`;
+  surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">COLLECT · BOOST · BANK</div><h1>小车大电量。<br>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>3 分钟轻松竞速，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><span class="field-label">挑一辆喜欢的小车</span><div class="colors">${COLORS.map((c) => `<button class="color ${c === color ? "selected" : ""}" data-color="${c}" style="background:${c}" aria-label="选择${c}小车" aria-pressed="${c === color}"></button>`).join("")}</div><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button>${disconnected && retryAllowed ? '<button class="secondary" id="cancel-connect">取消自动重连</button>' : ""}<div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>冲刺撞落对手货物</div><div><b>03</b>进站存入得分</div></div></section></div>`;
+  const cancel = document.querySelector<HTMLButtonElement>("#cancel-connect");
+  if (cancel) cancel.onclick = cancelConnection;
   document.querySelector("#join")!.addEventListener("click", () => connect());
   document.querySelector("#nickname")!.addEventListener("keydown", (e) => {
     if ((e as KeyboardEvent).key === "Enter") connect();
@@ -485,7 +533,7 @@ window.addEventListener("pointercancel", () => {
 });
 // One outstanding ping at a time. Never infer RTT from snapshots or rendering.
 setInterval(() => {
-  if (document.hidden || !connected || !joined) return;
+  if (document.hidden || !connected || (!joined && !waiting)) return;
   const now = performance.now();
   if (
     (pendingPing && now - pendingPing.sent >= 5000) ||
