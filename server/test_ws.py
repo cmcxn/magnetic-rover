@@ -60,6 +60,39 @@ async def main():
         for _ in range(8):s=await recv(b,'state')
         p=next(p for p in s['players'] if p['id']==wa['id']);assert p['x']>x and p['score']==0
         assert all('token' not in p for p in s['players']);assert len(s['batteries'])>0
+        # Drain the first client's older snapshots, then stop before pickup checks.
+        await send(a,type='input',x=0,y=0,boost=False)
+        await send(a,type='ping',id=101);await recv(a,'pong')
+        for _ in range(4):s=await recv(a,'state')
+        p=player(s,wa['id']);pickup_before=p['pickupSeq'];cargo_before=p['cargo']
+        other_before=player(s,wb['id'])['pickupSeq']
+        assert isinstance(pickup_before,int) and pickup_before>=0
+        await send(a,type='input',x=0,y=0,boost=False,pickupSeq=999999)
+        for _ in range(3):s=await recv(a,'state')
+        assert player(s,wa['id'])['pickupSeq']==pickup_before,'client cannot forge pickupSeq'
+        # Target an actual snapshot battery, steering through authoritative state.
+        p=player(s,wa['id'])
+        target=min(s['batteries'],key=lambda battery:math.hypot(battery['x']-p['x'],battery['y']-p['y']))
+        async with asyncio.timeout(10):
+            while player(s,wa['id'])['pickupSeq']==pickup_before:
+                p=player(s,wa['id']);dx,dy=target['x']-p['x'],target['y']-p['y'];length=math.hypot(dx,dy)
+                await send(a,type='input',x=dx/max(length,1),y=dy/max(length,1),boost=False,pickupSeq=999999)
+                s=await recv(a,'state')
+        await send(a,type='input',x=0,y=0,boost=False)
+        p=player(s,wa['id']);collected=p['pickupSeq']-pickup_before
+        assert collected>0 and p['cargo']==cargo_before+collected,'sequence increments only with real collected cargo'
+        assert player(s,wb['id'])['pickupSeq']==other_before,'other player receives no pickup credit'
+        # Let the stop reach the server before recording the reconnect baseline.
+        for _ in range(4):s=await recv(a,'state')
+        saved_seq=player(s,wa['id'])['pickupSeq']
+        saved_cargo=player(s,wa['id'])['cargo']
+        await a.close();await asyncio.sleep(.15)
+        async with websockets.connect(URI) as resumed:
+            await send(resumed,type='join',name='ignored',color='#facc15',token=wa['token'])
+            welcome=await recv(resumed,'welcome');assert welcome['id']==wa['id']
+            resumed_state=await recv(resumed,'state');resumed_player=player(resumed_state,wa['id'])
+            assert resumed_player['pickupSeq']==saved_seq and resumed_player['cargo']==saved_cargo,'same identity reconnect snapshot preserves pickup baseline'
+        print('PASS real WS pickupSeq: forgery ignored, actual battery collection increments cargo/sequence, other player isolated, reconnect snapshot preserved')
         await b.close();await asyncio.sleep(.15)
         async with websockets.connect(URI) as c:
             await send(c,type='join',name='ignored',color='#facc15',token=wb['token']);w=await recv(c,'welcome');assert w['id']==wb['id']

@@ -1,0 +1,18 @@
+PASS game: pickup/deposit once, input validation, normalized movement, bounds, stale inputs, boost/drop protection, reconnect, timeout, finish/restart
+PASS limits: 8 guests, UTF-8 sanitization, six-color allowlist, station spawn exclusion, last-ten-seconds refill stop, shared ties, token privacy, full 180-second simulated match
+PASS mechanics: cargo cap, loaded speed, boost speed and cooldown spam rejection
+PASS regressions: abandoned lobby frees slots; simultaneous station boost collisions are order-independent
+PASS overlapping stationary boost does not attack; station safe-zone deposits both full cargo
+PASS pickupSeq: authoritative per-battery increments, same-tick batches, cap, deposits, drops, locks, per-player isolation, reconnect baseline and rematch reset
+PASS boost-hit and cargo regressions
+PASS exact dash duration, simultaneous multi-hit, station push boundary, no knockback chain, recovery protection
+PASS monotonic clock: no cumulative drift, exact finish boundary, bounded catchup, stale-input expiry, cooldown expiry, no post-deadline motion, rematch deadline, backwards-clock clamp
+PASS stalled boost cannot apply an expired attack
+PASS disconnect clock: paused service then immediate reconnect preserves cargo, fresh ten-second grace expires correctly
+PASS collision regressions: ordinary/boost amounts, static/separating/following rejection, safe zones, simultaneous fairness, contact hysteresis and immunity
+PASS lifecycle: ten-second cargo removal preserves identity, live token protected, empty finished reset honors grace and connected results viewer
+PASS latency protocol: bounded integer IDs, exact echo, two replies/sec per peer, malformed rejection
+PASS admission: bounded FIFO, truthful estimates, invalid rejection, automatic one-time join, cancellation cleanup, old token priority, live-token protection and full room
+PASS real WS idle forward dash, forged heading/speed ignored, cooldown spam, authoritative hit sequence, stun movement/boost rejection
+PASS real WS pickupSeq: forgery ignored, actual battery collection increments cargo/sequence, other player isolated, reconnect snapshot preserved
+PASS two real WebSocket clients: UTF-8 guests, unique opaque tokens, arrays, minimum players, live-token takeover rejected, authoritative movement, cheat rejection, shared snapshots, reconnect identity

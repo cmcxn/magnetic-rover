@@ -122,6 +122,12 @@ function harness(search = "", options = {}) {
       }
     },
     World: class {
+      pickupFeedback(n) {
+        this.pickups = [...(this.pickups ?? []), n];
+      }
+      clearPickupFeedback() {
+        this.clears = (this.clears ?? 0) + 1;
+      }
       boostFeedback() {
         this.boostCount = (this.boostCount ?? 0) + 1;
       }
@@ -678,4 +684,69 @@ test("menus and mouse do not start touch driving; the next touch picks a new ori
   h.dispatch("#game:pointerdown", touch(5, 250, 450));
   assert.equal(h.node("#joystick").style.left, "250px");
   assert.equal(h.node("#joystick").style.top, "450px");
+});
+
+test("pickup feedback uses local authoritative counts, silently baselines reconnects and ignores hidden events", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  playing(h, { pickupSeq: 12, cargo: 12 });
+  assert.equal(h.context.testWorld.pickups, undefined);
+  playing(h, { pickupSeq: 12, cargo: 19 });
+  assert.equal(h.context.testWorld.pickups, undefined);
+  playing(h, { pickupSeq: 15, cargo: 2 });
+  assert.deepEqual(Array.from(h.context.testWorld.pickups), [3]);
+  h.visibility(true);
+  const clears = h.context.testWorld.clears;
+  assert.ok(clears > 0, "background must clear an in-flight effect");
+  playing(h, { pickupSeq: 17, cargo: 4 });
+  h.visibility(false);
+  playing(h, { pickupSeq: 17, cargo: 4 });
+  assert.deepEqual(Array.from(h.context.testWorld.pickups), [3]);
+  socket.close();
+  h.tick(2000);
+  welcome(h);
+  playing(h, { pickupSeq: 20, cargo: 7 });
+  assert.deepEqual(Array.from(h.context.testWorld.pickups), [3]);
+  playing(h, { pickupSeq: 21, cargo: 8 });
+  assert.deepEqual(Array.from(h.context.testWorld.pickups), [3, 1]);
+});
+
+test("canceled boost touch and resize discard queued dash; normal up keeps the intended tap", () => {
+  for (const ending of [
+    "pointercancel",
+    "lostpointercapture",
+    "resize",
+    "pointerup",
+  ]) {
+    const h = harness();
+    h.connect();
+    const socket = welcome(h);
+    playing(h, {});
+    h.dispatch("#game:pointerdown", touch(1, 20, 400));
+    h.dispatch("pointermove", touch(1, 58, 400));
+    h.dispatch("#boost:pointerdown", touch(2));
+    h.dispatch(ending, touch(2));
+    h.tick(50);
+    const input = socket.sent.filter((x) => x.type === "input").at(-1);
+    assert.equal(input.boost, ending === "pointerup", ending);
+    assert.equal(input.x, ending === "resize" ? 0 : 1, ending);
+  }
+});
+
+test("movement-owner cancellation clears a queued dash without treating normal release as cancellation", () => {
+  for (const ending of ["pointercancel", "lostpointercapture", "pointerup"]) {
+    const h = harness();
+    h.connect();
+    const socket = welcome(h);
+    playing(h, {});
+    h.dispatch("#game:pointerdown", touch(1, 20, 400));
+    h.dispatch("pointermove", touch(1, 58, 400));
+    h.dispatch("#boost:pointerdown", touch(2));
+    h.dispatch(ending, touch(1));
+    h.tick(50);
+    const input = socket.sent.filter((x) => x.type === "input").at(-1);
+    assert.equal(input.boost, ending === "pointerup", ending);
+    assert.equal(input.x, 0, ending);
+  }
 });

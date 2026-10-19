@@ -1,0 +1,68 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> magnetic-rover-client@0.1.0 test
+> node --test tests/*.test.mjs
+
+✔ authoritative hit sequence plays collision sound even with zero cargo (58.825819ms)
+✔ boost sound is stronger than routine effects and ends within 320 milliseconds with a fade (12.815451ms)
+✔ pickup audio follows authority even if cargo falls, ignores cargo-only increases and initial snapshots (11.414842ms)
+✔ pickup sample has a short fade and rapid events cannot stack sources (10.656285ms)
+✔ normalizes diagonal keyboard input to unit speed (0.985283ms)
+✔ preserves joystick partial deflection (0.842842ms)
+✔ idle input stays zero, large mouse vectors stay bounded (0.129031ms)
+✔ nickname and URL markup are escaped (0.254888ms)
+✔ color choices match authoritative allowlist (0.213196ms)
+✔ tokens use canonical, isolated server keys (0.274989ms)
+✔ server addresses reject credentials, fragments and mixed content (0.353395ms)
+✔ ties share ranking without eliminating skipped ranks (0.130013ms)
+✔ mobile landscape and portrait follow the car at legible scale (0.240357ms)
+✔ desktop full arena and coarse-pointer tablet camera policies (0.22215ms)
+✔ pickup sequence delta never credits another player, baseline, reset or unsupported server (0.372603ms)
+✔ connection handlers isolate server tokens and never transmit legacy global token (5.251038ms)
+✔ stale socket onopen and onerror cannot mutate the replacement connection (1.188685ms)
+✔ join error survives close and renders a retry screen without dropping token (1.409443ms)
+✔ invalid socket URL is rejected before construction and connection remains retryable (2.852417ms)
+✔ default WebSocket uses the actual page port (0.954788ms)
+✔ default HUD measures actual matching pong RTT, ignores duplicates and expires stale values (1.418276ms)
+✔ hide invalidates RTT, foreground reconnects once with pinned endpoint and scoped token (1.19869ms)
+✔ network close retries, but rejected join stops automatic retries (1.139152ms)
+✔ pong from replaced socket cannot restore old RTT (1.03722ms)
+✔ waiting join shows estimate, stays alive, and accepts welcome without sending join again (1.269926ms)
+✔ waiting full has no invented ETA; cancel stops retries and invalidates old socket (1.052093ms)
+✔ cancel during reconnect backoff prevents the scheduled attempt and foreground retry (0.859206ms)
+✔ waiting connections measure pong RTT and hidden late pong cannot revive it (0.949951ms)
+✔ finished screen explains automatic return countdown (1.04335ms)
+✔ debug diagnostics are opt-in and snapshots never become network RTT (1.556501ms)
+✔ automatic reconnect retries a transient old-socket guest conflict until release (0.959075ms)
+✔ manual duplicate guest conflict does not retry or take over (0.849641ms)
+✔ authoritative hit sequence notifies empty-cargo driver and stun blocks boost inputs (1.366048ms)
+✔ reduced-effects toggle persists choice and updates renderer (0.903882ms)
+✔ system reduced motion defaults on and suppresses haptics while preserving boost renderer event (1.404386ms)
+✔ boost haptics use 25ms once per authoritative activation and tolerate denied vibration (1.210348ms)
+✔ hit notice expires with the one-second stun rather than lingering as a stale warning (0.890072ms)
+✔ disconnect suspends retained snapshot effects until a fresh state (1.079353ms)
+✔ floating joystick owns one touch, supports boost on a second finger, and resets on every interruption (1.457134ms)
+✔ menus and mouse do not start touch driving; the next touch picks a new origin (1.175666ms)
+✔ pickup feedback uses local authoritative counts, silently baselines reconnects and ignores hidden events (1.554339ms)
+✔ canceled boost touch and resize discard queued dash; normal up keeps the intended tap (4.940427ms)
+✔ movement-owner cancellation clears a queued dash without treating normal release as cancellation (3.143298ms)
+✔ first touch is neutral origin; only owning pointer moves or ends joystick (1.229947ms)
+✔ garden background is rasterized once and not redrawn on every frame (3.955905ms)
+✔ self converges faster than remote without extrapolating authoritative positions (1.976025ms)
+✔ mobile camera uses the same current smoothed self position as the car (1.580938ms)
+✔ debug FPS measures render frames over elapsed time separately from network (3.222656ms)
+✔ compact cargo rack displays one distinct battery for each cargo from 1 through 20 (25.770871ms)
+✔ authoritative boost draws tail flames even with reduced effects (4.659339ms)
+✔ boost shake lasts 100 ms and reduced effects disables it (1.655829ms)
+✔ only local rover label exposes exact cargo capacity and full-load state (7.978388ms)
+✔ finished snapshots never render retained boost flame (1.560217ms)
+✔ disconnected or stale snapshot cannot animate retained tail flame (2.613952ms)
+✔ local pickup feedback aggregates into one +N label, reduced motion keeps text but no particles, stale effects clear (1.475041ms)
+ℹ tests 55
+ℹ suites 0
+ℹ pass 55
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 523.453053

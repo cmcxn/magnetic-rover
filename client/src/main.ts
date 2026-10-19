@@ -5,6 +5,7 @@ import "./style.css";
 import { World } from "./world";
 import {
   FloatingJoystick,
+  pickupCount,
   COLORS,
   escape,
   normalize,
@@ -58,6 +59,7 @@ let state: State | null = null,
   lastState = 0;
 const keys = new Set<string>();
 const joystick = new FloatingJoystick();
+let boostPointer: number | null = null;
 let session: { name: string; url: string; color: string } | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 let retryAttempt = 0,
@@ -169,6 +171,7 @@ function connect(automatic = false) {
   waiting = false;
   connected = false;
   state = null;
+  world.clearPickupFeedback();
   phase = "";
   keys.clear();
   resetJoystick();
@@ -294,7 +297,9 @@ function connect(automatic = false) {
         if (current.hitSeq > (previous.hitSeq ?? 0))
           notice("被撞！眩晕1秒", 1000);
       }
-      sounds.update(state, data, id);
+      const collected = pickupCount(state, data, id);
+      if (!document.hidden && collected > 0) world.pickupFeedback(collected);
+      if (!document.hidden) sounds.update(state, data, id);
       state = data;
       lastState = performance.now();
       snapshotInterval =
@@ -313,6 +318,7 @@ function connect(automatic = false) {
     clearTimeout(timeout);
     if (socket !== ws) return;
     world.liveEffects = false;
+    world.clearPickupFeedback();
     connected = false;
     connecting = false;
     joined = false;
@@ -339,6 +345,7 @@ function cancelConnection() {
   resetJoystick();
   mouseDown = boost = false;
   state = world.state = null;
+  world.clearPickupFeedback();
   phase = "";
   error = "";
   resetLatency("未连接");
@@ -524,6 +531,7 @@ function wireControls() {
   document.querySelector("#boost")!.addEventListener("pointerdown", (e) => {
     e.preventDefault();
     boost = true;
+    boostPointer = (e as PointerEvent).pointerId;
   });
 }
 window.addEventListener("keydown", (e) => {
@@ -543,6 +551,7 @@ window.addEventListener("blur", () => {
 });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
+    world.clearPickupFeedback();
     clearTimeout(retryTimer);
     retryTimer = undefined;
     resetLatency("后台");
@@ -624,9 +633,23 @@ for (const event of [
   "lostpointercapture",
 ] as const)
   window.addEventListener(event, (e) => {
-    if (e.pointerId === joystick.owner) resetJoystick();
+    if (e.pointerId === joystick.owner) {
+      resetJoystick();
+      if (event !== "pointerup") {
+        boost = false;
+        boostPointer = null;
+      }
+    }
+    if (e.pointerId === boostPointer) {
+      if (event !== "pointerup") boost = false;
+      boostPointer = null;
+    }
   });
-window.addEventListener("resize", resetJoystick);
+window.addEventListener("resize", () => {
+  resetJoystick();
+  boost = false;
+  boostPointer = null;
+});
 // One outstanding ping at a time. Never infer RTT from snapshots or rendering.
 setInterval(() => {
   if (debug) {

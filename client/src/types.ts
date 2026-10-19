@@ -11,6 +11,7 @@ export interface Player {
   boost: number;
   stun: number;
   hitSeq: number;
+  pickupSeq: number;
   connected: boolean;
 }
 export interface State {
@@ -107,4 +108,17 @@ export class FloatingJoystick {
     this.owner = null;
     this.value = { x: 0, y: 0 };
   }
+}
+
+/** Missing/initial/reset snapshots establish a silent baseline, never a reward. */
+export function pickupCount(prev: State | null, next: State, id: string) {
+  if (prev?.phase !== "playing" || next.phase !== "playing") return 0;
+  const a = prev.players.find((p) => p.id === id)?.pickupSeq;
+  const b = next.players.find((p) => p.id === id)?.pickupSeq;
+  return Number.isSafeInteger(a) &&
+    Number.isSafeInteger(b) &&
+    a! >= 0 &&
+    b! > a!
+    ? b! - a!
+    : 0;
 }

@@ -1,4 +1,4 @@
-import type { State } from "./types";
+import { pickupCount, type State } from "./types";
 const names = [
   "pickup",
   "boost",
@@ -40,21 +40,22 @@ export class Sounds {
       !c ||
       !b ||
       c.state !== "running" ||
-      performance.now() - (this.last.get(n) ?? -1000) < 180
+      performance.now() - (this.last.get(n) ?? -1000) <
+        (n === "pickup" ? 240 : 180)
     )
       return;
     this.last.set(n, performance.now());
     const src = c.createBufferSource(),
       gain = c.createGain();
     src.buffer = b;
-    gain.gain.value = n === "pickup" ? 0.18 : n === "boost" ? 0.34 : 0.24;
+    gain.gain.value = n === "pickup" ? 0.25 : n === "boost" ? 0.34 : 0.24;
     src.connect(gain);
     gain.connect(c.destination);
-    if (n === "boost") {
-      const duration = Math.min(0.28, b.duration);
-      gain.gain.setValueAtTime(0.34, c.currentTime);
+    if (n === "boost" || n === "pickup") {
+      const duration = Math.min(n === "pickup" ? 0.22 : 0.28, b.duration);
+      gain.gain.setValueAtTime(gain.gain.value, c.currentTime);
       gain.gain.setValueAtTime(
-        0.34,
+        gain.gain.value,
         c.currentTime + Math.max(0, duration - 0.06),
       );
       gain.gain.linearRampToValueAtTime(0, c.currentTime + duration);
@@ -74,7 +75,7 @@ export class Sounds {
       return;
     if (b.score > a.score) this.play("deposit");
     else if (b.hitSeq > (a.hitSeq ?? 0)) this.play("hit");
-    else if (b.cargo > a.cargo) this.play("pickup");
+    if (pickupCount(prev, next, id) > 0) this.play("pickup");
     if (b.cooldown > a.cooldown + 0.2) this.play("boost");
     if (
       Math.ceil(next.remaining) < Math.ceil(prev.remaining) &&

@@ -223,3 +223,43 @@ test("disconnected or stale snapshot cannot animate retained tail flame", () => 
     );
   }
 });
+test("local pickup feedback aggregates into one +N label, reduced motion keeps text but no particles, stale effects clear", () => {
+  const { w, calls } = harness();
+  assert.equal(typeof w.pickupFeedback, "function");
+  w.self = "self";
+  w.reducedEffects = true;
+  w.state = {
+    phase: "playing",
+    players: [
+      {
+        id: "self",
+        x: 0,
+        y: 0,
+        angle: 0,
+        color: "#38bdf8",
+        cargo: 3,
+        name: "car",
+        connected: true,
+      },
+    ],
+    stations: [],
+    batteries: [],
+  };
+  w.pickupFeedback(1);
+  w.pickupFeedback(2);
+  w.update(0, 16);
+  assert.ok(calls.some((c) => c.key === "setText" && c.args[0] === "⚡ +3"));
+  assert.equal(
+    calls.filter((c) => c.key === "fillStyle" && c.args[0] === 0xffe66d).length,
+    0,
+  );
+  calls.length = 0;
+  w.reducedEffects = false;
+  w.update(16, 16);
+  assert.ok(calls.some((c) => c.key === "fillStyle" && c.args[0] === 0xffe66d));
+  w.liveEffects = false;
+  calls.length = 0;
+  w.update(32, 16);
+  assert.equal(w.pickupRemaining, 0);
+  assert.ok(calls.some((c) => c.key === "setVisible" && c.args[0] === false));
+});

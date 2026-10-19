@@ -38,3 +38,18 @@ Player snapshots add numeric `boost` and `stun` remaining seconds, and `hitSeq`
 (monotonic within a match, reset on rematch). Client feedback reacts to server
 confirmation. Reduced effects disables shake/haptics and keeps readable dash/hit
 indicators; native vibration is optional and failure-safe.
+
+## Authoritative pickup feedback
+
+Player snapshots add integer `pickupSeq`, initialized to 0 for a new guest. The
+server increments it once for each battery actually collected by that player,
+including multiple batteries collected in one simulation tick. Full cargo (20),
+locked or out-of-range batteries, deposits, dropped cargo, and another player's
+pickups do not increment it. It can exceed 20 as cargo is delivered and collected
+again. Same-match reconnects preserve the sequence, including reconnects after
+cargo removal; returning to the lobby for a new match resets it to 0.
+
+Clients use only the local player's positive `pickupSeq` delta for pickup rewards,
+never a cargo delta. Establish a silent baseline on the first snapshot of each
+connection and after a sequence reset or phase transition; reconnect snapshots
+must not replay previous pickups. A non-increasing sequence produces no reward.

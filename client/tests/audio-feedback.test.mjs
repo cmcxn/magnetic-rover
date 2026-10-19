@@ -3,12 +3,14 @@ import test from "node:test";
 import vm from "node:vm";
 import fs from "node:fs";
 import ts from "typescript";
+import { pickupCount } from "../src/types.ts";
 const source = fs
   .readFileSync(new URL("../src/audio.ts", import.meta.url), "utf8")
   .replace(/^import .*;$/gm, "")
   .replace("export class Sounds", "class Sounds");
 function harness() {
   const context = {
+    pickupCount,
     localStorage: { getItem: () => null },
     performance: { now: () => 1000 },
   };
@@ -66,4 +68,49 @@ test("boost sound is stronger than routine effects and ends within 320 milliseco
   assert.ok(gain.gain.value > 0.24 && gain.gain.value <= 0.4);
   assert.ok(stops[0] > 10 && stops[0] <= 10.32);
   assert.ok(ramps.some((a) => a[0] === 0 && a[1] <= 10.32));
+});
+test("pickup audio follows authority even if cargo falls, ignores cargo-only increases and initial snapshots", () => {
+  const sounds = harness(),
+    played = [];
+  sounds.play = (n) => played.push(n);
+  const state = (pickupSeq, cargo = 0) => ({
+    phase: "playing",
+    remaining: 80,
+    players: [{ id: "p", pickupSeq, cargo, score: 0, cooldown: 0, hitSeq: 0 }],
+  });
+  sounds.update(null, state(9), "p");
+  sounds.update(state(9), state(9, 5), "p");
+  assert.deepEqual(played, []);
+  sounds.update(state(9, 5), state(12, 1), "p");
+  assert.deepEqual(played, ["pickup"]);
+  sounds.update(state(12), state(0), "p");
+  sounds.update(state(0), state(1), "other");
+  assert.deepEqual(played, ["pickup"]);
+});
+test("pickup sample has a short fade and rapid events cannot stack sources", () => {
+  const sounds = harness(),
+    starts = [],
+    stops = [];
+  sounds.context = {
+    currentTime: 10,
+    state: "running",
+    createBufferSource: () => ({
+      connect() {},
+      start() {
+        starts.push(1);
+      },
+      stop(t) {
+        stops.push(t);
+      },
+    }),
+    createGain: () => ({
+      gain: { value: 0, setValueAtTime() {}, linearRampToValueAtTime() {} },
+      connect() {},
+    }),
+  };
+  sounds.buffers.set("pickup", { duration: 1 });
+  sounds.play("pickup");
+  sounds.play("pickup");
+  assert.equal(starts.length, 1);
+  assert.ok(stops[0] <= 10.24);
 });

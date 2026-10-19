@@ -65,3 +65,21 @@ test("desktop full arena and coarse-pointer tablet camera policies", () => {
   assert.equal(cameraPolicy(1366, 768).follows, false);
   assert.equal(cameraPolicy(1366, 768, true).follows, true);
 });
+
+test("pickup sequence delta never credits another player, baseline, reset or unsupported server", async () => {
+  const { pickupCount } = await import("../src/types.ts");
+  const state = (self, other, phase = "playing") => ({
+    phase,
+    players: [
+      { id: "self", pickupSeq: self },
+      { id: "other", pickupSeq: other },
+    ],
+  });
+  assert.equal(pickupCount(null, state(12, 4), "self"), 0);
+  assert.equal(pickupCount(state(12, 4), state(12, 8), "self"), 0);
+  assert.equal(pickupCount(state(12, 4), state(15, 8), "self"), 3);
+  assert.equal(pickupCount(state(12, 4), state(0, 8), "self"), 0);
+  assert.equal(pickupCount(state(undefined, 4), state(2, 8), "self"), 0);
+  assert.equal(pickupCount(state(12, 4, "lobby"), state(13, 8), "self"), 0);
+  assert.equal(pickupCount(state(12, 4), state(13, 8, "finished"), "self"), 0);
+});

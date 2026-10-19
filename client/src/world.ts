@@ -23,6 +23,19 @@ export class World extends Phaser.Scene {
   constructor() {
     super("world");
   }
+  private pickupRemaining = 0;
+  private pickupTotal = 0;
+  private pickupLabel?: Phaser.GameObjects.Text;
+  clearPickupFeedback() {
+    this.pickupRemaining = this.pickupTotal = 0;
+    this.pickupLabel?.setVisible(false);
+  }
+  pickupFeedback(count: number) {
+    if (!Number.isSafeInteger(count) || count <= 0) return;
+    this.pickupTotal =
+      (this.pickupRemaining > 0 ? this.pickupTotal : 0) + count;
+    this.pickupRemaining = 650;
+  }
   boostFeedback() {
     if (!this.reducedEffects) this.cameras?.main.shake(100, 0.002);
   }
@@ -157,6 +170,10 @@ export class World extends Phaser.Scene {
       this.effectAge <= 500 &&
       this.state?.phase === "playing";
     if (!effectsActive) this.cameras?.main.shakeEffect?.reset();
+    this.pickupRemaining = effectsActive
+      ? Math.max(0, this.pickupRemaining - delta)
+      : 0;
+    this.pickupLabel?.setVisible(false);
     const g = this.g;
     g.clear();
     this.spriteIds.clear();
@@ -362,6 +379,48 @@ export class World extends Phaser.Scene {
           `${p.name}${p.id === this.self ? ` · 你\n${cargo >= 20 ? "满载" : "⚡ "}${cargo}/20` : ""}${p.stun > 0 ? " · 眩晕" : ""}`,
         );
       label.setVisible(this.state?.phase === "playing");
+    }
+    if (me?.connected && this.pickupRemaining > 0) {
+      const v = this.smooth.get(me.id) ?? me;
+      const progress = 1 - this.pickupRemaining / 650;
+      if (!this.reducedEffects) {
+        // Six warm sparks converge onto the local rover, never one emitter per battery.
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * Math.PI) / 3;
+          const radius = 14 + 46 * (1 - progress);
+          circle(
+            v.x + Math.cos(angle) * radius,
+            v.y + Math.sin(angle) * radius,
+            2 + 2 * (1 - progress),
+            0xffe66d,
+            1 - progress,
+          );
+        }
+        g.lineStyle(3, 0xffe66d, (1 - progress) * 0.7);
+        g.strokeCircle(v.x, v.y, 24 + 12 * (1 - progress));
+      }
+      if (!this.pickupLabel)
+        this.pickupLabel = this.add
+          .text(0, 0, "", {
+            fontFamily: "sans-serif",
+            fontSize: "22px",
+            fontStyle: "bold",
+            color: "#fff3a5",
+            stroke: "#426347",
+            strokeThickness: 4,
+          })
+          .setOrigin(0.5, 1)
+          .setDepth(12);
+      this.pickupLabel
+        .setText(`⚡ +${this.pickupTotal}`)
+        .setPosition(
+          this.ox + v.x * s,
+          this.oy + (v.y - 78) * s - (this.reducedEffects ? 0 : progress * 18),
+        )
+        .setAlpha(
+          this.reducedEffects ? 1 : Math.min(1, this.pickupRemaining / 180),
+        )
+        .setVisible(true);
     }
     for (const [key, image] of this.sprites)
       if (!this.spriteIds.has(key)) {
