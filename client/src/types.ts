@@ -8,6 +8,9 @@ export interface Player {
   cargo: number;
   score: number;
   cooldown: number;
+  boost: number;
+  stun: number;
+  hitSeq: number;
   connected: boolean;
 }
 export interface State {

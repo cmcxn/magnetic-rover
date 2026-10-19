@@ -699,3 +699,25 @@ details input {
   white-space: nowrap;
   pointer-events: none;
 }
+
+.stun-status {
+  position: fixed;
+  left: 50%;
+  top: 28%;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  border: 2px solid #b45e36;
+  border-radius: 14px;
+  background: #fff3d9;
+  color: #833c24;
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.stun-status:empty {
+  display: none;
+}
+.controls {
+  flex-wrap: wrap;
+  max-width: calc(100vw - 28px);
+}

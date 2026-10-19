@@ -32,7 +32,7 @@ const compiled = ts.transpileModule(
   },
 ).outputText;
 
-function harness(search = "") {
+function harness(search = "", options = {}) {
   const nodes = new Map();
   let now = 0,
     nextTimer = 0;
@@ -52,7 +52,17 @@ function harness(search = "") {
         innerHTML: "",
         textContent: "",
         style: {},
-        classList: { toggle() {}, add() {}, remove() {} },
+        getContext: () => null,
+        classList: {
+          values: new Set(),
+          toggle() {},
+          add(v) {
+            this.values.add(v);
+          },
+          remove(v) {
+            this.values.delete(v);
+          },
+        },
         addEventListener() {},
       });
     return nodes.get(selector);
@@ -87,7 +97,11 @@ function harness(search = "") {
         return Promise.resolve();
       }
     },
-    World: class {},
+    World: class {
+      boostFeedback() {
+        this.boostCount = (this.boostCount ?? 0) + 1;
+      }
+    },
     Phaser: { Game: class {}, AUTO: 0, Scale: { RESIZE: 0 } },
     localStorage: {
       getItem: (key) => storage.get(key) ?? null,
@@ -107,7 +121,14 @@ function harness(search = "") {
       hidden: false,
       addEventListener: (event, fn) => (listeners[event] = fn),
     },
-    window: { addEventListener: (event, fn) => (listeners[event] = fn) },
+    window: {
+      addEventListener: (event, fn) => (listeners[event] = fn),
+      matchMedia: () => ({
+        matches: !!options.reducedMotion,
+        addEventListener() {},
+      }),
+    },
+    navigator: { vibrate: options.vibrate ?? (() => {}) },
     URLSearchParams,
     URL,
     Error,
@@ -124,7 +145,7 @@ function harness(search = "") {
   vm.createContext(context);
   vm.runInContext(
     compiled +
-      "\n;globalThis.testConnect = connect; globalThis.testDefaultUrl = defaultUrl;",
+      "\n;globalThis.testConnect = connect; globalThis.testDefaultUrl = defaultUrl; globalThis.testWorld = world;",
     context,
   );
   return {
@@ -450,4 +471,116 @@ test("manual duplicate guest conflict does not retry or take over", () => {
   h.tick(30000);
   assert.equal(h.sockets.length, 1);
   assert.match(h.node("#surface").innerHTML, /Guest already connected/);
+});
+
+function playing(h, player) {
+  h.sockets.at(-1).onmessage({
+    data: JSON.stringify({
+      type: "state",
+      phase: "playing",
+      remaining: 120,
+      players: [
+        {
+          id: "p1",
+          name: "car",
+          color: "#38bdf8",
+          x: 0,
+          y: 0,
+          cargo: 0,
+          score: 0,
+          cooldown: 0,
+          boost: 0,
+          stun: 0,
+          hitSeq: 0,
+          ...player,
+        },
+      ],
+      batteries: [],
+      stations: [],
+    }),
+  });
+}
+test("authoritative hit sequence notifies empty-cargo driver and stun blocks boost inputs", () => {
+  const h = harness();
+  h.connect();
+  welcome(h);
+  playing(h, {});
+  playing(h, { hitSeq: 1, stun: 1 });
+  assert.match(h.node("#stun-status").textContent, /被撞！眩晕1秒/);
+  assert.equal(h.node("#boost").disabled, true);
+  h.tick(50);
+  const input = h.sockets
+    .at(-1)
+    .sent.filter((x) => x.type === "input")
+    .at(-1);
+  assert.equal(input.boost, false);
+  assert.equal(input.x, 0);
+  playing(h, { hitSeq: 1, stun: 0.6 });
+  assert.match(h.node("#stun-status").textContent, /0.6/);
+  playing(h, { hitSeq: 1, stun: 0 });
+  assert.equal(h.node("#boost").disabled, false);
+  assert.equal(h.node("#stun-status").textContent, "");
+});
+test("reduced-effects toggle persists choice and updates renderer", () => {
+  const h = harness();
+  h.connect();
+  welcome(h);
+  playing(h, {});
+  assert.match(h.node("#surface").innerHTML, /id="effects"/);
+  h.node("#effects").onclick();
+  assert.equal(h.storage.get("rover.reducedEffects"), "on");
+});
+
+test("system reduced motion defaults on and suppresses haptics while preserving boost renderer event", () => {
+  const vibrations = [];
+  const h = harness("", {
+    reducedMotion: true,
+    vibrate: (n) => vibrations.push(n),
+  });
+  h.connect();
+  welcome(h);
+  playing(h, {});
+  assert.equal(h.context.testWorld.reducedEffects, true);
+  playing(h, { cooldown: 4, boost: 0.32 });
+  assert.deepEqual(vibrations, []);
+  assert.equal(h.context.testWorld.boostCount, 1);
+  h.node("#effects").onclick();
+  assert.equal(h.context.testWorld.reducedEffects, false);
+  assert.equal(h.storage.get("rover.reducedEffects"), "off");
+});
+test("boost haptics use 25ms once per authoritative activation and tolerate denied vibration", () => {
+  const vibrations = [];
+  const h = harness("", {
+    vibrate: (n) => {
+      vibrations.push(n);
+      throw new Error("not supported");
+    },
+  });
+  h.connect();
+  welcome(h);
+  playing(h, {});
+  playing(h, { cooldown: 4, boost: 0.32 });
+  playing(h, { cooldown: 3.94, boost: 0.27 });
+  assert.deepEqual(vibrations, [25]);
+  assert.equal(h.context.testWorld.boostCount, 1);
+  assert.match(h.node("#boost").innerHTML, /3.9/);
+});
+
+test("hit notice expires with the one-second stun rather than lingering as a stale warning", () => {
+  const h = harness();
+  h.connect();
+  welcome(h);
+  playing(h, {});
+  playing(h, { hitSeq: 1, stun: 1 });
+  assert.equal(h.node("#notice").classList.values.has("hidden"), false);
+  h.tick(1000);
+  assert.equal(h.node("#notice").classList.values.has("hidden"), true);
+});
+test("disconnect suspends retained snapshot effects until a fresh state", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  playing(h, { boost: 0.2 });
+  socket.close();
+  assert.equal(h.context.testWorld.liveEffects, false);
 });

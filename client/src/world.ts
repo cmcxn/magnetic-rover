@@ -4,6 +4,10 @@ export class World extends Phaser.Scene {
   state: State | null = null;
   self = "";
   diagnostics = false;
+  reducedEffects = false;
+  liveEffects = true;
+  private effectSnapshot: State | null = null;
+  private effectAge = 0;
   fps: number | null = null;
   private frameCount = 0;
   private frameElapsed = 0;
@@ -18,6 +22,9 @@ export class World extends Phaser.Scene {
   oy = 0;
   constructor() {
     super("world");
+  }
+  boostFeedback() {
+    if (!this.reducedEffects) this.cameras?.main.shake(100, 0.002);
   }
   preload() {
     this.load.image("rover", "/assets/sprites/rover.png");
@@ -141,6 +148,15 @@ export class World extends Phaser.Scene {
         }
       }
     }
+    if (this.effectSnapshot !== this.state) {
+      this.effectSnapshot = this.state;
+      this.effectAge = 0;
+    } else this.effectAge += delta;
+    const effectsActive =
+      this.liveEffects &&
+      this.effectAge <= 500 &&
+      this.state?.phase === "playing";
+    if (!effectsActive) this.cameras?.main.shakeEffect?.reset();
     const g = this.g;
     g.clear();
     this.spriteIds.clear();
@@ -299,9 +315,32 @@ export class World extends Phaser.Scene {
         g.fillStyle(0xffffff, 0.85);
         g.fillTriangle(tip.x, tip.y, u.x, u.y, d.x, d.y);
       }
-      for (let k = 0; k < Math.min(p.cargo, 5); k++) {
-        const t = rot(-25 - k * 5, Math.sin(k) * 4);
-        circle(t.x, t.y, 3.5, 0xedc34f);
+      // Four columns across the rack, five rows behind the car: one cell per battery.
+      const cargo = Math.min(20, Math.max(0, Math.floor(p.cargo)));
+      if (cargo > 0) {
+        box(-39, 0, 29, 28, 0x476355);
+        for (let k = 0; k < cargo; k++) {
+          const x = -28 - Math.floor(k / 4) * 5.5;
+          const y = -9 + (k % 4) * 6;
+          box(x, y, 4.5, 5, 0xedc34f);
+          box(x + 1, y - 1, 1, 2.5, 0xfff8d4);
+        }
+      }
+      if (effectsActive && p.boost > 0) {
+        const tail = cargo > 0 ? -54 : -23;
+        const length = this.reducedEffects
+          ? 20
+          : 24 + Math.sin(_time * 0.045) * 4;
+        const flame = (width: number, len: number, col: number) => {
+          const a = rot(tail, -width),
+            b = rot(tail - len, 0),
+            c = rot(tail, width);
+          g.fillStyle(col);
+          g.fillTriangle(a.x, a.y, b.x, b.y, c.x, c.y);
+        };
+        flame(9, length, 0xff7a32);
+        flame(5, length * 0.7, 0xffdb69);
+        flame(2.5, length * 0.35, 0xfff8dc);
       }
       let label = this.labels.get(p.id);
       if (!label) {
@@ -320,7 +359,7 @@ export class World extends Phaser.Scene {
       label
         .setPosition(this.ox + v.x * s, this.oy + (v.y - 34) * s)
         .setText(
-          `${p.name}${p.id === this.self ? " · 你" : ""}${p.cargo ? "  ⚡" + p.cargo : ""}`,
+          `${p.name}${p.id === this.self ? ` · 你\n${cargo >= 20 ? "满载" : "⚡ "}${cargo}/20` : ""}${p.stun > 0 ? " · 眩晕" : ""}`,
         );
       label.setVisible(this.state?.phase === "playing");
     }

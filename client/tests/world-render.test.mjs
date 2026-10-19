@@ -124,3 +124,102 @@ test("debug FPS measures render frames over elapsed time separately from network
   for (let i = 0; i < 50; i++) w.update(i * 20, 20);
   assert.equal(w.fps, 50);
 });
+
+function renderCar(cargo, boost = 0, angle = 0, reducedEffects = false) {
+  const h = harness();
+  h.w.reducedEffects = reducedEffects;
+  h.w.state = {
+    phase: "playing",
+    players: [
+      {
+        id: "p",
+        name: "car",
+        x: 0,
+        y: 0,
+        angle,
+        color: "#38bdf8",
+        cargo,
+        boost,
+        connected: true,
+      },
+    ],
+    stations: [],
+    batteries: [],
+  };
+  h.calls.length = 0;
+  h.w.update(100, 16);
+  return h;
+}
+test("compact cargo rack displays one distinct battery for each cargo from 1 through 20", () => {
+  for (let n = 1; n <= 20; n++) {
+    const { calls } = renderCar(n);
+    const cells = calls.filter(
+      (c) => c.key === "fillStyle" && c.args[0] === 0xedc34f,
+    );
+    assert.equal(cells.length, n);
+  }
+});
+test("authoritative boost draws tail flames even with reduced effects", () => {
+  for (const reduced of [false, true]) {
+    const { calls } = renderCar(20, 0.32, Math.PI / 2, reduced);
+    assert.ok(
+      calls.some((c) => c.key === "fillStyle" && c.args[0] === 0xff7a32),
+    );
+    assert.ok(
+      !renderCar(20, 0).calls.some(
+        (c) => c.key === "fillStyle" && c.args[0] === 0xff7a32,
+      ),
+    );
+  }
+});
+test("boost shake lasts 100 ms and reduced effects disables it", () => {
+  const { w } = harness();
+  const shakes = [];
+  w.cameras = { main: { shake: (...args) => shakes.push(args) } };
+  assert.equal(typeof w.boostFeedback, "function");
+  w.boostFeedback();
+  assert.deepEqual(shakes, [[100, 0.002]]);
+  w.reducedEffects = true;
+  w.boostFeedback();
+  assert.equal(shakes.length, 1);
+});
+test("only local rover label exposes exact cargo capacity and full-load state", () => {
+  for (const n of [0, 7, 20]) {
+    const { calls } = renderCar(n);
+    const remoteLabel = calls.find(
+      (c) => c.kind === "text" && c.key === "setText",
+    ).args[0];
+    assert.doesNotMatch(remoteLabel, /\d+\/20|⚡|满载/);
+    const { w, calls: localCalls } = renderCar(n);
+    w.self = "p";
+    localCalls.length = 0;
+    w.update(116, 16);
+    const label = localCalls.find(
+      (c) => c.kind === "text" && c.key === "setText",
+    ).args[0];
+    assert.match(label, new RegExp(`${n}/20`));
+    if (n === 20) assert.match(label, /满载/);
+  }
+});
+test("finished snapshots never render retained boost flame", () => {
+  const { w, calls } = renderCar(20, 0.2);
+  w.state.phase = "finished";
+  calls.length = 0;
+  w.update(116, 16);
+  assert.equal(
+    calls.some((c) => c.key === "fillStyle" && c.args[0] === 0xff7a32),
+    false,
+  );
+});
+test("disconnected or stale snapshot cannot animate retained tail flame", () => {
+  for (const stale of [false, true]) {
+    const { w, calls } = renderCar(20, 0.2);
+    if (!stale) w.liveEffects = false;
+    calls.length = 0;
+    w.update(1000, 600);
+    assert.equal(
+      calls.some((c) => c.key === "fillStyle" && c.args[0] === 0xff7a32),
+      false,
+    );
+  }
+});

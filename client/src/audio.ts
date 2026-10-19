@@ -47,10 +47,20 @@ export class Sounds {
     const src = c.createBufferSource(),
       gain = c.createGain();
     src.buffer = b;
-    gain.gain.value = n === "pickup" ? 0.18 : 0.24;
+    gain.gain.value = n === "pickup" ? 0.18 : n === "boost" ? 0.34 : 0.24;
     src.connect(gain);
     gain.connect(c.destination);
-    src.start();
+    if (n === "boost") {
+      const duration = Math.min(0.28, b.duration);
+      gain.gain.setValueAtTime(0.34, c.currentTime);
+      gain.gain.setValueAtTime(
+        0.34,
+        c.currentTime + Math.max(0, duration - 0.06),
+      );
+      gain.gain.linearRampToValueAtTime(0, c.currentTime + duration);
+      src.start();
+      src.stop(c.currentTime + duration);
+    } else src.start();
   }
   update(prev: State | null, next: State, id: string) {
     if (!prev) return;
@@ -63,7 +73,7 @@ export class Sounds {
     if (next.phase !== "playing" || prev.phase !== "playing" || !a || !b)
       return;
     if (b.score > a.score) this.play("deposit");
-    else if (b.cargo < a.cargo) this.play("hit");
+    else if (b.hitSeq > (a.hitSeq ?? 0)) this.play("hit");
     else if (b.cargo > a.cargo) this.play("pickup");
     if (b.cooldown > a.cooldown + 0.2) this.play("boost");
     if (
