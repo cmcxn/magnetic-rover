@@ -1,0 +1,21 @@
+package.path='./?.lua;'..package.path
+local ok,A=pcall(require,'admission');assert(ok,'admission queue exists')
+local G=require 'game'
+local g=G.new();local a=g:join('a','A','#38bdf8');g:join('b','B','#fb7185');g:start()
+local queue=A.new(g,2)
+local p,status=queue:request('c',{name='C',color='#38bdf8'});assert(not p and status.type=='waiting' and status.reason=='playing' and status.availableIn==190,'playing estimate includes results window')
+assert(queue:has('c'));assert(queue:request('d',{name='D'} )==nil)
+local _,rejected=queue:request('e',{name='E'});assert(rejected.type=='error','queue bound enforced')
+local _,bad=queue:request('invalid',{name=''});assert(bad.type=='error','invalid guest does not reserve queue space')
+queue:remove('d');assert(not queue:has('d'),'cancel/disconnect removes waiting reservation')
+g.remaining=.01;g:step(.05);local events=queue:process();assert(events[1].message.reason=='finished' and events[1].message.availableIn==10,'finished estimate counts results window')
+g:step(.05,10.1);events=queue:process();assert(#events==1 and events[1].player.name=='C','automatic lobby entry once');assert(#queue:process()==0,'no duplicate welcome')
+assert(#g.players==3,'cancelled waiter never ghost joins')
+-- Existing guest identity always takes precedence over the waiting policy.
+g:start();g:disconnect('a');local p=queue:request('reconnect',{name='ignored',token=a.token});assert(p==a,'old identity reconnects during match')
+local _,live=queue:request('steal',{name='ignored',token=a.token});assert(live.type=='error' and not queue:has('steal'),'live identity cannot wait to steal a token')
+local full=G.new();for i=1,8 do full:join(i,'P') end;local q=A.new(full,32)
+local _,status=q:request('first',{name='First'});assert(status.reason=='full' and status.availableIn==nil,'full room has no guaranteed time')
+q:request('second',{name='Second'});full:disconnect(1);full:step(.05,10.1);local events=q:process();assert(events[1].player.name=='First' and events[2].message.reason=='full','FIFO uses first free slot')
+q:remove('second');assert(#q:process()==0)
+print('PASS admission: bounded FIFO, truthful estimates, invalid rejection, automatic one-time join, cancellation cleanup, old token priority, live-token protection and full room')

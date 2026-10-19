@@ -11,12 +11,19 @@ async def main():
     async with websockets.connect(URI) as a,websockets.connect(URI) as b:
         await send(a,type='join',name='测试甲',color='#38bdf8');wa=await recv(a,'welcome')
         sa=await recv(a,'state');assert isinstance(sa['batteries'],list)
+        await send(a,type='ping',id=7);assert (await recv(a,'pong'))=={'type':'pong','id':7}
+        await send(a,type='ping',id='bad');assert 'Invalid ping' in (await recv(a,'error'))['message']
         await send(a,type='start');assert 'two' in (await recv(a,'error'))['message']
         await send(b,type='join',name='测试乙',color='#fb7185');wb=await recv(b,'welcome');assert wa['id']!=wb['id'] and wa['token']!=wb['token']
         async with websockets.connect(URI) as c:
             await send(c,type='join',name='偷号',color='#38bdf8',token=wa['token']);assert 'already connected' in (await recv(c,'error'))['message']
         await send(a,type='start');s=await recv(a,'state')
         while s['phase']!='playing':s=await recv(a,'state')
+        async with websockets.connect(URI) as waiting:
+            await send(waiting,type='join',name='等待客人',color='#38bdf8')
+            wait=await recv(waiting,'waiting');assert wait['reason']=='playing' and wait['availableIn']>180
+            await send(waiting,type='ping',id=9);assert (await recv(waiting,'pong'))['id']==9
+            await send(waiting,type='start');assert 'Join first' in (await recv(waiting,'error'))['message']
         p=next(p for p in s['players'] if p['id']==wa['id']);x,y=p['x'],p['y']
         await send(a,type='input',x=1e200,y=1e200,boost=False);assert 'Invalid input' in (await recv(a,'error'))['message']
         await send(a,type='deposit',score=99999);assert 'Unknown' in (await recv(a,'error'))['message']

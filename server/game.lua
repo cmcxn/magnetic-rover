@@ -14,12 +14,12 @@ function G:join(fd,name,color,token)
    p.fd=fd;p.connected=true;p.removed=false;p.ix=0;p.iy=0;p.last=self.time;return p
   end
  end
- if self.phase~='lobby' then return nil,'Match in progress; wait for the next lobby' end
- if #self.players>=8 then return nil,'Lobby full' end
  if type(name)~='string' or #name>256 then return nil,'Invalid nickname' end
  name=name:gsub('[%c<>]',''):match('^%s*(.-)%s*$');local ok,len=pcall(utf8.len,name)
  if not ok or not len or len<1 then return nil,'Nickname required' end
  if len>16 then name=name:sub(1,utf8.offset(name,17)-1) end
+ if self.phase~='lobby' then return nil,'Match in progress; wait for the next lobby',self.phase end
+ if #self.players>=8 then return nil,'Lobby full','full' end
  self.nextid=self.nextid+1;local n=self.nextid
  local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos(n*2.4)*100,y=math.sin(n*2.4)*100,angle=0,cargo=0,score=0,cooldown=0,boost=0,protect=0,connected=true,ix=0,iy=0,last=self.time}
  table.insert(self.players,p);return p
@@ -56,7 +56,7 @@ end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
  local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*2.4)*100;p.y=math.sin(#keep*2.4)*100;keep[#keep+1]=p end end
- self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=180;return true
+ self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=180;self.finishedAt=nil;return true
 end
 function G:drop(p,n)
  p.cargo=p.cargo-n
@@ -74,11 +74,11 @@ function G:step(dt,elapsed,remaining)
  if self.phase=='finished' then
   local abandoned=true
   for _,p in ipairs(self.players) do if p.connected or not p.removed then abandoned=false;break end end
-  if abandoned then self:again() end
+  if abandoned or (self.finishedAt and self.time>=self.finishedAt+10) then self:again() end
  end
  if self.phase~='playing' then return end
  self.remaining=remaining or math.max(0,self.remaining-elapsed)
- if self.remaining<=0 then self.phase='finished';return end
+ if self.remaining<=0 then self.phase='finished';self.finishedAt=self.time;return end
  if self.time>=self.nextrefill and self.remaining>10 then self:replenish();self.nextrefill=self.time+5 end
  local motion={}
  for _,p in ipairs(self.players) do
@@ -135,7 +135,7 @@ function G:step(dt,elapsed,remaining)
 end
 function G:snapshot(array)
  array=array or function(t)return t or {} end
- local s={type='state',phase=self.phase,remaining=self.remaining,radius=500,players=array(),batteries=array(),stations=array(self.stations)}
+ local s={type='state',phase=self.phase,remaining=self.remaining,radius=500,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
  for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,connected=p.connected} end end
  for _,b in ipairs(self.batteries) do s.batteries[#s.batteries+1]={id=b.id,x=b.x,y=b.y} end
  if self.phase=='finished' then s.results=array();for _,p in ipairs(self.players) do s.results[#s.results+1]={id=p.id,name=p.name,color=p.color,score=p.score} end;table.sort(s.results,function(a,b)return a.score>b.score or (a.score==b.score and tonumber(a.id)<tonumber(b.id)) end) end

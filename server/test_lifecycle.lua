@@ -12,5 +12,5 @@ assert(g.phase=='lobby' and #g.players==0 and #g.batteries==0,'fully abandoned f
 assert(g:join('fresh','New','#38bdf8'),'fresh guests can join recovered lobby')
 local g,a,b=setup();g:disconnect('a');g:disconnect('b');g:step(.05,11);g.remaining=.01;g:step(.05);g:step(.05)
 assert(g.phase=='lobby','match already abandoned at finish recovers')
-local g,a,b=setup();g.remaining=.01;g:step(.05);g:disconnect('b');g:step(.05,20);assert(g.phase=='finished','connected results viewer prevents automatic reset')
+local g,a,b=setup();g.remaining=.01;g:step(.05);g:disconnect('b');g:step(.05,9);assert(g.phase=='finished','results remain visible for ten seconds');g:step(.05,1.1);assert(g.phase=='lobby' and #g.players==1,'results automatically return connected guests to lobby after ten seconds')
 print('PASS lifecycle: ten-second cargo removal preserves identity, live token protected, empty finished reset honors grace and connected results viewer')

@@ -48,3 +48,9 @@ Verified 2026-10-18:
 - Dropped batteries landing inside a station are omitted because station zones exclude pickups. Match duration uses a monotonic 180-second deadline, independent of fixed 50 ms physics. Catch-up is capped at five steps; long pauses age timeouts and cooldowns while discarding stale movement, and never simulate physics after the deadline. Snapshots can arrive late if the process is stalled. No production-grade DoS defense or horizontal scaling is claimed.
 
 Clock regressions: test_clock.lua verifies execution-overhead drift, exact deadline boundaries, bounded catch-up, stale-input/cooldown expiry during long pauses, expired boost suppression, no post-deadline movement, rematch reset, and backwards timestamp clamping.
+
+## Mobile and waiting-room regression update
+
+The current rules supersede the earlier boost-only collision and indefinitely-finished-room descriptions above. See `../PROTOCOL.md` for exact impact thresholds, RTT probe validation, ten-second results return and bounded FIFO waiting admission. Ordinary hits now drop 10% (1–2 batteries), boosted hits 25% (1–5), only for genuine closing motion. No rigid-body collision or client prediction is introduced.
+
+`./server/test.sh` also runs `test_collisions.lua`, `test_lifecycle.lua`, `test_latency.lua` and `test_admission.lua`. `python tests/waiting_match.py` against an isolated running server exercises a real 180-second match plus ten-second result display, waiting estimates, automatic join and cancelled-waiter cleanup; it intentionally takes approximately 190 seconds.
