@@ -1,0 +1,21 @@
+{
+  "generator": "OpenAI built-in image_gen",
+  "date": "2026-10-18",
+  "assets": [
+    {
+      "key": "rover",
+      "prompt": "Use case: stylized-concept. Production game sprite for a cute top-down magnetic rover arena game. Generate exactly ONE isolated rover, not a scene, no UI. Rounded small toy electric rover with four charcoal rubber wheels at its four corners, white/light-gray neutral body suitable for runtime color tinting, dark small rooftop inset, subtle beveled outlines, simple readable silhouette. Orthographic directly overhead camera (90 degrees); vehicle nose and magnetic front bumper point RIGHT/east at 3 o'clock, its long axis perfectly horizontal. Cute polished hand-painted 3D casual mobile game style, soft highlights, slightly chunky proportions. Body is white/light gray; avoid colored accents. Transparent background with true alpha, square canvas, asset occupies about 72% width, centered with generous transparent padding, no ground shadow outside silhouette. No text, letters, watermark, scenery, batteries, other vehicles, UI, or border. Match these style references in spirit: clean toy rover, soft bevels and restrained navy contours from a cheerful sandy recycling arena; do not reproduce their scene.",
+      "source": "rover.png"
+    },
+    {
+      "key": "battery",
+      "prompt": "Use case: stylized-concept. Production game pickup sprite for a cute top-down magnetic rover arena game. Generate exactly ONE isolated bright yellow small cylindrical battery with dark charcoal end caps, tiny positive terminal, and a bold simple WHITE LIGHTNING BOLT painted on its yellow side. Readable at 18-28 px. Polished hand-painted 3D casual mobile game style, rounded, soft highlights, restrained dark navy contour. Orthographic near-overhead object view, axis vertical with terminal UP, showing broad yellow body and small end caps. True transparent alpha background, square canvas, object fills around 68% height, centered with generous clear padding, no ground shadow. No letters, no numbers, no words, watermark, ground, UI, or multiple batteries.",
+      "source": "battery.png"
+    },
+    {
+      "key": "recycle-station",
+      "prompt": "Use case: stylized-concept. Production game environment sprite for a cute top-down magnetic rover arena game. Generate exactly ONE isolated circular recycling drop-off pad, orthographic directly overhead 90-degree view, perfectly round. Mint-green and emerald circular inset with a clear WHITE three-arrow recycling symbol centered, thick ivory/beige stone-like outer rim, four small dark gray metal brackets around the rim, small mint illuminated segments. Soft bevels, chunky toy-like proportions, polished hand-painted 3D casual mobile game style, cheerful clean materials, restrained navy contours. True transparent alpha background, square canvas, pad occupies around 80% width, centered generous transparent padding, no ground shadow beyond silhouette. Only the pad itself, no terrain, grass, map, grass islands, cars, battery, words, letters, UI or watermark.",
+      "source": "recycle-station.png"
+    }
+  ]
+}

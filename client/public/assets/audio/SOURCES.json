@@ -1,0 +1,171 @@
+{
+  "verified_on": "2026-10-18",
+  "license_copy": "assets/audio/KENNEY-LICENSE.txt",
+  "commercial_use": true,
+  "redistribution": true,
+  "attribution_required": false,
+  "verification_urls": [
+    "https://kenney.nl/assets/digital-audio",
+    "https://kenney.nl/support",
+    "https://creativecommons.org/publicdomain/zero/1.0/"
+  ],
+  "archive_sha256": "24e6ce28b76a6d8c89cff4d331e0965ff5c3de8a73c612028e9d363cc64e4f06",
+  "assets": [
+    {
+      "event": "pickup",
+      "purpose_zh": "磁力吸取金属碎片，明亮上扬提示",
+      "author": "Kenney Vleugels (Kenney.nl)",
+      "pack": "Digital Audio",
+      "source_url": "https://kenney.nl/assets/digital-audio",
+      "download_url": "https://kenney.nl/media/pages/assets/digital-audio/216eac4753-1677590265/kenney_digital-audio.zip",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "original_archive_path": "Audio/highUp.ogg",
+      "duration_seconds": 0.545669,
+      "files": [
+        {
+          "path": "assets/audio/pickup.ogg",
+          "sha256": "cbc1c3c7ccf5d7903818144a4c3f5b2ed2385095792f29d8d7c76360ba4fa559",
+          "bytes": 6135,
+          "processing": "Original audio bytes, renamed only"
+        },
+        {
+          "path": "assets/audio/pickup.wav",
+          "sha256": "ecc0f2dac1b4acb3e78d54f035fabb851939dc26122187628ac40534ca7ddd7b",
+          "bytes": 48206,
+          "processing": "Decoded with FFmpeg to mono 44100 Hz PCM 16-bit WAV; no composition changes"
+        }
+      ]
+    },
+    {
+      "event": "boost",
+      "purpose_zh": "加速启动的能量上升提示",
+      "author": "Kenney Vleugels (Kenney.nl)",
+      "pack": "Digital Audio",
+      "source_url": "https://kenney.nl/assets/digital-audio",
+      "download_url": "https://kenney.nl/media/pages/assets/digital-audio/216eac4753-1677590265/kenney_digital-audio.zip",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "original_archive_path": "Audio/powerUp1.ogg",
+      "duration_seconds": 1.201633,
+      "files": [
+        {
+          "path": "assets/audio/boost.ogg",
+          "sha256": "8c361b624b560c0bc30ea3063b71212bc30caebf425c9df2481c13b25561485c",
+          "bytes": 9011,
+          "processing": "Original audio bytes, renamed only"
+        },
+        {
+          "path": "assets/audio/boost.wav",
+          "sha256": "5007c54438ba32a7137a8b8aeedcadf778f893bfb75db86257e0cd0c08ea41d0",
+          "bytes": 106062,
+          "processing": "Decoded with FFmpeg to mono 44100 Hz PCM 16-bit WAV; no composition changes"
+        }
+      ]
+    },
+    {
+      "event": "hit",
+      "purpose_zh": "碰撞或受到伤害的下降警示",
+      "author": "Kenney Vleugels (Kenney.nl)",
+      "pack": "Digital Audio",
+      "source_url": "https://kenney.nl/assets/digital-audio",
+      "download_url": "https://kenney.nl/media/pages/assets/digital-audio/216eac4753-1677590265/kenney_digital-audio.zip",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "original_archive_path": "Audio/lowDown.ogg",
+      "duration_seconds": 0.780771,
+      "files": [
+        {
+          "path": "assets/audio/hit.ogg",
+          "sha256": "e0215fcfd8b9d7877f74d5c46b239a13d7db0d25998da97b80404931ef9eef5d",
+          "bytes": 5956,
+          "processing": "Original audio bytes, renamed only"
+        },
+        {
+          "path": "assets/audio/hit.wav",
+          "sha256": "ef50cd7b135b2c4d280a099f6d60b78893a2cf6f0c6885d515469473810dd174",
+          "bytes": 68942,
+          "processing": "Decoded with FFmpeg to mono 44100 Hz PCM 16-bit WAV; no composition changes"
+        }
+      ]
+    },
+    {
+      "event": "deposit",
+      "purpose_zh": "回收站交付成功的双音提示",
+      "author": "Kenney Vleugels (Kenney.nl)",
+      "pack": "Digital Audio",
+      "source_url": "https://kenney.nl/assets/digital-audio",
+      "download_url": "https://kenney.nl/media/pages/assets/digital-audio/216eac4753-1677590265/kenney_digital-audio.zip",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "original_archive_path": "Audio/twoTone1.ogg",
+      "duration_seconds": 0.720907,
+      "files": [
+        {
+          "path": "assets/audio/deposit.ogg",
+          "sha256": "8732f14d6398407a8f1df77b986c2099cfd88f6583e1272cb60497cb2fe8da1d",
+          "bytes": 7362,
+          "processing": "Original audio bytes, renamed only"
+        },
+        {
+          "path": "assets/audio/deposit.wav",
+          "sha256": "9c23700974ca39d3c03f7dba1b9ebee7d8511209301bc566439f456c9487e0ec",
+          "bytes": 63662,
+          "processing": "Decoded with FFmpeg to mono 44100 Hz PCM 16-bit WAV; no composition changes"
+        }
+      ]
+    },
+    {
+      "event": "countdown",
+      "purpose_zh": "倒计时最后几秒，每秒一次短音",
+      "author": "Kenney Vleugels (Kenney.nl)",
+      "pack": "Digital Audio",
+      "source_url": "https://kenney.nl/assets/digital-audio",
+      "download_url": "https://kenney.nl/media/pages/assets/digital-audio/216eac4753-1677590265/kenney_digital-audio.zip",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "original_archive_path": "Audio/tone1.ogg",
+      "duration_seconds": 0.683537,
+      "files": [
+        {
+          "path": "assets/audio/countdown.ogg",
+          "sha256": "12c6a1955aad54cb04206b5e9985df4379ebc598a01b65070609e0b0a3b9b026",
+          "bytes": 6634,
+          "processing": "Original audio bytes, renamed only"
+        },
+        {
+          "path": "assets/audio/countdown.wav",
+          "sha256": "35d685c3d90924250b29bb2fd9d816b221db727cc0e12e22ee412d8528f0120d",
+          "bytes": 60366,
+          "processing": "Decoded with FFmpeg to mono 44100 Hz PCM 16-bit WAV; no composition changes"
+        }
+      ]
+    },
+    {
+      "event": "result",
+      "purpose_zh": "回合结束、结算面板出现的三音提示",
+      "author": "Kenney Vleugels (Kenney.nl)",
+      "pack": "Digital Audio",
+      "source_url": "https://kenney.nl/assets/digital-audio",
+      "download_url": "https://kenney.nl/media/pages/assets/digital-audio/216eac4753-1677590265/kenney_digital-audio.zip",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "original_archive_path": "Audio/threeTone2.ogg",
+      "duration_seconds": 0.86576,
+      "files": [
+        {
+          "path": "assets/audio/result.ogg",
+          "sha256": "124198c80ff2e1826230be606aa3dcdd90262272bb545f621a9eb91dccfd5c9d",
+          "bytes": 8082,
+          "processing": "Original audio bytes, renamed only"
+        },
+        {
+          "path": "assets/audio/result.wav",
+          "sha256": "d25f9a2fddf2bdc8bfb74b1bb36ee178fff9532738978b41f3010da1cddfdf6f",
+          "bytes": 76438,
+          "processing": "Decoded with FFmpeg to mono 44100 Hz PCM 16-bit WAV; no composition changes"
+        }
+      ]
+    }
+  ]
+}

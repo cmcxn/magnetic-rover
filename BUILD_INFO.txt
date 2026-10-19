@@ -1,0 +1,8 @@
+Source commit: cef16ccc095e32a7b56c6251fc01cd15b4d21423
+Packaged: 2026-10-18 UTC
+Includes frontend dist, source, assets, licenses and verification. Skynet runtime and node_modules excluded.
+Actual browser UI acceptance remains blocked.
+
+GitHub source import: restored from the source delivery archive; original .git history is not included.
+The Source commit above identifies archive provenance only, not a commit in this repository.
+GitHub upload excludes frontend dist, dependencies and raw runtime logs. Build client with npm ci && npm run build.

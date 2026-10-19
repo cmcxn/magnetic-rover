@@ -1,0 +1,132 @@
+{
+  "status": "passed",
+  "scope": "Actual Skynet HTTP byte/MIME delivery; not browser visual or audio playback test",
+  "files": [
+    {
+      "path": "assets/audio/KENNEY-LICENSE.txt",
+      "bytes": 482,
+      "status": 200,
+      "mime": "application/octet-stream"
+    },
+    {
+      "path": "assets/audio/README.md",
+      "bytes": 1562,
+      "status": 200,
+      "mime": "application/octet-stream"
+    },
+    {
+      "path": "assets/audio/SOURCES.json",
+      "bytes": 7058,
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "path": "assets/audio/boost.ogg",
+      "bytes": 9011,
+      "status": 200,
+      "mime": "audio/ogg"
+    },
+    {
+      "path": "assets/audio/boost.wav",
+      "bytes": 106062,
+      "status": 200,
+      "mime": "audio/wav"
+    },
+    {
+      "path": "assets/audio/countdown.ogg",
+      "bytes": 6634,
+      "status": 200,
+      "mime": "audio/ogg"
+    },
+    {
+      "path": "assets/audio/countdown.wav",
+      "bytes": 60366,
+      "status": 200,
+      "mime": "audio/wav"
+    },
+    {
+      "path": "assets/audio/deposit.ogg",
+      "bytes": 7362,
+      "status": 200,
+      "mime": "audio/ogg"
+    },
+    {
+      "path": "assets/audio/deposit.wav",
+      "bytes": 63662,
+      "status": 200,
+      "mime": "audio/wav"
+    },
+    {
+      "path": "assets/audio/hit.ogg",
+      "bytes": 5956,
+      "status": 200,
+      "mime": "audio/ogg"
+    },
+    {
+      "path": "assets/audio/hit.wav",
+      "bytes": 68942,
+      "status": 200,
+      "mime": "audio/wav"
+    },
+    {
+      "path": "assets/audio/pickup.ogg",
+      "bytes": 6135,
+      "status": 200,
+      "mime": "audio/ogg"
+    },
+    {
+      "path": "assets/audio/pickup.wav",
+      "bytes": 48206,
+      "status": 200,
+      "mime": "audio/wav"
+    },
+    {
+      "path": "assets/audio/result.ogg",
+      "bytes": 8082,
+      "status": 200,
+      "mime": "audio/ogg"
+    },
+    {
+      "path": "assets/audio/result.wav",
+      "bytes": 76438,
+      "status": 200,
+      "mime": "audio/wav"
+    },
+    {
+      "path": "assets/index-B70OZA3-.js",
+      "bytes": 1503083,
+      "status": 200,
+      "mime": "text/javascript"
+    },
+    {
+      "path": "assets/index-c08ZmGlp.css",
+      "bytes": 8264,
+      "status": 200,
+      "mime": "text/css"
+    },
+    {
+      "path": "assets/sprites/battery.png",
+      "bytes": 560572,
+      "status": 200,
+      "mime": "image/png"
+    },
+    {
+      "path": "assets/sprites/recycle-station.png",
+      "bytes": 1731560,
+      "status": 200,
+      "mime": "image/png"
+    },
+    {
+      "path": "assets/sprites/rover.png",
+      "bytes": 975625,
+      "status": 200,
+      "mime": "image/png"
+    },
+    {
+      "path": "index.html",
+      "bytes": 526,
+      "status": 200,
+      "mime": "text/html"
+    }
+  ]
+}
