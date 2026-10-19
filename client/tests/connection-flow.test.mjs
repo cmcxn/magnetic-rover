@@ -34,6 +34,11 @@ const compiled = ts.transpileModule(
 
 function harness() {
   const nodes = new Map();
+  let now = 0,
+    nextTimer = 0;
+  const timers = new Map(),
+    intervals = [],
+    listeners = {};
   function node(selector) {
     if (!nodes.has(selector))
       nodes.set(selector, {
@@ -77,6 +82,7 @@ function harness() {
   const context = {
     ...helpers,
     Sounds: class {
+      update() {}
       unlock() {
         return Promise.resolve();
       }
@@ -89,25 +95,52 @@ function harness() {
     },
     innerWidth: 1200,
     innerHeight: 800,
-    location: { search: "", protocol: "http:", hostname: "localhost", host: "localhost:18081" },
+    location: {
+      search: "",
+      protocol: "http:",
+      hostname: "localhost",
+      host: "localhost:18081",
+    },
     document: {
       querySelector: node,
       querySelectorAll: () => [],
-      addEventListener() {},
+      hidden: false,
+      addEventListener: (event, fn) => (listeners[event] = fn),
     },
-    window: { addEventListener() {} },
+    window: { addEventListener: (event, fn) => (listeners[event] = fn) },
     URLSearchParams,
     URL,
     Error,
     WebSocket: Socket,
-    setTimeout: () => 1,
-    clearTimeout() {},
-    setInterval() {},
-    performance: { now: () => 0 },
+    setTimeout: (fn, delay) => {
+      const id = ++nextTimer;
+      timers.set(id, { fn, at: now + delay });
+      return id;
+    },
+    clearTimeout: (id) => timers.delete(id),
+    setInterval: (fn) => intervals.push(fn),
+    performance: { now: () => now },
   };
   vm.createContext(context);
-  vm.runInContext(compiled + "\n;globalThis.testConnect = connect; globalThis.testDefaultUrl = defaultUrl;", context);
+  vm.runInContext(
+    compiled +
+      "\n;globalThis.testConnect = connect; globalThis.testDefaultUrl = defaultUrl;",
+    context,
+  );
   return {
+    tick(ms) {
+      now += ms;
+      for (const [id, t] of [...timers])
+        if (t.at <= now) {
+          timers.delete(id);
+          t.fn();
+        }
+      for (const fn of intervals) fn();
+    },
+    visibility(hidden) {
+      context.document.hidden = hidden;
+      listeners.visibilitychange();
+    },
     context,
     sockets,
     storage,
@@ -177,7 +210,77 @@ test("invalid socket URL is rejected before construction and connection remains 
   assert.equal(h.sockets.length, 1);
 });
 
-
 test("default WebSocket uses the actual page port", () => {
   assert.equal(harness().context.testDefaultUrl, "ws://localhost:18081/ws");
+});
+
+function welcome(h, socket = h.sockets.at(-1)) {
+  socket.onopen();
+  socket.onmessage({
+    data: JSON.stringify({ type: "welcome", id: "p1", token: "renewed" }),
+  });
+  return socket;
+}
+test("default HUD measures actual matching pong RTT, ignores duplicates and expires stale values", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  h.tick(1);
+  const ping = socket.sent.find((x) => x.type === "ping");
+  assert.ok(ping, "welcome starts low-frequency app ping");
+  h.tick(82);
+  socket.onmessage({ data: JSON.stringify({ type: "pong", id: ping.id }) });
+  assert.match(h.node("#latency").textContent, /82 ms/);
+  h.tick(100);
+  socket.onmessage({ data: JSON.stringify({ type: "pong", id: ping.id }) });
+  assert.match(h.node("#latency").textContent, /82 ms/);
+  h.tick(6000);
+  assert.doesNotMatch(h.node("#latency").textContent, /82 ms/);
+});
+test("hide invalidates RTT, foreground reconnects once with pinned endpoint and scoped token", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  h.tick(1);
+  h.visibility(true);
+  assert.match(h.node("#latency").textContent, /后台/);
+  socket.close();
+  h.tick(10000);
+  assert.equal(h.sockets.length, 1, "no background retries");
+  h.node("#server").value = "ws://server-b.test/ws";
+  h.visibility(false);
+  assert.equal(h.sockets.length, 2);
+  h.visibility(false);
+  assert.equal(h.sockets.length, 2, "no parallel attempts");
+  const fresh = h.sockets[1];
+  fresh.onopen();
+  assert.equal(fresh.url, "ws://server-a.test/ws");
+  assert.equal(fresh.sent[0].token, "renewed");
+});
+test("network close retries, but rejected join stops automatic retries", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  socket.close();
+  h.tick(1000);
+  assert.equal(h.sockets.length, 2);
+  const retry = h.sockets[1];
+  retry.onopen();
+  retry.onmessage({
+    data: JSON.stringify({ type: "error", message: "Lobby full" }),
+  });
+  h.tick(30000);
+  assert.equal(h.sockets.length, 2);
+});
+test("pong from replaced socket cannot restore old RTT", () => {
+  const h = harness();
+  h.connect();
+  const old = welcome(h);
+  h.tick(1);
+  const ping = old.sent.find((x) => x.type === "ping");
+  h.connect();
+  welcome(h);
+  h.tick(100);
+  old.onmessage({ data: JSON.stringify({ type: "pong", id: ping?.id }) });
+  assert.doesNotMatch(h.node("#latency").textContent, /100 ms/);
 });

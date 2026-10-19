@@ -679,3 +679,10 @@ details input {
     bottom: 12px;
   }
 }
+/* Keep the always-visible RTT readable without widening the mobile status pill. */
+#latency {
+  display: block;
+  padding-left: 14px;
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}

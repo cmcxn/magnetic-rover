@@ -40,11 +40,47 @@ let state: State | null = null,
   mouseDown = false,
   lastState = 0;
 const keys = new Set<string>();
+let session: { name: string; url: string; color: string } | null = null;
+let retryTimer: ReturnType<typeof setTimeout> | undefined;
+let retryAttempt = 0,
+  retryAllowed = false,
+  connecting = false;
+let pingId = 0,
+  pendingPing: { id: number; sent: number } | null = null;
+let nextPing = 0,
+  lastPong = 0,
+  rtt: number | null = null;
+function latency(reason = "测量中") {
+  document.querySelector("#latency")!.textContent =
+    rtt === null ? `网络 RTT：${reason}` : `网络 RTT：${Math.round(rtt)} ms`;
+}
+function resetLatency(reason: string) {
+  pendingPing = null;
+  rtt = null;
+  lastPong = 0;
+  nextPing = 0;
+  latency(reason);
+}
+function scheduleReconnect() {
+  if (
+    !retryAllowed ||
+    document.hidden ||
+    retryTimer !== undefined ||
+    connecting
+  )
+    return;
+  const delay = Math.min(10000, 1000 * 2 ** Math.min(retryAttempt++, 4));
+  status("连接中断 · 自动重连中");
+  retryTimer = setTimeout(() => {
+    retryTimer = undefined;
+    if (retryAllowed && !document.hidden && !connecting) connect(true);
+  }, delay);
+}
 const query = new URLSearchParams(location.search);
 const defaultUrl =
   query.get("ws") ||
   `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`;
-app.innerHTML = `<div class="brand"><div class="brand-icon">ϟ</div><div><strong>磁力小车</strong><small>MAGNETIC ROVER CLUB</small></div></div><div class="connection pill"><span class="dot"></span><span id="status">尚未连接</span></div><div id="surface"></div><div id="notice" class="toast hidden" role="status"></div>`;
+app.innerHTML = `<div class="brand"><div class="brand-icon">ϟ</div><div><strong>磁力小车</strong><small>MAGNETIC ROVER CLUB</small></div></div><div class="connection pill"><span class="dot"></span><span id="status">尚未连接</span><span id="latency" title="WebSocket 应用层往返时间，不是帧率或快照间隔">网络 RTT：未连接</span></div><div id="surface"></div><div id="notice" class="toast hidden" role="status"></div>`;
 const surface = document.querySelector<HTMLDivElement>("#surface")!;
 function status(text: string) {
   document.querySelector("#status")!.textContent = text;
@@ -65,17 +101,22 @@ function showError(s: string) {
   if (el) el.textContent = s;
   else notice(s);
 }
-function connect() {
+function connect(automatic = false) {
   void sounds.unlock().catch(() => {});
-  const name = (
-    document.querySelector<HTMLInputElement>("#nickname")?.value ||
-    localStorage.getItem("rover.name") ||
-    ""
-  ).trim();
+  const name =
+    automatic && session
+      ? session.name
+      : (
+          document.querySelector<HTMLInputElement>("#nickname")?.value ||
+          localStorage.getItem("rover.name") ||
+          ""
+        ).trim();
   const url =
-    document.querySelector<HTMLInputElement>("#server")?.value ||
-    localStorage.getItem("rover.server") ||
-    defaultUrl;
+    automatic && session
+      ? session.url
+      : document.querySelector<HTMLInputElement>("#server")?.value ||
+        localStorage.getItem("rover.server") ||
+        defaultUrl;
   if (!name) {
     showError("先给你的小车起个昵称吧。");
     return;
@@ -89,6 +130,15 @@ function connect() {
   localStorage.setItem("rover.name", name);
   localStorage.setItem("rover.color", color);
   localStorage.setItem("rover.server", url);
+  if (!automatic) {
+    session = { name, url: canonicalServerUrl(url), color };
+    retryAttempt = 0;
+  }
+  retryAllowed = true;
+  clearTimeout(retryTimer);
+  retryTimer = undefined;
+  connecting = true;
+  resetLatency("测量中");
   error = "";
   joined = false;
   connected = false;
@@ -109,6 +159,8 @@ function connect() {
   } catch {
     showError("无法创建连接，请检查服务器地址或浏览器连接限制。");
     status("连接失败");
+    connecting = false;
+    scheduleReconnect();
     return;
   }
   const socket = ws;
@@ -128,7 +180,7 @@ function connect() {
       JSON.stringify({
         type: "join",
         name,
-        color,
+        color: session!.color,
         token: localStorage.getItem(tokenKey) || undefined,
       }),
     );
@@ -141,9 +193,30 @@ function connect() {
     } catch {
       return;
     }
-    received = true;
-    clearTimeout(timeout);
+    if (data.type === "pong") {
+      const now = performance.now();
+      if (
+        !document.hidden &&
+        joined &&
+        pendingPing &&
+        data.id === pendingPing.id
+      ) {
+        const elapsed = now - pendingPing.sent;
+        pendingPing = null;
+        if (elapsed >= 0 && elapsed < 5000) {
+          rtt = elapsed;
+          lastPong = now;
+          latency();
+        }
+      }
+      return;
+    }
     if (data.type === "welcome") {
+      received = true;
+      clearTimeout(timeout);
+      connecting = false;
+      retryAttempt = 0;
+      lastState = performance.now();
       id = data.id;
       world.self = id;
       joined = true;
@@ -153,6 +226,7 @@ function connect() {
     if (data.type === "error") {
       showError(data.message);
       if (!joined) {
+        retryAllowed = false;
         socket.close();
       }
     }
@@ -172,7 +246,9 @@ function connect() {
     clearTimeout(timeout);
     if (socket !== ws) return;
     connected = false;
+    connecting = false;
     joined = false;
+    resetLatency(document.hidden ? "后台" : "已断开");
     keys.clear();
     joy = { x: 0, y: 0 };
     mouseDown = false;
@@ -180,12 +256,13 @@ function connect() {
     status("连接已断开");
     phase = "";
     showJoin(true);
+    scheduleReconnect();
   };
 }
 function showJoin(disconnected = false) {
   app.className = "";
   surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">COLLECT · BOOST · BANK</div><h1>小车大电量。<br>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>3 分钟轻松竞速，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><span class="field-label">挑一辆喜欢的小车</span><div class="colors">${COLORS.map((c) => `<button class="color ${c === color ? "selected" : ""}" data-color="${c}" style="background:${c}" aria-label="选择${c}小车" aria-pressed="${c === color}"></button>`).join("")}</div><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button><div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>冲刺撞落对手货物</div><div><b>03</b>进站存入得分</div></div></section></div>`;
-  document.querySelector("#join")!.addEventListener("click", connect);
+  document.querySelector("#join")!.addEventListener("click", () => connect());
   document.querySelector("#nickname")!.addEventListener("keydown", (e) => {
     if ((e as KeyboardEvent).key === "Enter") connect();
   });
@@ -372,11 +449,23 @@ window.addEventListener("blur", () => {
 });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
+    clearTimeout(retryTimer);
+    retryTimer = undefined;
+    resetLatency("后台");
     keys.clear();
     joy = { x: 0, y: 0 };
     mouseDown = false;
     boost = false;
     send({ type: "input", x: 0, y: 0, boost: false });
+  } else {
+    resetLatency(connected ? "测量中" : "已断开");
+    if (retryAllowed && !connecting) {
+      if (connected && performance.now() - lastState > 8000) {
+        ws?.close();
+        connected = false;
+      }
+      if (!connected) connect(true);
+    }
   }
 });
 document.querySelector("#game")!.addEventListener("pointerdown", (e) => {
@@ -394,8 +483,28 @@ window.addEventListener("pointercancel", () => {
   boost = false;
   joy = { x: 0, y: 0 };
 });
+// One outstanding ping at a time. Never infer RTT from snapshots or rendering.
 setInterval(() => {
-  if (phase !== "playing" || !connected || !joined) return;
+  if (document.hidden || !connected || !joined) return;
+  const now = performance.now();
+  if (
+    (pendingPing && now - pendingPing.sent >= 5000) ||
+    (rtt !== null && now - lastPong >= 5000)
+  ) {
+    pendingPing = null;
+    rtt = null;
+    latency("超时");
+  }
+  if (!pendingPing && now >= nextPing) {
+    pingId = (pingId % 2147483647) + 1;
+    pendingPing = { id: pingId, sent: now };
+    nextPing = now + 2000;
+    send({ type: "ping", id: pingId });
+  }
+  if (now - lastState > 8000) ws?.close();
+}, 250);
+setInterval(() => {
+  if (document.hidden || phase !== "playing" || !connected || !joined) return;
   let x =
       joy.x +
       (keys.has("d") || keys.has("arrowright") ? 1 : 0) -

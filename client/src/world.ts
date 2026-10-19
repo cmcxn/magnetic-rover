@@ -4,6 +4,7 @@ export class World extends Phaser.Scene {
   state: State | null = null;
   self = "";
   g!: Phaser.GameObjects.Graphics;
+  background!: Phaser.GameObjects.Image;
   labels = new Map<string, Phaser.GameObjects.Text>();
   smooth = new Map<string, { x: number; y: number; angle: number }>();
   sprites = new Map<string, Phaser.GameObjects.Image>();
@@ -29,9 +30,60 @@ export class World extends Phaser.Scene {
       if (this.textures.exists(key))
         this.textures.get(key).add("trim", 0, x, y, w, h);
     }
+    this.createBackground();
     this.g = this.add.graphics();
     this.scale.on("resize", () => this.layout());
     this.layout();
+  }
+  createBackground() {
+    const key = "garden-background";
+    if (!this.textures.exists(key)) {
+      const g = this.add.graphics();
+      g.save();
+      g.translateCanvas(600, 600);
+      const circle = (x: number, y: number, r: number, c: number, a = 1) => {
+        g.fillStyle(c, a);
+        g.fillCircle(x, y, r);
+      };
+      // Hand-drawn garden rim and cream arena. Decorations never affect gameplay.
+      circle(0, 20, 555, 0x719a77, 0.22);
+      circle(0, 0, 550, 0x91b88c);
+      for (let i = 0; i < 68; i++) {
+        const a = i * 2.39996,
+          r = 525 + (i % 3) * 11,
+          x = Math.cos(a) * r,
+          y = Math.sin(a) * r;
+        circle(x + 3, y + 5, 18 + (i % 4) * 4, 0x547f69, 0.4);
+        circle(
+          x,
+          y,
+          17 + (i % 4) * 4,
+          [0x72a77a, 0x95bc7d, 0x5d9676, 0xb2cd8b][i % 4],
+        );
+        if (i % 5 === 0) {
+          circle(x + 8, y - 8, 4, 0xffedaa);
+          circle(x + 4, y - 8, 3, 0xfff9df);
+        }
+      }
+      circle(0, 0, 508, 0xa8b59a);
+      circle(0, 0, 500, 0xf7ebce);
+      g.lineStyle(9, 0xfff7df);
+      g.strokeCircle(0, 0, 499);
+      g.lineStyle(2, 0xd7c9aa, 0.8);
+      g.strokeCircle(0, 0, 488);
+      for (let i = 0; i < 170; i++) {
+        const a = i * 2.39996,
+          r = Math.sqrt((i + 0.5) / 170) * 475;
+        circle(Math.cos(a) * r, Math.sin(a) * r, 1.8 + (i % 3), 0xd7c69e, 0.18);
+      }
+      g.lineStyle(2, 0xd7c69e, 0.2);
+      g.strokeCircle(0, 0, 320);
+      g.strokeCircle(0, 0, 160);
+      g.restore();
+      g.generateTexture(key, 1200, 1200);
+      g.destroy();
+    }
+    this.background = this.add.image(0, 0, key).setDepth(-1);
   }
   layout() {
     const w = this.scale.width,
@@ -94,46 +146,13 @@ export class World extends Phaser.Scene {
       this.oy = h / 2 + 22;
     }
     const s = this.worldScale;
+    this.background.setPosition(this.ox, this.oy).setScale(s);
     g.setPosition(this.ox, this.oy);
     g.setScale(s);
     const circle = (x: number, y: number, r: number, c: number, a = 1) => {
       g.fillStyle(c, a);
       g.fillCircle(x, y, r);
     };
-    // Hand-drawn garden rim and cream arena. Decorations never affect gameplay.
-    circle(0, 20, 555, 0x719a77, 0.22);
-    circle(0, 0, 550, 0x91b88c);
-    for (let i = 0; i < 68; i++) {
-      const a = i * 2.39996,
-        r = 525 + (i % 3) * 11,
-        x = Math.cos(a) * r,
-        y = Math.sin(a) * r;
-      circle(x + 3, y + 5, 18 + (i % 4) * 4, 0x547f69, 0.4);
-      circle(
-        x,
-        y,
-        17 + (i % 4) * 4,
-        [0x72a77a, 0x95bc7d, 0x5d9676, 0xb2cd8b][i % 4],
-      );
-      if (i % 5 === 0) {
-        circle(x + 8, y - 8, 4, 0xffedaa);
-        circle(x + 4, y - 8, 3, 0xfff9df);
-      }
-    }
-    circle(0, 0, 508, 0xa8b59a);
-    circle(0, 0, 500, 0xf7ebce);
-    g.lineStyle(9, 0xfff7df);
-    g.strokeCircle(0, 0, 499);
-    g.lineStyle(2, 0xd7c9aa, 0.8);
-    g.strokeCircle(0, 0, 488);
-    for (let i = 0; i < 170; i++) {
-      const a = i * 2.39996,
-        r = Math.sqrt((i + 0.5) / 170) * 475;
-      circle(Math.cos(a) * r, Math.sin(a) * r, 1.8 + (i % 3), 0xd7c69e, 0.18);
-    }
-    g.lineStyle(2, 0xd7c69e, 0.2);
-    g.strokeCircle(0, 0, 320);
-    g.strokeCircle(0, 0, 160);
     const stations = this.state?.stations ?? [
       { x: -330, y: -220, r: 65 },
       { x: 330, y: -220, r: 65 },
@@ -201,7 +220,8 @@ export class World extends Phaser.Scene {
         v = { x: p.x, y: p.y, angle: p.angle };
         this.smooth.set(p.id, v);
       }
-      const a = Math.min(1, delta / 65);
+      // Follow received authority more promptly for the local driver; no prediction.
+      const a = Math.min(1, delta / (p.id === this.self ? 25 : 65));
       v.x += (p.x - v.x) * a;
       v.y += (p.y - v.y) * a;
       let da = Phaser.Math.Angle.Wrap(p.angle - v.angle);
