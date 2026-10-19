@@ -62,6 +62,8 @@ let state: State | null = null,
   lastState = 0;
 let role: RoomRole = "directory",
   roomId: string | null = null;
+let leavingRoom = false;
+let leaveTimer: ReturnType<typeof setTimeout> | undefined;
 let directorySignature = "";
 let renderKey = "",
   rooms: RoomSummary[] = [];
@@ -128,8 +130,40 @@ function notice(text: string, duration = 3500) {
   clearTimeout(noticeTimer);
   noticeTimer = setTimeout(() => e.classList.add("hidden"), duration);
 }
+function canSendInput() {
+  return (
+    connected &&
+    joined &&
+    role === "player" &&
+    phase === "playing" &&
+    state?.phase === "playing" &&
+    !leavingRoom
+  );
+}
+function resetControls() {
+  keys.clear();
+  resetJoystick();
+  mouseDown = false;
+  boost = false;
+}
+function transmitLeave() {
+  clearTimeout(leaveTimer);
+  send({ type: "leave_room" });
+  // A lost acknowledgement must not leave the controls disabled indefinitely.
+  // Reconnect to learn membership, then retry if the server kept us in the room.
+  leaveTimer = setTimeout(() => {
+    leaveTimer = undefined;
+    if (leavingRoom) ws?.close();
+  }, 8000);
+}
+function leaveRoom() {
+  if (!connected || !joined || role === "directory" || leavingRoom) return;
+  leavingRoom = true;
+  resetControls();
+  transmitLeave();
+}
 function send(data: object) {
-  if ((data as { type?: string }).type === "input" && role !== "player") return;
+  if ((data as { type?: string }).type === "input" && !canSendInput()) return;
   if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(data));
 }
 function showError(s: string) {
@@ -194,6 +228,8 @@ function connect(automatic = false) {
   clearTimeout(retryTimer);
   retryTimer = undefined;
   connecting = true;
+  clearTimeout(leaveTimer);
+  leaveTimer = undefined;
   resetLatency("测量中");
   error = "";
   joined = false;
@@ -281,6 +317,8 @@ function connect(automatic = false) {
       return;
     }
     if (data.type === "welcome") {
+      clearTimeout(leaveTimer);
+      leaveTimer = undefined;
       waiting = false;
       received = true;
       clearTimeout(timeout);
@@ -302,7 +340,10 @@ function connect(automatic = false) {
       joined = true;
       localStorage.setItem(tokenKey, data.token);
       status(role === "spectator" ? "在线 · 观战中" : "在线 · 实时联机");
-      if (role === "directory") showDirectory();
+      if (role === "directory") {
+        leavingRoom = false;
+        showDirectory();
+      } else if (leavingRoom) transmitLeave();
     }
     if (data.type === "rooms") {
       lastState = performance.now();
@@ -311,6 +352,13 @@ function connect(automatic = false) {
     }
     if (data.type === "error") {
       showError(data.message);
+      if (leavingRoom && joined) {
+        // Errors have no request IDs. Do not assume the old room is still ours:
+        // resolve membership with a fresh handshake before enabling input again.
+        leavingRoom = false;
+        socket.close();
+        return;
+      }
       if (!joined) {
         // A resumed socket can reach the server before its predecessor closes.
         // Retry only this transient conflict, never take over another live tab.
@@ -364,6 +412,8 @@ function connect(automatic = false) {
   socket.onclose = () => {
     clearTimeout(timeout);
     if (socket !== ws) return;
+    clearTimeout(leaveTimer);
+    leaveTimer = undefined;
     world.liveEffects = false;
     world.clearPickupFeedback();
     connected = false;
@@ -381,6 +431,9 @@ function connect(automatic = false) {
   };
 }
 function cancelConnection() {
+  leavingRoom = false;
+  clearTimeout(leaveTimer);
+  leaveTimer = undefined;
   retryAllowed = false;
   clearTimeout(retryTimer);
   retryTimer = undefined;
@@ -543,9 +596,7 @@ function render() {
     );
     document
       .querySelectorAll<HTMLButtonElement>(".leave-room")
-      .forEach(
-        (button) => (button.onclick = () => send({ type: "leave_room" })),
-      );
+      .forEach((button) => (button.onclick = leaveRoom));
     const copy = document.querySelector<HTMLButtonElement>("#copy-room");
     if (copy)
       copy.onclick = async () => {
@@ -732,9 +783,7 @@ function wireControls() {
 function requestBoost(pointer: number | null) {
   const me = state?.players.find((player) => player.id === id);
   if (
-    role !== "player" ||
-    phase !== "playing" ||
-    !connected ||
+    !canSendInput() ||
     document.hidden ||
     !me ||
     me.cooldown > 0 ||
@@ -746,8 +795,8 @@ function requestBoost(pointer: number | null) {
 }
 window.addEventListener("keydown", (e) => {
   if (
-    role !== "player" ||
-    phase !== "playing" ||
+    !canSendInput() ||
+    document.hidden ||
     !!(e.target as HTMLElement | null)?.closest?.(
       "button, select, textarea, input, [contenteditable=true]",
     )
@@ -790,7 +839,7 @@ document.addEventListener("visibilitychange", () => {
 });
 document.querySelector("#game")!.addEventListener("pointerdown", (e) => {
   const p = e as PointerEvent;
-  if (p.pointerType !== "mouse") return;
+  if (p.pointerType !== "mouse" || !canSendInput() || document.hidden) return;
   mouseDown = true;
   mouse = { x: p.clientX, y: p.clientY };
 });
@@ -826,14 +875,7 @@ function resetJoystick(clearTouches = true) {
 }
 const driveSurface = document.querySelector<HTMLElement>("#game")!;
 driveSurface.addEventListener("pointerdown", (e) => {
-  if (
-    e.pointerType !== "touch" ||
-    role !== "player" ||
-    phase !== "playing" ||
-    !connected ||
-    document.hidden
-  )
-    return;
+  if (e.pointerType !== "touch" || !canSendInput() || document.hidden) return;
   if (fieldTouches.has(e.pointerId)) return;
   fieldTouches.add(e.pointerId);
   e.preventDefault();
@@ -908,14 +950,7 @@ setInterval(() => {
   if (now - lastState > 8000) ws?.close();
 }, 250);
 setInterval(() => {
-  if (
-    role !== "player" ||
-    document.hidden ||
-    phase !== "playing" ||
-    !connected ||
-    !joined
-  )
-    return;
+  if (!canSendInput() || document.hidden) return;
   let x =
       joy.x +
       (keys.has("d") || keys.has("arrowright") ? 1 : 0) -

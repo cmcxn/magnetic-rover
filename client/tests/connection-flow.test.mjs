@@ -159,7 +159,8 @@ function harness(search = "", options = {}) {
     },
     document: {
       querySelector: node,
-      querySelectorAll: () => [],
+      querySelectorAll: (selector) =>
+        selector === ".leave-room" ? [node(selector)] : [],
       hidden: false,
       addEventListener: register,
     },
@@ -1104,4 +1105,185 @@ test("Space on a native UI control does not hijack activation or boost", () => {
     h.sockets[0].sent.filter((m) => m.type === "input").at(-1).boost,
     false,
   );
+});
+
+test("leaving immediately quiesces all inputs until directory acknowledgement", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  roomWelcome(socket, "1234");
+  roomState(socket, "1234", "playing");
+  h.dispatch("keydown", { key: "d", code: "KeyD" });
+  h.dispatch("#game:pointerdown", touch(1));
+  h.dispatch("pointermove", touch(1, 58, 700));
+  h.dispatch("#boost:pointerdown", touch(2));
+  h.node(".leave-room").onclick();
+  const leave = socket.sent.findIndex((m) => m.type === "leave_room");
+  assert.ok(leave >= 0);
+  assert.equal(h.node("#game").captures.size, 0);
+  assert.equal(h.node("#joystick").classList.values.has("active"), false);
+  h.node(".leave-room").onclick();
+  h.dispatch("keydown", { key: "w", code: "KeyW" });
+  h.dispatch("#game:pointerdown", touch(3));
+  h.dispatch("#boost:pointerdown", touch(4));
+  h.tick(50);
+  h.dispatch("blur");
+  h.visibility(true);
+  h.visibility(false);
+  // Old-room snapshots are not an acknowledgement of the leave request.
+  roomState(socket, "1234", "playing");
+  h.tick(50);
+  assert.deepEqual(
+    socket.sent.slice(leave + 1).filter((m) => m.type !== "ping"),
+    [],
+  );
+  roomWelcome(socket, null, "directory");
+  h.dispatch("blur");
+  h.visibility(true);
+  h.visibility(false);
+  h.tick(50);
+  assert.deepEqual(
+    socket.sent.slice(leave + 1).filter((m) => m.type !== "ping"),
+    [],
+  );
+  roomWelcome(socket, "5678");
+  roomState(socket, "5678", "playing");
+  h.tick(50);
+  assert.deepEqual(socket.sent.at(-1), {
+    type: "input",
+    x: 0,
+    y: 0,
+    boost: false,
+  });
+  h.dispatch("keydown", { key: "d", code: "KeyD" });
+  h.tick(50);
+  assert.equal(socket.sent.at(-1).x, 1);
+});
+
+test("focus loss sends neutral only for an acknowledged playing player", () => {
+  for (const role of ["directory", "spectator", "player"]) {
+    for (const phase of ["lobby", "playing", "finished"]) {
+      const h = harness();
+      h.connect();
+      const socket = welcome(h);
+      roomWelcome(socket, role === "directory" ? null : "1234", role);
+      if (role !== "directory") roomState(socket, "1234", phase);
+      const before = socket.sent.length;
+      h.dispatch("blur");
+      h.visibility(true);
+      const inputs = socket.sent
+        .slice(before)
+        .filter((m) => m.type === "input");
+      assert.equal(
+        inputs.length,
+        role === "player" && phase === "playing" ? 2 : 0,
+        `${role} ${phase}`,
+      );
+      for (const input of inputs)
+        assert.deepEqual(input, { type: "input", x: 0, y: 0, boost: false });
+    }
+  }
+});
+
+test("pending leave survives disconnect and retries only after membership acknowledgement", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  roomWelcome(socket, "1234");
+  roomState(socket, "1234", "playing");
+  h.node(".leave-room").onclick();
+  socket.close();
+  h.tick(1000);
+  const resumed = h.sockets.at(-1);
+  resumed.onopen();
+  h.dispatch("blur");
+  h.tick(50);
+  assert.deepEqual(
+    resumed.sent.map((m) => m.type),
+    ["join"],
+  );
+  roomWelcome(resumed, "1234");
+  roomState(resumed, "1234", "playing");
+  h.tick(50);
+  assert.deepEqual(
+    resumed.sent.filter((m) => m.type !== "ping").map((m) => m.type),
+    ["join", "leave_room"],
+  );
+  roomWelcome(resumed, null, "directory");
+  roomWelcome(resumed, "5678");
+  roomState(resumed, "5678", "playing");
+  h.tick(50);
+  assert.equal(resumed.sent.at(-1).type, "input");
+});
+
+test("leave rejection resynchronizes membership before restoring controls", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  roomWelcome(socket, "1234");
+  roomState(socket, "1234", "playing");
+  h.node(".leave-room").onclick();
+  deliver(socket, { type: "error", message: "Leave rejected" });
+  assert.equal(socket.readyState, 3);
+  h.tick(1000);
+  const resumed = h.sockets.at(-1);
+  resumed.onopen();
+  roomWelcome(resumed, "1234");
+  roomState(resumed, "1234", "playing");
+  h.tick(50);
+  assert.deepEqual(resumed.sent.at(-1), {
+    type: "input",
+    x: 0,
+    y: 0,
+    boost: false,
+  });
+});
+
+test("missing leave acknowledgement reconnects despite ongoing room snapshots", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  roomWelcome(socket, "1234");
+  roomState(socket, "1234", "playing");
+  h.node(".leave-room").onclick();
+  for (let i = 0; i < 8; i++) {
+    roomState(socket, "1234", "playing");
+    h.tick(1000);
+  }
+  assert.equal(socket.readyState, 3);
+  h.tick(1000);
+  const resumed = h.sockets.at(-1);
+  resumed.onopen();
+  // The original leave may have succeeded before the connection was lost.
+  roomWelcome(resumed, null, "directory");
+  h.tick(50);
+  assert.equal(
+    resumed.sent.some((m) => m.type === "leave_room" || m.type === "input"),
+    false,
+  );
+  roomWelcome(resumed, "5678");
+  roomState(resumed, "5678", "playing");
+  h.tick(50);
+  assert.equal(resumed.sent.at(-1).type, "input");
+});
+
+test("manual reconnect cancels the old leave deadline while awaiting a new handshake", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  roomWelcome(socket, "1234");
+  roomState(socket, "1234", "playing");
+  h.node(".leave-room").onclick();
+  h.tick(7000);
+  h.connect();
+  const resumed = h.sockets.at(-1);
+  resumed.onopen();
+  h.tick(1000);
+  assert.equal(
+    resumed.readyState,
+    1,
+    "old leave deadline cannot close replacement socket",
+  );
+  roomWelcome(resumed, "1234");
+  assert.equal(resumed.sent.at(-1).type, "leave_room");
 });
