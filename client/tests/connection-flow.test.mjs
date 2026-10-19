@@ -89,7 +89,7 @@ function harness() {
     },
     innerWidth: 1200,
     innerHeight: 800,
-    location: { search: "", protocol: "http:", hostname: "localhost" },
+    location: { search: "", protocol: "http:", hostname: "localhost", host: "localhost:18081" },
     document: {
       querySelector: node,
       querySelectorAll: () => [],
@@ -106,7 +106,7 @@ function harness() {
     performance: { now: () => 0 },
   };
   vm.createContext(context);
-  vm.runInContext(compiled + "\n;globalThis.testConnect = connect;", context);
+  vm.runInContext(compiled + "\n;globalThis.testConnect = connect; globalThis.testDefaultUrl = defaultUrl;", context);
   return {
     context,
     sockets,
@@ -175,4 +175,9 @@ test("invalid socket URL is rejected before construction and connection remains 
   h.node("#server").value = "ws://server-a.test/ws";
   h.connect();
   assert.equal(h.sockets.length, 1);
+});
+
+
+test("default WebSocket uses the actual page port", () => {
+  assert.equal(harness().context.testDefaultUrl, "ws://localhost:18081/ws");
 });

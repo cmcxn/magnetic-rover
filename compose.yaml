@@ -1,0 +1,24 @@
+name: magnetic-rover
+services:
+  game:
+    image: magnetic-rover:20261019
+    build: .
+    ports:
+      - "${ROVER_PORT:-18080}:18080"
+    runtime: runc
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 2
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"

@@ -43,7 +43,7 @@ const keys = new Set<string>();
 const query = new URLSearchParams(location.search);
 const defaultUrl =
   query.get("ws") ||
-  `${location.protocol === "https:" ? "wss" : "ws"}://${location.hostname}:18080/ws`;
+  `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`;
 app.innerHTML = `<div class="brand"><div class="brand-icon">ϟ</div><div><strong>磁力小车</strong><small>MAGNETIC ROVER CLUB</small></div></div><div class="connection pill"><span class="dot"></span><span id="status">尚未连接</span></div><div id="surface"></div><div id="notice" class="toast hidden" role="status"></div>`;
 const surface = document.querySelector<HTMLDivElement>("#surface")!;
 function status(text: string) {
