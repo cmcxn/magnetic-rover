@@ -5,40 +5,30 @@ local httpd=require 'http.httpd'
 local helper=require 'http.sockethelper'
 local crypt=require 'skynet.crypt'
 local json=require 'json'
-local G=require 'game'
-local g=G.new(function() return crypt.hexencode(crypt.randomkey()..crypt.randomkey()..crypt.randomkey()) end)
-local clock=require('game_clock').new(g,skynet.now()/100)
-local clients={};local pending={};local peers={}
-local admission=require('admission').new(g,32)
+local rooms=require('rooms').new(function() return crypt.hexencode(crypt.randomkey()..crypt.randomkey()..crypt.randomkey()) end,skynet.now()/100,json.array)
+local pending={};local peers={}
 local latency=require 'latency'
-local function send(fd,m) local ok=pcall(websocket.write,fd,json.encode(m));if not ok then clock:disconnect(fd,skynet.now()/100);clients[fd]=nil;admission:remove(fd) end end
+local function send(fd,m)
+ local ok=pcall(websocket.write,fd,json.encode(m))
+ if not ok then rooms:disconnect(fd,skynet.now()/100);pending[fd]=nil;peers[fd]=nil end
+end
+local function flush() for _,event in ipairs(rooms:drain()) do if peers[event.fd] then send(event.fd,event.message) end end end
 local function err(fd,msg) send(fd,{type='error',message=msg or 'Invalid action'}) end
 local handle={}
 function handle.message(fd,msg,kind)
- clock:advance(skynet.now()/100)
  if kind~='text' or #msg>2048 then return err(fd,'Text JSON messages, max 2048 bytes') end
  local peer=peers[fd];if not peer then return end
  local now=skynet.now();if now-peer.window>=100 then peer.window=now;peer.count=0 end
  peer.count=peer.count+1;if peer.count>60 then return end
  local ok,m=pcall(json.decode,msg);if not ok or type(m)~='table' then return err(fd,'Invalid JSON') end
- if m.type=='join' then
-  local p,status=admission:request(fd,m);if not p then
-   if status.type=='waiting' then pending[fd]=nil end
-   send(fd,status);return
-  end
-  clients[fd]=p;pending[fd]=nil;send(fd,{type='welcome',id=p.id,token=p.token});send(fd,g:snapshot(json.array));return
- end
- local p=clients[fd]
- if m.type=='ping' and (p or admission:has(fd)) then
+ if m.type=='ping' and rooms.connections[fd] then
   local reply,e=latency.reply(peer,m,now/100);if reply then send(fd,reply) elseif e then err(fd,e) end;return
  end
- if not p then return err(fd,'Join first') end
- if m.type=='input' then local valid,e=g:input(p,m);if e then err(fd,e) end
- elseif m.type=='start' then local valid,e=clock:start(skynet.now()/100);if not valid then err(fd,e) end
- elseif m.type=='again' then local valid,e=g:again();if not valid then err(fd,e) end
- else err(fd,'Unknown action') end
+ rooms:handle(fd,m,now/100)
+ if rooms.connections[fd] then pending[fd]=nil end
+ flush()
 end
-function handle.close(fd) admission:remove(fd);clock:disconnect(fd,skynet.now()/100);clients[fd]=nil;pending[fd]=nil;peers[fd]=nil end
+function handle.close(fd) rooms:disconnect(fd,skynet.now()/100);pending[fd]=nil;peers[fd]=nil end
 handle.error=handle.close
 local mime={html='text/html; charset=utf-8',js='text/javascript',css='text/css',svg='image/svg+xml',png='image/png',json='application/json',ico='image/x-icon',wav='audio/wav',ogg='audio/ogg',webp='image/webp'}
 local function serve(fd,addr)
@@ -66,29 +56,20 @@ skynet.start(function()
  skynet.fork(function()
   local nextWake=skynet.now()+5
   local nextSnapshot=skynet.now()+10
-  local nextAdmission=skynet.now()+100
+  local nextDirectory=skynet.now()+100
   while true do
    skynet.sleep(math.max(1,nextWake-skynet.now()))
    local now=skynet.now()
-   clock:advance(now/100)
-   -- Absolute wake targets prevent work time from extending every interval.
+   rooms:advance(now/100)
    nextWake=nextWake+5
    if nextWake<=now then nextWake=now+5 end
    if now>=nextSnapshot then
-    local snapshot=g:snapshot(json.array);for fd in pairs(clients) do send(fd,snapshot) end
+    rooms:broadcastStates();flush()
     nextSnapshot=nextSnapshot+10
     if nextSnapshot<=now then nextSnapshot=now+10 end
    end
-   if now>=nextAdmission then
-    nextAdmission=now+100
-    for _,event in ipairs(admission:process()) do
-     if peers[event.fd] then
-      if event.player then
-       local p=event.player;clients[event.fd]=p;pending[event.fd]=nil
-       send(event.fd,{type='welcome',id=p.id,token=p.token});send(event.fd,g:snapshot(json.array))
-      else send(event.fd,event.message) end
-     end
-    end
+   if now>=nextDirectory then
+    nextDirectory=now+100;rooms:broadcastRooms();flush()
    end
    for fd,t in pairs(pending) do if now-t>1000 then pcall(websocket.close,fd);handle.close(fd) end end
   end

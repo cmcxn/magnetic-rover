@@ -10,20 +10,28 @@ async def send(ws,**m):await ws.send(json.dumps(m))
 async def main():
     async with websockets.connect(URI) as a,websockets.connect(URI) as b:
         await send(a,type='join',name='测试甲',color='#38bdf8');wa=await recv(a,'welcome')
+        assert wa['role']=='directory' and wa['roomId'] is None
+        await recv(a,'rooms')
+        await send(a,type='create_room');wa=await recv(a,'welcome')
         sa=await recv(a,'state');assert isinstance(sa['batteries'],list)
         await send(a,type='ping',id=7);assert (await recv(a,'pong'))=={'type':'pong','id':7}
         await send(a,type='ping',id='bad');assert 'Invalid ping' in (await recv(a,'error'))['message']
-        await send(a,type='start');assert 'two' in (await recv(a,'error'))['message']
-        await send(b,type='join',name='测试乙',color='#fb7185');wb=await recv(b,'welcome');assert wa['id']!=wb['id'] and wa['token']!=wb['token']
+        await send(a,type='start');sa=await recv(a,'state');assert sa['phase']=='lobby'
+        await send(b,type='join',name='测试乙',color='#fb7185');wb=await recv(b,'welcome');await recv(b,'rooms')
+        await send(b,type='join_room',roomId=wa['roomId']);wb=await recv(b,'welcome');assert wa['id']!=wb['id'] and wa['token']!=wb['token']
         async with websockets.connect(URI) as c:
             await send(c,type='join',name='偷号',color='#38bdf8',token=wa['token']);assert 'already connected' in (await recv(c,'error'))['message']
-        await send(a,type='start');s=await recv(a,'state')
+        await send(b,type='ready',ready=True);s=await recv(a,'state')
         while s['phase']!='playing':s=await recv(a,'state')
-        async with websockets.connect(URI) as waiting:
-            await send(waiting,type='join',name='等待客人',color='#38bdf8')
-            wait=await recv(waiting,'waiting');assert wait['reason']=='playing' and wait['availableIn']>180
-            await send(waiting,type='ping',id=9);assert (await recv(waiting,'pong'))['id']==9
-            await send(waiting,type='start');assert 'Join first' in (await recv(waiting,'error'))['message']
+        async with websockets.connect(URI) as spectator:
+            await send(spectator,type='join',name='观战客人',color='#38bdf8')
+            assert (await recv(spectator,'welcome'))['role']=='directory'
+            await recv(spectator,'rooms')
+            await send(spectator,type='spectate',roomId=wa['roomId'])
+            assert (await recv(spectator,'welcome'))['role']=='spectator'
+            watched=await recv(spectator,'state');assert len(watched['players'])==2
+            await send(spectator,type='ping',id=9);assert (await recv(spectator,'pong'))['id']==9
+            await send(spectator,type='start');assert 'Only room players' in (await recv(spectator,'error'))['message']
         # Authoritative idle dash, cooldown spam, heading and empty-cargo hit feedback.
         player=lambda state,pid:next(p for p in state['players'] if p['id']==pid)
         origin=player(s,wa['id'])
@@ -93,6 +101,9 @@ async def main():
             resumed_state=await recv(resumed,'state');resumed_player=player(resumed_state,wa['id'])
             assert resumed_player['pickupSeq']==saved_seq and resumed_player['cargo']==saved_cargo,'same identity reconnect snapshot preserves pickup baseline'
         print('PASS real WS pickupSeq: forgery ignored, actual battery collection increments cargo/sequence, other player isolated, reconnect snapshot preserved')
+        # Drain the idle socket so close does not wait10s on queued snapshots
+        # and outlive the last room member's disconnect grace.
+        await send(b,type='ping',id=201);await recv(b,'pong')
         await b.close();await asyncio.sleep(.15)
         async with websockets.connect(URI) as c:
             await send(c,type='join',name='ignored',color='#facc15',token=wb['token']);w=await recv(c,'welcome');assert w['id']==wb['id']
