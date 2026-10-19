@@ -751,3 +751,152 @@ details input {
 #app {
   isolation: isolate;
 }
+
+/* Explicit width prevents the absolutely positioned HUD's shrink-to-fit width
+   from collapsing CJK labels. Coarse pointers also cover phone landscape. */
+.hud {
+  width: max-content;
+  max-width: calc(100% - 24px);
+}
+.stat {
+  min-width: 0;
+}
+.stat small,
+.stat b {
+  white-space: nowrap;
+}
+.mobile-menu {
+  display: none;
+}
+@media (max-width: 700px),
+  (pointer: coarse),
+  (max-height: 520px) and (orientation: landscape) {
+  .playing {
+    --hud-top: max(8px, env(safe-area-inset-top));
+    --edge-left: max(8px, env(safe-area-inset-left));
+    --edge-right: max(8px, env(safe-area-inset-right));
+  }
+  .playing .brand {
+    display: none;
+  }
+  .playing .hud {
+    top: var(--hud-top);
+    left: var(--edge-left);
+    right: var(--edge-right);
+    transform: none;
+    width: auto;
+    max-width: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 5px 8px;
+    height: 52px;
+    border-radius: 14px;
+  }
+  .playing .stat small {
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+  .playing .stat b {
+    font-size: 19px;
+    line-height: 23px;
+    margin-top: 0;
+  }
+  .playing #cargo {
+    font-size: 16px;
+  }
+  .playing .connection {
+    top: calc(var(--hud-top) + 57px);
+    left: var(--edge-left);
+    right: auto;
+    max-width: calc(100% - 132px);
+    padding: 4px 8px;
+    font-size: 10px;
+    line-height: 14px;
+  }
+  .playing #latency {
+    margin-top: 0;
+  }
+  .playing .mobile-menu {
+    display: block;
+    position: absolute;
+    top: calc(var(--hud-top) + 56px);
+    min-width: 44px;
+    min-height: 44px;
+    padding: 6px;
+    font-size: 11px;
+  }
+  .playing .settings-toggle {
+    right: var(--edge-right);
+  }
+  .playing .ranking-toggle {
+    right: calc(var(--edge-right) + 48px);
+  }
+  .playing .leaderboard,
+  .playing .controls {
+    display: none;
+    top: calc(var(--hud-top) + 104px);
+    bottom: auto;
+    right: var(--edge-right);
+    left: auto;
+    width: 180px;
+    max-width: calc(100% - 16px);
+    max-height: calc(
+      100dvh - 210px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
+    overflow-y: auto;
+    padding: 10px;
+    margin: 0;
+    border-radius: 14px;
+    background: #fffbe9f5;
+    z-index: 2;
+  }
+  .playing .leaderboard.expanded {
+    display: block;
+  }
+  .playing .controls.expanded {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .playing .controls .secondary {
+    min-height: 44px;
+  }
+  .playing .leaderboard .rankrow {
+    display: flex;
+  }
+  .playing .boost {
+    width: 64px;
+    height: 64px;
+    border-width: 3px;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    font-size: 13px;
+  }
+  .playing .boost .keyboard-hint {
+    display: none;
+  }
+  .playing .minimap {
+    width: 64px;
+    height: 64px;
+    border-width: 3px;
+    top: auto;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 76px);
+  }
+  .playing .hint {
+    display: none;
+  }
+  .playing .toast {
+    top: calc(var(--hud-top) + 110px);
+  }
+  .playing .stun-status {
+    top: calc(var(--hud-top) + 155px);
+    font-size: 12px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .playing .minimap {
+    display: none;
+  }
+}

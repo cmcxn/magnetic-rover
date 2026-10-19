@@ -62,6 +62,9 @@ function harness(search = "", options = {}) {
         textContent: "",
         style: {},
         firstElementChild: { style: {} },
+        attributes: new Map(),
+        getAttribute(name) { return this.attributes.get(name) ?? null; },
+        setAttribute(name, value) { this.attributes.set(name, value); },
         captures: new Set(),
         setPointerCapture(id) {
           this.captures.add(id);
@@ -749,4 +752,29 @@ test("movement-owner cancellation clears a queued dash without treating normal r
     assert.equal(input.boost, ending === "pointerup", ending);
     assert.equal(input.x, 0, ending);
   }
+});
+
+test("playing HUD has separate compact mobile menus and horizontal cargo label", () => {
+  const h = harness();
+  h.connect();
+  welcome(h);
+  playing(h, { cargo: 20 });
+  const html = h.node("#surface").innerHTML;
+  assert.match(html, /id="ranking-toggle"/);
+  assert.match(html, /aria-controls="ranking" aria-expanded="false"/);
+  assert.match(html, /id="settings-toggle"/);
+  assert.match(html, /id="settings"/);
+  assert.match(html, /<small>载货<\/small>/);
+});
+
+test("mobile menus toggle independently and close the other overlay", () => {
+ const h=harness();h.connect();welcome(h);playing(h,{});
+ h.node("#ranking-toggle").onclick();
+ assert.equal(h.node("#ranking-toggle").getAttribute("aria-expanded"),"true");
+ assert.equal(h.node(".leaderboard").classList.values.has("expanded"),true);
+ h.node("#settings-toggle").onclick();
+ assert.equal(h.node(".leaderboard").classList.values.has("expanded"),false);
+ assert.equal(h.node("#settings").classList.values.has("expanded"),true);
+ h.node("#settings-toggle").onclick();
+ assert.equal(h.node("#settings").classList.values.has("expanded"),false);
 });

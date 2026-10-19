@@ -405,7 +405,7 @@ function render() {
     if (phase === "lobby")
       surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">THE GARAGE / 准备大厅</div><h2>车手们，准备好了吗？</h2><p class="subtitle">打开同一个游戏地址，朋友就能加入。<br>至少 2 位车手到齐，即可开始比赛。</p><div id="roster" class="roster"></div><div id="slots" class="slots"></div><button id="start" class="primary">开始比赛 →</button><div class="error" id="error" role="alert"></div><div class="instructions"><div><b>WASD</b>或方向键移动</div><div><b>SPACE</b>空格冲刺 · 4 秒冷却</div><div><b>⚡</b>手机摇杆 + 冲刺</div></div><p class="footer-note">身上的电池还不算分。驶入任意回收站，才会存入积分！</p></section></div>`;
     if (phase === "playing") {
-      surface.innerHTML = `<div class="hud"><div class="stat"><small>已存积分</small><b id="score">0</b></div><div class="stat timer"><small>剩余时间</small><b id="timer">3:00</b></div><div class="stat"><small>随车电池</small><b id="cargo">0<small>/20</small></b></div></div><aside class="leaderboard"><h3>实时排行榜</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span>SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
+      surface.innerHTML = `<div class="hud"><div class="stat"><small>积分</small><b id="score">0</b></div><div class="stat timer"><small>剩余时间</small><b id="timer">3:00</b></div><div class="stat"><small>载货</small><b id="cargo">0 / 20</b></div></div><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-controls="settings" aria-expanded="false">设置</button><aside class="leaderboard"><h3>实时排行榜</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
       wireControls();
       notice("出发！把电池送到绿色回收站。");
     }
@@ -459,7 +459,7 @@ function render() {
         ? `${stun.toFixed(1)} 秒<span>眩晕中</span>`
         : cooldown > 0
           ? `${cooldown.toFixed(1)} 秒<span>充能中</span>`
-          : "冲 刺<span>SPACE</span>";
+          : '冲 刺<span class="keyboard-hint">SPACE</span>';
     b.disabled = cooldown > 0 || stun > 0;
     drawMap();
   }
@@ -509,6 +509,28 @@ function drawMap() {
   }
 }
 function wireControls() {
+  for (const [buttonId, panelSelector] of [
+    ["ranking-toggle", ".leaderboard"],
+    ["settings-toggle", "#settings"],
+  ]) {
+    const button = document.querySelector<HTMLButtonElement>(`#${buttonId}`)!;
+    const panel = document.querySelector<HTMLElement>(panelSelector)!;
+    button.onclick = () => {
+      const expanded = button.getAttribute("aria-expanded") !== "true";
+      // Only one mobile panel can cover the playfield at a time.
+      for (const [otherButton, otherPanel] of [
+        ["ranking-toggle", ".leaderboard"],
+        ["settings-toggle", "#settings"],
+      ]) {
+        document
+          .querySelector(`#${otherButton}`)!
+          .setAttribute("aria-expanded", "false");
+        document.querySelector(otherPanel)!.classList.remove("expanded");
+      }
+      button.setAttribute("aria-expanded", String(expanded));
+      panel.classList.toggle("expanded", expanded);
+    };
+  }
   document.querySelector<HTMLButtonElement>("#effects")!.onclick = () => {
     reducedEffects = !reducedEffects;
     world.reducedEffects = reducedEffects;
