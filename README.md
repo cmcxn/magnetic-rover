@@ -29,3 +29,18 @@
 - 不包含排行榜后台、付费、聊天、账号系统、匹配、多房间运营或美术版权保证。
 - 8 人是设计上限，不代表经过容量压测。
 - 详细完成情况以 STATUS.md 和实际测试报告为准。
+
+## macOS 一键启动与停止
+
+在终端执行（可从任意工作目录调用）：
+
+```sh
+~/Documents/magnetic-rover/start.sh
+~/Documents/magnetic-rover/stop.sh
+```
+
+启动成功后打开 http://127.0.0.1:18080 。后台运行，关闭终端不会停止；不自动打开浏览器。重复启动不会创建第二个服务，重复停止无害。停止会结束当前内存中的游戏。
+
+依赖：Node.js 22.18+ 或兼容 LTS、macOS 的 curl/lsof/ps、已编译的 Skynet，以及 `client/dist/index.html`。脚本不安装软件、不自动构建。缺少前端产物时执行 `cd client && npm ci && npm run build`。默认复用相邻的 `../skynet-demo/vendor/skynet`，其他位置可用 `SKYNET_ROOT="/含空格的路径/skynet" ./start.sh` 指定。
+
+日志追加到 `server/local-play.log`，PID 写入 `server/local-play.pid`。启动会核验进程、监听端口与 HTTP 就绪，失败返回非零。发现无关 PID 或端口占用时拒绝操作，不杀其他服务。若提示 `.control-lock` 残留，先确认没有启动/停止脚本正在执行，再删除该空目录。两名玩家使用不同浏览器或独立浏览器配置。

@@ -6,3 +6,4 @@ client/dist/
 
 __pycache__/
 *.pyc
+server/.control-lock/
