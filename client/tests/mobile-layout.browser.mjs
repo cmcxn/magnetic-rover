@@ -91,7 +91,24 @@ try {
           bottom: r.bottom,
         };
       };
+      const probe = document.createElement("div");
+      probe.style.cssText =
+        "position:fixed;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)";
+      document.body.append(probe);
+      const computed = getComputedStyle(probe);
+      const safe = Object.fromEntries(
+        ["Top", "Right", "Bottom", "Left"].map((side) => [
+          side.toLowerCase(),
+          parseFloat(computed[`padding${side}`]) || 0,
+        ]),
+      );
+      probe.remove();
       return {
+        safe,
+        connection: rect(".connection"),
+        rankingToggle: rect("#ranking-toggle"),
+        settingsToggle: rect("#settings-toggle"),
+        minimap: rect(".minimap"),
         hud: rect(".hud"),
         labels: [...document.querySelectorAll(".stat small")].map((n) => ({
           height: n.getBoundingClientRect().height,
@@ -124,6 +141,54 @@ try {
         assert.equal(m.controlsVisible, false, "settings collapsed");
         assert.ok(m.latency.height > 0, "RTT retained");
         assert.ok(m.boost.width >= 44, "touch target");
+        const visible = [
+          m.hud,
+          m.connection,
+          m.rankingToggle,
+          m.settingsToggle,
+          m.boost,
+          m.minimap,
+        ].filter((r) => r.width && r.height);
+        for (const [i, a] of visible.entries()) {
+          assert.ok(
+            a.x >= m.safe.left &&
+              a.right <= width - m.safe.right &&
+              a.y >= m.safe.top &&
+              a.bottom <= height - m.safe.bottom,
+            "HUD controls stay inside viewport safe area",
+          );
+          for (const b of visible.slice(i + 1)) {
+            assert.ok(
+              a.right <= b.x ||
+                b.right <= a.x ||
+                a.bottom <= b.y ||
+                b.bottom <= a.y,
+              "default HUD elements do not overlap",
+            );
+          }
+        }
+        for (const [button, panel] of [
+          ["#settings-toggle", "#settings"],
+          ["#ranking-toggle", ".leaderboard"],
+        ]) {
+          await page.locator(button).click();
+          const intercepts = await page.evaluate((selector) => {
+            const panel = document.querySelector(selector);
+            const r = panel.getBoundingClientRect();
+            // The top padding is UI too, not a hole into the game canvas.
+            return (
+              r.height > 0 &&
+              panel.contains(
+                document.elementFromPoint(r.x + r.width / 2, r.y + 3),
+              )
+            );
+          }, panel);
+          assert.equal(intercepts, true, `${panel} padding blocks field input`);
+          await page.locator(button).click();
+        }
+      } else {
+        assert.equal(m.rankVisible, true, "desktop ranking retained");
+        assert.equal(m.controlsVisible, true, "desktop controls retained");
       }
     } catch (e) {
       failures.push(`${width}x${height}: ${e.message}`);

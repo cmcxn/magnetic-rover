@@ -63,8 +63,12 @@ function harness(search = "", options = {}) {
         style: {},
         firstElementChild: { style: {} },
         attributes: new Map(),
-        getAttribute(name) { return this.attributes.get(name) ?? null; },
-        setAttribute(name, value) { this.attributes.set(name, value); },
+        getAttribute(name) {
+          return this.attributes.get(name) ?? null;
+        },
+        setAttribute(name, value) {
+          this.attributes.set(name, value);
+        },
         captures: new Set(),
         setPointerCapture(id) {
           this.captures.add(id);
@@ -737,7 +741,7 @@ test("canceled boost touch and resize discard queued dash; normal up keeps the i
   }
 });
 
-test("movement-owner cancellation clears a queued dash without treating normal release as cancellation", () => {
+test("movement-owner release or cancellation clears queued dash safely", () => {
   for (const ending of ["pointercancel", "lostpointercapture", "pointerup"]) {
     const h = harness();
     h.connect();
@@ -749,7 +753,7 @@ test("movement-owner cancellation clears a queued dash without treating normal r
     h.dispatch(ending, touch(1));
     h.tick(50);
     const input = socket.sent.filter((x) => x.type === "input").at(-1);
-    assert.equal(input.boost, ending === "pointerup", ending);
+    assert.equal(input.boost, false, ending);
     assert.equal(input.x, 0, ending);
   }
 });
@@ -768,13 +772,154 @@ test("playing HUD has separate compact mobile menus and horizontal cargo label",
 });
 
 test("mobile menus toggle independently and close the other overlay", () => {
- const h=harness();h.connect();welcome(h);playing(h,{});
- h.node("#ranking-toggle").onclick();
- assert.equal(h.node("#ranking-toggle").getAttribute("aria-expanded"),"true");
- assert.equal(h.node(".leaderboard").classList.values.has("expanded"),true);
- h.node("#settings-toggle").onclick();
- assert.equal(h.node(".leaderboard").classList.values.has("expanded"),false);
- assert.equal(h.node("#settings").classList.values.has("expanded"),true);
- h.node("#settings-toggle").onclick();
- assert.equal(h.node("#settings").classList.values.has("expanded"),false);
+  const h = harness();
+  h.connect();
+  welcome(h);
+  playing(h, {});
+  h.node("#ranking-toggle").onclick();
+  assert.equal(h.node("#ranking-toggle").getAttribute("aria-expanded"), "true");
+  assert.equal(h.node(".leaderboard").classList.values.has("expanded"), true);
+  h.node("#settings-toggle").onclick();
+  assert.equal(h.node(".leaderboard").classList.values.has("expanded"), false);
+  assert.equal(h.node("#settings").classList.values.has("expanded"), true);
+  h.node("#settings-toggle").onclick();
+  assert.equal(h.node("#settings").classList.values.has("expanded"), false);
+});
+
+test("second concurrent field touch queues one boost; third touch and repeated moves do not", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  playing(h, {});
+  const down = (id) => h.dispatch("#game:pointerdown", touch(id));
+  const input = () => {
+    h.tick(50);
+    return socket.sent.filter((x) => x.type === "input").at(-1);
+  };
+  down(1);
+  h.dispatch("pointermove", touch(1, 58, 700));
+  assert.equal(input().x, 1);
+  down(2);
+  assert.equal(input().boost, true);
+  assert.equal(input().boost, false);
+  down(3);
+  assert.equal(input().boost, false);
+  h.dispatch("pointermove", touch(2, 200, 100));
+  assert.equal(input().x, 1);
+  h.dispatch("pointerup", touch(2));
+  assert.equal(input().x, 1);
+  down(4);
+  assert.equal(
+    input().boost,
+    false,
+    "existing third finger prevents a new second-touch dash",
+  );
+  h.dispatch("pointerup", touch(3));
+  h.dispatch("pointerup", touch(4));
+  down(5);
+  h.dispatch("pointerup", touch(5));
+  assert.equal(input().boost, true, "normal second tap survives release");
+  down(6);
+  h.dispatch("pointerup", touch(1));
+  assert.equal(input().boost, false, "owner release clears queued dash");
+  assert.equal(input().x, 0);
+  down(7);
+  assert.equal(input().x, 0);
+  assert.equal(
+    h.node("#joystick").classList.values.has("active"),
+    false,
+    "wait until remaining fingers lift",
+  );
+  h.dispatch("pointerup", touch(6));
+  h.dispatch("pointerup", touch(7));
+  down(8);
+  assert.equal(h.node("#joystick").classList.values.has("active"), true);
+});
+
+test("field boost cancels cleanly on interruption and is blocked by cooldown or stun", () => {
+  for (const ending of [
+    "pointercancel",
+    "lostpointercapture",
+    "blur",
+    "resize",
+    "orientationchange",
+    "hidden",
+  ]) {
+    const h = harness();
+    h.connect();
+    const socket = welcome(h);
+    playing(h, {});
+    h.dispatch("#game:pointerdown", touch(1));
+    h.dispatch("#game:pointerdown", touch(2));
+    if (ending === "hidden") h.visibility(true);
+    else h.dispatch(ending, touch(2));
+    h.tick(50);
+    assert.equal(
+      socket.sent.filter((x) => x.type === "input").at(-1).boost,
+      false,
+      ending,
+    );
+  }
+  for (const player of [{ cooldown: 2 }, { stun: 1 }]) {
+    const h = harness();
+    h.connect();
+    const socket = welcome(h);
+    playing(h, player);
+    h.dispatch("#game:pointerdown", touch(1));
+    h.dispatch("#game:pointerdown", touch(2));
+    h.tick(50);
+    assert.equal(
+      socket.sent.filter((x) => x.type === "input").at(-1).boost,
+      false,
+    );
+  }
+});
+
+test("sequential single taps never boost and UI taps cannot become the field second finger", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  playing(h, {});
+  const input = () => {
+    h.tick(50);
+    return socket.sent.filter((x) => x.type === "input").at(-1);
+  };
+  for (const id of [1, 2, 3]) {
+    h.dispatch("#game:pointerdown", touch(id));
+    h.dispatch("pointerup", touch(id));
+    assert.equal(input().boost, false);
+  }
+  h.dispatch("#game:pointerdown", touch(4));
+  h.dispatch("#settings-toggle:pointerdown", touch(5));
+  h.node("#settings-toggle").onclick();
+  assert.equal(input().boost, false);
+  assert.equal(h.node("#joystick").classList.values.has("active"), true);
+  h.dispatch("#game:pointerdown", touch(6));
+  socket.close();
+  h.tick(2000);
+  welcome(h);
+  playing(h, {});
+  assert.equal(input().boost, false);
+  assert.equal(input().x, 0);
+  h.dispatch("#game:pointerdown", touch(7));
+  assert.equal(h.node("#joystick").classList.values.has("active"), true);
+});
+test("accessible boost activation works without a pointer and respects cooldown", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  playing(h, {});
+  h.dispatch("#boost:click", { detail: 0 });
+  h.tick(50);
+  assert.equal(
+    socket.sent.filter((x) => x.type === "input").at(-1).boost,
+    true,
+  );
+  playing(h, { cooldown: 2 });
+  h.dispatch("#boost:click", { detail: 0 });
+  h.tick(50);
+  assert.equal(
+    socket.sent.filter((x) => x.type === "input").at(-1).boost,
+    false,
+  );
 });

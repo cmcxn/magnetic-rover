@@ -60,6 +60,7 @@ let state: State | null = null,
 const keys = new Set<string>();
 const joystick = new FloatingJoystick();
 let boostPointer: number | null = null;
+const fieldTouches = new Set<number>();
 let session: { name: string; url: string; color: string } | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 let retryAttempt = 0,
@@ -552,9 +553,26 @@ function wireControls() {
   };
   document.querySelector("#boost")!.addEventListener("pointerdown", (e) => {
     e.preventDefault();
-    boost = true;
-    boostPointer = (e as PointerEvent).pointerId;
+    requestBoost((e as PointerEvent).pointerId);
   });
+  document.querySelector("#boost")!.addEventListener("click", (e) => {
+    // Keyboard / assistive activation has no pointerdown.
+    if ((e as MouseEvent).detail === 0) requestBoost(null);
+  });
+}
+function requestBoost(pointer: number | null) {
+  const me = state?.players.find((player) => player.id === id);
+  if (
+    phase !== "playing" ||
+    !connected ||
+    document.hidden ||
+    !me ||
+    me.cooldown > 0 ||
+    me.stun > 0
+  )
+    return;
+  boost = true;
+  boostPointer = pointer;
 }
 window.addEventListener("keydown", (e) => {
   if (phase !== "playing" || e.target instanceof HTMLInputElement) return;
@@ -618,8 +636,11 @@ function drawJoystick() {
     (visual.firstElementChild as HTMLElement).style.transform =
       `translate(${joy.x * 32}px,${joy.y * 32}px)`;
 }
-function resetJoystick() {
+function resetJoystick(clearTouches = true) {
   const owner = joystick.owner;
+  if (clearTouches) fieldTouches.clear();
+  boost = false;
+  boostPointer = null;
   joystick.reset();
   drawJoystick();
   const game = document.querySelector<HTMLElement>("#game")!;
@@ -635,8 +656,19 @@ driveSurface.addEventListener("pointerdown", (e) => {
     document.hidden
   )
     return;
-  if (!joystick.start(e.pointerId, e.clientX, e.clientY)) return;
+  if (fieldTouches.has(e.pointerId)) return;
+  fieldTouches.add(e.pointerId);
   e.preventDefault();
+  if (fieldTouches.size === 2 && joystick.owner !== null) {
+    requestBoost(e.pointerId);
+    return;
+  }
+  // Never promote a held second/third finger after the driving finger lifts.
+  if (
+    fieldTouches.size !== 1 ||
+    !joystick.start(e.pointerId, e.clientX, e.clientY)
+  )
+    return;
   try {
     driveSurface.setPointerCapture(e.pointerId);
   } catch {
@@ -655,23 +687,18 @@ for (const event of [
   "lostpointercapture",
 ] as const)
   window.addEventListener(event, (e) => {
-    if (e.pointerId === joystick.owner) {
-      resetJoystick();
-      if (event !== "pointerup") {
-        boost = false;
-        boostPointer = null;
-      }
-    }
+    fieldTouches.delete(e.pointerId);
+    if (e.pointerId === joystick.owner) resetJoystick(false);
     if (e.pointerId === boostPointer) {
       if (event !== "pointerup") boost = false;
       boostPointer = null;
     }
   });
-window.addEventListener("resize", () => {
-  resetJoystick();
-  boost = false;
-  boostPointer = null;
-});
+for (const event of ["resize", "orientationchange"])
+  window.addEventListener(event, () => {
+    resetJoystick();
+    mouseDown = false;
+  });
 // One outstanding ping at a time. Never infer RTT from snapshots or rendering.
 setInterval(() => {
   if (debug) {

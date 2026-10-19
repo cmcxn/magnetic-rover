@@ -13,7 +13,7 @@ Phaser 3 + TypeScript + Vite. Real Skynet WebSocket only; no local gameplay simu
 
 ## Controls
 
-WASD / arrows to drive; Space to boost. Optional mouse steering requires holding the pointer on the arena. Mobile drag left joystick and tap right boost. Inputs send at 20Hz. Blur and document hiding clear inputs. Server-scoped guest tokens, nickname, colour and server address persist in localStorage; open a separate browser profile/incognito context to test a distinct player.
+WASD / arrows to drive; Space to boost. Optional mouse steering requires holding the pointer on the arena. On touch devices, drag anywhere on the game field to set a floating joystick. While holding that finger, tap the field with a second finger to boost once. UI taps are excluded; a third held field finger never triggers boost. Releasing the driving finger stops movement and discards queued boost; remaining fingers must lift before a new driving gesture. The small boost button remains available, including keyboard/assistive activation. Inputs send at 20Hz. Blur and document hiding clear inputs. Server-scoped guest tokens, nickname, colour and server address persist in localStorage; open a separate browser profile/incognito context to test a distinct player.
 
 ## Checks
 
@@ -34,3 +34,9 @@ Three independent generated transparent PNG sprites (rover, battery, recycle sta
 - Finished snapshots may include `returnIn`; the results screen announces the automatic lobby return countdown.
 - The garden background is rasterized once into a texture. Local visual smoothing uses a 25 ms catch-up divisor versus 65 ms for remote cars, and the follow camera uses the current smoothed position. This reduces added visual lag without predicting authoritative movement.
 - Unit regressions cover RTT matching/expiry, hidden and old sockets, scoped reconnect, cancellation, waiting promotion/countdown, opt-in diagnostics, cached garden rendering, and camera alignment. They do not claim an end-to-end real-device latency improvement.
+
+## Mobile HUD regression
+
+Narrow/coarse-pointer/short-landscape layouts use a fixed-height three-column score/time/cargo strip. Ranking and settings start collapsed; RTT stays visible. All score and cargo values remain authoritative and unchanged.
+
+`node tests/mobile-layout.browser.mjs` is an optional real Chromium check with Vite running on localhost:5173 and Playwright available. It uses a deterministic WebSocket fixture and checks 320/375/390/430 portrait, 740/844 landscape and 1200 desktop, writing screenshots to `/tmp/rover-mobile-layout` (override `SCREENSHOTS`). It does not test a live backend or physical touch hardware. This cloud session could not launch Chromium due to sandbox socket restrictions; structural CSS and handler tests passed, but visual/device acceptance remains pending.
