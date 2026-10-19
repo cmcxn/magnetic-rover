@@ -1,0 +1,26 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import * as controls from "../src/types.ts";
+test("first touch is neutral origin; only owning pointer moves or ends joystick", () => {
+  assert.equal(typeof controls.FloatingJoystick, "function");
+  const j = new controls.FloatingJoystick();
+  assert.equal(j.start(7, 2, 799), true);
+  assert.deepEqual(j.value, { x: 0, y: 0 });
+  assert.equal(j.start(8, 300, 400), false);
+  j.move(8, 80, 600);
+  assert.deepEqual(j.value, { x: 0, y: 0 });
+  j.move(7, 21, 799);
+  assert.equal(j.value.x, 0.5);
+  assert.equal(j.end(8), false);
+  assert.equal(j.owner, 7);
+  j.move(7, 200, 200);
+  assert.ok(Math.abs(Math.hypot(j.value.x, j.value.y) - 1) < 1e-9);
+  assert.equal(j.end(7), true);
+  assert.equal(j.owner, null);
+  assert.deepEqual(j.value, { x: 0, y: 0 });
+  j.start(9, 200, 100);
+  assert.deepEqual(j.origin, { x: 200, y: 100 });
+  j.reset();
+  j.move(9, 300, 200);
+  assert.deepEqual(j.value, { x: 0, y: 0 });
+});

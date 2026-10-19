@@ -4,6 +4,7 @@ import Phaser from "phaser";
 import "./style.css";
 import { World } from "./world";
 import {
+  FloatingJoystick,
   COLORS,
   escape,
   normalize,
@@ -56,6 +57,7 @@ let state: State | null = null,
   mouseDown = false,
   lastState = 0;
 const keys = new Set<string>();
+const joystick = new FloatingJoystick();
 let session: { name: string; url: string; color: string } | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
 let retryAttempt = 0,
@@ -169,7 +171,7 @@ function connect(automatic = false) {
   state = null;
   phase = "";
   keys.clear();
-  joy = { x: 0, y: 0 };
+  resetJoystick();
   boost = false;
   mouseDown = false;
   status("正在连接");
@@ -316,7 +318,7 @@ function connect(automatic = false) {
     joined = false;
     resetLatency(document.hidden ? "后台" : "已断开");
     keys.clear();
-    joy = { x: 0, y: 0 };
+    resetJoystick();
     mouseDown = false;
     boost = false;
     status("连接已断开");
@@ -334,7 +336,7 @@ function cancelConnection() {
   ws = null; // Invalidate every old handler before closing.
   old?.close();
   keys.clear();
-  joy = { x: 0, y: 0 };
+  resetJoystick();
   mouseDown = boost = false;
   state = world.state = null;
   phase = "";
@@ -389,7 +391,7 @@ function render() {
     phase = state.phase;
     app.className = phase;
     keys.clear();
-    joy = { x: 0, y: 0 };
+    resetJoystick();
     mouseMode = false;
     mouseDown = false;
     boost = false;
@@ -523,31 +525,6 @@ function wireControls() {
     e.preventDefault();
     boost = true;
   });
-  const j = document.querySelector<HTMLDivElement>("#joystick")!;
-  const update = (e: PointerEvent) => {
-    const r = j.getBoundingClientRect();
-    const v = normalize(
-      (e.clientX - r.left - r.width / 2) / 38,
-      (e.clientY - r.top - r.height / 2) / 38,
-    );
-    joy = v;
-    (j.firstElementChild as HTMLElement).style.transform =
-      `translate(${v.x * 32}px,${v.y * 32}px)`;
-  };
-  j.onpointerdown = (e) => {
-    j.setPointerCapture(e.pointerId);
-    update(e);
-  };
-  j.onpointermove = (e) => {
-    if (j.hasPointerCapture(e.pointerId)) update(e);
-  };
-  const reset = () => {
-    joy = { x: 0, y: 0 };
-    (j.firstElementChild as HTMLElement).style.transform = "";
-  };
-  j.onpointerup = reset;
-  j.onpointercancel = reset;
-  j.onlostpointercapture = reset;
 }
 window.addEventListener("keydown", (e) => {
   if (phase !== "playing" || e.target instanceof HTMLInputElement) return;
@@ -559,7 +536,7 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
 window.addEventListener("blur", () => {
   keys.clear();
-  joy = { x: 0, y: 0 };
+  resetJoystick();
   mouseDown = false;
   boost = false;
   send({ type: "input", x: 0, y: 0, boost: false });
@@ -570,7 +547,7 @@ document.addEventListener("visibilitychange", () => {
     retryTimer = undefined;
     resetLatency("后台");
     keys.clear();
-    joy = { x: 0, y: 0 };
+    resetJoystick();
     mouseDown = false;
     boost = false;
     send({ type: "input", x: 0, y: 0, boost: false });
@@ -587,6 +564,7 @@ document.addEventListener("visibilitychange", () => {
 });
 document.querySelector("#game")!.addEventListener("pointerdown", (e) => {
   const p = e as PointerEvent;
+  if (p.pointerType !== "mouse") return;
   mouseDown = true;
   mouse = { x: p.clientX, y: p.clientY };
 });
@@ -595,11 +573,60 @@ window.addEventListener(
   (e) => (mouse = { x: e.clientX, y: e.clientY }),
 );
 window.addEventListener("pointerup", () => (mouseDown = false));
-window.addEventListener("pointercancel", () => {
-  mouseDown = false;
-  boost = false;
-  joy = { x: 0, y: 0 };
+window.addEventListener("pointercancel", (e) => {
+  if (e.pointerType === "mouse") mouseDown = false;
 });
+function drawJoystick() {
+  joy = joystick.value;
+  const visual = document.querySelector<HTMLElement>("#joystick");
+  if (!visual) return;
+  visual.classList.toggle("active", joystick.owner !== null);
+  visual.style.left = `${joystick.origin.x}px`;
+  visual.style.top = `${joystick.origin.y}px`;
+  if (visual.firstElementChild)
+    (visual.firstElementChild as HTMLElement).style.transform =
+      `translate(${joy.x * 32}px,${joy.y * 32}px)`;
+}
+function resetJoystick() {
+  const owner = joystick.owner;
+  joystick.reset();
+  drawJoystick();
+  const game = document.querySelector<HTMLElement>("#game")!;
+  if (owner !== null && game.hasPointerCapture?.(owner))
+    game.releasePointerCapture(owner);
+}
+const driveSurface = document.querySelector<HTMLElement>("#game")!;
+driveSurface.addEventListener("pointerdown", (e) => {
+  if (
+    e.pointerType !== "touch" ||
+    phase !== "playing" ||
+    !connected ||
+    document.hidden
+  )
+    return;
+  if (!joystick.start(e.pointerId, e.clientX, e.clientY)) return;
+  e.preventDefault();
+  try {
+    driveSurface.setPointerCapture(e.pointerId);
+  } catch {
+    /* Window listeners remain the fallback. */
+  }
+  drawJoystick();
+});
+window.addEventListener("pointermove", (e) => {
+  if (e.pointerId !== joystick.owner) return;
+  joystick.move(e.pointerId, e.clientX, e.clientY);
+  drawJoystick();
+});
+for (const event of [
+  "pointerup",
+  "pointercancel",
+  "lostpointercapture",
+] as const)
+  window.addEventListener(event, (e) => {
+    if (e.pointerId === joystick.owner) resetJoystick();
+  });
+window.addEventListener("resize", resetJoystick);
 // One outstanding ping at a time. Never infer RTT from snapshots or rendering.
 setInterval(() => {
   if (debug) {

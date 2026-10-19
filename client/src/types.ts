@@ -81,3 +81,30 @@ export function cameraPolicy(
       : Math.min(width / 1160, height / 1160),
   };
 }
+
+/** A touch owns its neutral origin until release or cancellation. */
+export class FloatingJoystick {
+  owner: number | null = null;
+  origin = { x: 0, y: 0 };
+  value = { x: 0, y: 0 };
+  start(id: number, x: number, y: number) {
+    if (this.owner !== null) return false;
+    this.owner = id;
+    this.origin = { x, y };
+    this.value = { x: 0, y: 0 };
+    return true;
+  }
+  move(id: number, x: number, y: number) {
+    if (id !== this.owner) return;
+    this.value = normalize((x - this.origin.x) / 38, (y - this.origin.y) / 38);
+  }
+  end(id: number) {
+    if (id !== this.owner) return false;
+    this.reset();
+    return true;
+  }
+  reset() {
+    this.owner = null;
+    this.value = { x: 0, y: 0 };
+  }
+}

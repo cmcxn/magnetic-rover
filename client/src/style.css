@@ -721,3 +721,33 @@ details input {
   flex-wrap: wrap;
   max-width: calc(100vw - 28px);
 }
+
+/* The origin stays exactly under the first touch. Edges clip the decoration,
+   never shift the input origin; interactive controls remain above it. */
+#game {
+  touch-action: none;
+}
+#app {
+  overflow: hidden;
+}
+.joystick {
+  display: none;
+  position: fixed;
+  width: 116px;
+  height: 116px;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: -1;
+}
+.joystick.active {
+  display: block;
+}
+.joystick .stick {
+  left: 31px;
+  top: 31px;
+}
+
+#app {
+  isolation: isolate;
+}

@@ -39,6 +39,15 @@ function harness(search = "", options = {}) {
   const timers = new Map(),
     intervals = [],
     listeners = {};
+  function register(event, fn) {
+    const prior = listeners[event];
+    listeners[event] = prior
+      ? (e) => {
+          prior(e);
+          fn(e);
+        }
+      : fn;
+  }
   function node(selector) {
     if (!nodes.has(selector))
       nodes.set(selector, {
@@ -52,10 +61,23 @@ function harness(search = "", options = {}) {
         innerHTML: "",
         textContent: "",
         style: {},
+        firstElementChild: { style: {} },
+        captures: new Set(),
+        setPointerCapture(id) {
+          this.captures.add(id);
+        },
+        hasPointerCapture(id) {
+          return this.captures.has(id);
+        },
+        releasePointerCapture(id) {
+          this.captures.delete(id);
+        },
         getContext: () => null,
         classList: {
           values: new Set(),
-          toggle() {},
+          toggle(v, active) {
+            active ? this.values.add(v) : this.values.delete(v);
+          },
           add(v) {
             this.values.add(v);
           },
@@ -63,7 +85,9 @@ function harness(search = "", options = {}) {
             this.values.delete(v);
           },
         },
-        addEventListener() {},
+        addEventListener(event, fn) {
+          register(`${selector}:${event}`, fn);
+        },
       });
     return nodes.get(selector);
   }
@@ -119,10 +143,10 @@ function harness(search = "", options = {}) {
       querySelector: node,
       querySelectorAll: () => [],
       hidden: false,
-      addEventListener: (event, fn) => (listeners[event] = fn),
+      addEventListener: register,
     },
     window: {
-      addEventListener: (event, fn) => (listeners[event] = fn),
+      addEventListener: register,
       matchMedia: () => ({
         matches: !!options.reducedMotion,
         addEventListener() {},
@@ -162,6 +186,7 @@ function harness(search = "", options = {}) {
       context.document.hidden = hidden;
       listeners.visibilitychange();
     },
+    dispatch: (event, data = {}) => listeners[event]?.(data),
     context,
     sockets,
     storage,
@@ -583,4 +608,74 @@ test("disconnect suspends retained snapshot effects until a fresh state", () => 
   playing(h, { boost: 0.2 });
   socket.close();
   assert.equal(h.context.testWorld.liveEffects, false);
+});
+
+function touch(id, x = 20, y = 700) {
+  return {
+    pointerId: id,
+    pointerType: "touch",
+    clientX: x,
+    clientY: y,
+    preventDefault() {},
+  };
+}
+test("floating joystick owns one touch, supports boost on a second finger, and resets on every interruption", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  playing(h, {});
+  const drive = (event, p) => h.dispatch(`#game:${event}`, p);
+  const input = () => {
+    h.tick(50);
+    return socket.sent.filter((x) => x.type === "input").at(-1);
+  };
+  drive("pointerdown", touch(1, 2, 799));
+  assert.equal(h.node("#joystick").style.left, "2px");
+  assert.equal(input().x, 0);
+  h.dispatch("pointermove", touch(1, 40, 799));
+  assert.equal(input().x, 1);
+  h.dispatch("#boost:pointerdown", touch(2));
+  h.dispatch("pointercancel", touch(2));
+  assert.equal(input().x, 1);
+  h.dispatch("#boost:pointerdown", touch(2));
+  assert.equal(input().boost, true);
+  for (const ending of [
+    "pointerup",
+    "pointercancel",
+    "lostpointercapture",
+    "blur",
+    "resize",
+    "hidden",
+  ]) {
+    if (ending === "hidden") h.visibility(true);
+    else h.dispatch(ending, touch(1));
+    assert.equal(
+      h.node("#joystick").classList.values.has("active"),
+      false,
+      ending,
+    );
+    assert.equal(input().x, 0, ending);
+    h.dispatch("pointermove", touch(1, 300, 200));
+    assert.equal(input().x, 0, `no ghost after ${ending}`);
+    h.visibility(false);
+    drive("pointerdown", touch(1, 150, 300));
+    h.dispatch("pointermove", touch(1, 188, 300));
+    assert.equal(input().x, 1);
+  }
+  socket.close();
+  assert.equal(h.node("#joystick").classList.values.has("active"), false);
+});
+test("menus and mouse do not start touch driving; the next touch picks a new origin", () => {
+  const h = harness();
+  h.connect();
+  welcome(h);
+  playing(h, {});
+  h.dispatch("#boost:pointerdown", touch(2));
+  h.dispatch("#game:pointerdown", { ...touch(3), pointerType: "mouse" });
+  assert.equal(h.node("#joystick").classList.values.has("active"), false);
+  h.dispatch("#game:pointerdown", touch(4, 300, 400));
+  h.dispatch("pointerup", touch(4));
+  h.dispatch("#game:pointerdown", touch(5, 250, 450));
+  assert.equal(h.node("#joystick").style.left, "250px");
+  assert.equal(h.node("#joystick").style.top, "450px");
 });
