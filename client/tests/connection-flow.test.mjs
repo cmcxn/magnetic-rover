@@ -61,6 +61,10 @@ function harness(search = "", options = {}) {
         innerHTML: "",
         textContent: "",
         style: {},
+        dataset: {},
+        insertAdjacentHTML(_, value) {
+          this.innerHTML += value;
+        },
         firstElementChild: { style: {} },
         attributes: new Map(),
         getAttribute(name) {
@@ -129,6 +133,7 @@ function harness(search = "", options = {}) {
       }
     },
     World: class {
+      smooth = new Map();
       pickupFeedback(n) {
         this.pickups = [...(this.pickups ?? []), n];
       }
@@ -252,7 +257,7 @@ test("join error survives close and renders a retry screen without dropping toke
     data: JSON.stringify({ type: "error", message: "Lobby full" }),
   });
   assert.equal(socket.readyState, 3);
-  assert.match(h.node("#surface").innerHTML, /Lobby full/);
+  assert.match(h.node("#surface").innerHTML, /房间已满员/);
   assert.match(h.node("#surface").innerHTML, /重新连接/);
   assert.equal(h.storage.get(helpers.tokenStorageKey(socket.url)), "token-a");
   assert.equal(h.sockets.length, 1, "no automatic retry loop");
@@ -508,7 +513,7 @@ test("manual duplicate guest conflict does not retry or take over", () => {
   });
   h.tick(30000);
   assert.equal(h.sockets.length, 1);
-  assert.match(h.node("#surface").innerHTML, /Guest already connected/);
+  assert.match(h.node("#surface").innerHTML, /此车手已在另一个页面连接/);
 });
 
 function playing(h, player) {
@@ -920,6 +925,183 @@ test("accessible boost activation works without a pointer and respects cooldown"
   h.tick(50);
   assert.equal(
     socket.sent.filter((x) => x.type === "input").at(-1).boost,
+    false,
+  );
+});
+
+function deliver(socket, data) {
+  socket.onmessage({ data: JSON.stringify(data) });
+}
+function roomWelcome(socket, roomId, role = "player") {
+  deliver(socket, {
+    type: "welcome",
+    id: role === "player" ? "p1" : "",
+    token: "stable-guest",
+    roomId,
+    role,
+  });
+}
+function roomState(socket, roomId, phase = "lobby", ready = false) {
+  deliver(socket, {
+    type: "state",
+    roomId,
+    roomCode: roomId,
+    phase,
+    remaining: 100,
+    readyCount: Number(ready),
+    players: [
+      {
+        id: "p1",
+        name: "车手",
+        color: "#38bdf8",
+        connected: true,
+        ready,
+        x: 0,
+        y: 0,
+        angle: 0,
+        cargo: 7,
+        score: 3,
+        cooldown: 0,
+        stun: 0,
+        boost: 0,
+      },
+    ],
+    batteries: [],
+    stations: [],
+  });
+}
+test("directory handshake stays out of matches and lists safe join and spectate actions", () => {
+  const h = harness();
+  h.connect();
+  const socket = h.sockets[0];
+  socket.onopen();
+  roomWelcome(socket, null, "directory");
+  deliver(socket, {
+    type: "rooms",
+    rooms: [
+      {
+        roomId: "1234",
+        roomCode: "1234",
+        phase: "playing",
+        remaining: 72,
+        playerCount: 8,
+        readyCount: 8,
+        spectatorCount: 1,
+        canJoin: false,
+        canSpectate: true,
+      },
+    ],
+  });
+  assert.match(h.node("#surface").innerHTML, /创建房间/);
+  assert.match(h.node("#room-list").innerHTML, /观战/);
+  assert.match(h.node("#room-list").innerHTML, /data-join="1234" disabled/);
+  h.node("#create-room").onclick();
+  assert.equal(socket.sent.at(-1).type, "create_room");
+  roomState(socket, "1234", "playing");
+  assert.equal(
+    h.context.testWorld.state,
+    null,
+    "directory ignores unsolicited state",
+  );
+});
+test("ready toggles in a one-player lobby and waits for server authority", () => {
+  const h = harness();
+  h.connect();
+  const socket = h.sockets[0];
+  socket.onopen();
+  roomWelcome(socket, "1234");
+  roomState(socket, "1234");
+  assert.equal(h.node("#start").disabled, false);
+  h.dispatch("#start:click");
+  assert.deepEqual(socket.sent.at(-1), { type: "ready", ready: true });
+  roomState(socket, "1234", "lobby", true);
+  assert.match(h.node("#start").textContent, /点击取消/);
+  h.dispatch("#start:click");
+  assert.deepEqual(socket.sent.at(-1), { type: "ready", ready: false });
+});
+test("room and role transitions rerender the same phase and reject old-room snapshots", () => {
+  const h = harness();
+  h.connect();
+  const socket = h.sockets[0];
+  socket.onopen();
+  roomWelcome(socket, "1234");
+  roomState(socket, "1234", "playing");
+  roomWelcome(socket, "5678", "spectator");
+  roomState(socket, "5678", "playing");
+  assert.match(h.node("#surface").innerHTML, /follow-player/);
+  assert.equal(h.context.testWorld.self, "");
+  roomState(socket, "1234", "lobby");
+  assert.equal(h.context.testWorld.state.roomId, "5678");
+  const before = socket.sent.filter((m) => m.type === "input").length;
+  h.dispatch("keydown", { key: " ", code: "Space", preventDefault() {} });
+  h.tick(50);
+  h.dispatch("blur");
+  h.visibility(true);
+  assert.equal(
+    socket.sent.filter((m) => m.type === "input").length,
+    before,
+    "spectators never send gameplay inputs",
+  );
+  h.node("#follow-player").onchange({ target: { value: "p1" } });
+  assert.equal(h.context.testWorld.follow, "p1");
+});
+test("directory snapshots keep reconnect heartbeat alive and preserve the guest token", () => {
+  const h = harness();
+  h.connect();
+  const socket = h.sockets[0];
+  socket.onopen();
+  roomWelcome(socket, null, "directory");
+  for (let i = 0; i < 12; i++) {
+    h.tick(1000);
+    deliver(socket, { type: "rooms", rooms: [] });
+  }
+  assert.equal(socket.readyState, 1);
+  assert.equal(
+    h.storage.get(helpers.tokenStorageKey(socket.url)),
+    "stable-guest",
+  );
+});
+
+test("unchanged directory ticks preserve room action DOM and focus", () => {
+  const h = harness();
+  h.connect();
+  const socket = h.sockets[0];
+  socket.onopen();
+  roomWelcome(socket, null, "directory");
+  const room = {
+    roomId: "1234",
+    roomCode: "1234",
+    phase: "playing",
+    remaining: 70,
+    playerCount: 2,
+    readyCount: 2,
+    spectatorCount: 0,
+    canJoin: false,
+    canSpectate: true,
+  };
+  deliver(socket, { type: "rooms", rooms: [room] });
+  h.node("#room-list").innerHTML = "existing focused DOM";
+  deliver(socket, { type: "rooms", rooms: [{ ...room, remaining: 69 }] });
+  assert.equal(h.node("#room-list").innerHTML, "existing focused DOM");
+});
+test("Space on a native UI control does not hijack activation or boost", () => {
+  const h = harness();
+  h.connect();
+  welcome(h);
+  playing(h, {});
+  let prevented = false;
+  h.dispatch("keydown", {
+    key: " ",
+    code: "Space",
+    target: { closest: () => ({}) },
+    preventDefault() {
+      prevented = true;
+    },
+  });
+  h.tick(50);
+  assert.equal(prevented, false);
+  assert.equal(
+    h.sockets[0].sent.filter((m) => m.type === "input").at(-1).boost,
     false,
   );
 });

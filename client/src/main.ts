@@ -13,6 +13,9 @@ import {
   tokenStorageKey,
   sharedRank,
   type State,
+  type RoomSummary,
+  type RoomRole,
+  roomRenderKey,
 } from "./types";
 const world = new World();
 const motionPreference = window.matchMedia?.(
@@ -57,6 +60,11 @@ let state: State | null = null,
   mouse = { x: 0, y: 0 },
   mouseDown = false,
   lastState = 0;
+let role: RoomRole = "directory",
+  roomId: string | null = null;
+let directorySignature = "";
+let renderKey = "",
+  rooms: RoomSummary[] = [];
 const keys = new Set<string>();
 const joystick = new FloatingJoystick();
 let boostPointer: number | null = null;
@@ -121,9 +129,29 @@ function notice(text: string, duration = 3500) {
   noticeTimer = setTimeout(() => e.classList.add("hidden"), duration);
 }
 function send(data: object) {
+  if ((data as { type?: string }).type === "input" && role !== "player") return;
   if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(data));
 }
 function showError(s: string) {
+  const messages: Record<string, string> = {
+    "Room not found": "没有找到这个房间，请检查房间码。",
+    "Lobby full": "这个房间已满员，可以观战或创建新房间。",
+    "Match in progress; wait for the next lobby":
+      "比赛已经开始，可以先观战或另建房间。",
+    "Nickname required": "请填写车手昵称。",
+    "Invalid nickname": "昵称格式不正确，请换一个试试。",
+    "Match not finished": "比赛尚未结束。",
+    "Match already started": "比赛已经开始，可以先观战。",
+    "Game already started": "比赛已经开始，可以先观战。",
+    "Leave your current room first": "请先返回房间大厅，再选择其他房间。",
+    "Spectator limit reached (16)": "观战席已满，请稍后再试。",
+    "Room limit reached (32); join an existing room":
+      "赛场已满，请加入现有房间。",
+    "Not in lobby": "比赛已开始，准备状态暂时不能更改。",
+    "Guest already connected; close the other tab first":
+      "此车手已在另一个页面连接，请先关闭那个页面。",
+  };
+  s = messages[s] ?? s;
   error = s;
   const el = document.querySelector("#error");
   if (el) el.textContent = s;
@@ -260,10 +288,26 @@ function connect(automatic = false) {
       retryAttempt = 0;
       lastState = performance.now();
       id = data.id;
+      role = data.role ?? "player";
+      roomId = data.roomId ?? null;
+      state = world.state = null;
+      world.clearPickupFeedback();
+      world.smooth.clear();
+      world.spectating = role === "spectator";
+      world.follow = "";
+      renderKey = "";
+      keys.clear();
+      resetJoystick();
       world.self = id;
       joined = true;
       localStorage.setItem(tokenKey, data.token);
-      status("在线 · 实时联机");
+      status(role === "spectator" ? "在线 · 观战中" : "在线 · 实时联机");
+      if (role === "directory") showDirectory();
+    }
+    if (data.type === "rooms") {
+      lastState = performance.now();
+      rooms = data.rooms;
+      if (role === "directory" && joined) showDirectory();
     }
     if (data.type === "error") {
       showError(data.message);
@@ -277,6 +321,8 @@ function connect(automatic = false) {
       }
     }
     if (data.type === "state") {
+      if (role === "directory" || (data.roomId && data.roomId !== roomId))
+        return;
       const previous = state?.players.find((p) => p.id === id);
       const current = (data as State).players.find((p) => p.id === id);
       if (
@@ -369,7 +415,7 @@ function showWaiting(availableIn: unknown) {
 }
 function showJoin(disconnected = false) {
   app.className = "";
-  surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">COLLECT · BOOST · BANK</div><h1>小车大电量。<br>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>3 分钟轻松竞速，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><span class="field-label">挑一辆喜欢的小车</span><div class="colors">${COLORS.map((c) => `<button class="color ${c === color ? "selected" : ""}" data-color="${c}" style="background:${c}" aria-label="选择${c}小车" aria-pressed="${c === color}"></button>`).join("")}</div><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button>${disconnected && retryAllowed ? '<button class="secondary" id="cancel-connect">取消自动重连</button>' : ""}<div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>碰撞也会掉落电池</div><div><b>03</b>进站存入得分</div></div></section></div>`;
+  surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">COLLECT · BOOST · BANK</div><h1>小车大电量。<br>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>100 秒抢运赛，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><span class="field-label">挑一辆喜欢的小车</span><div class="colors">${COLORS.map((c) => `<button class="color ${c === color ? "selected" : ""}" data-color="${c}" style="background:${c}" aria-label="选择${c}小车" aria-pressed="${c === color}"></button>`).join("")}</div><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button>${disconnected && retryAllowed ? '<button class="secondary" id="cancel-connect">取消自动重连</button>' : ""}<div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>碰撞也会掉落电池</div><div><b>03</b>进站存入得分</div></div></section></div>`;
   const cancel = document.querySelector<HTMLButtonElement>("#cancel-connect");
   if (cancel) cancel.onclick = cancelConnection;
   document.querySelector("#join")!.addEventListener("click", () => connect());
@@ -393,9 +439,72 @@ function showJoin(disconnected = false) {
       }),
   );
 }
+function raceGuide() {
+  return `<div class="race-guide"><div><b>ϟ</b><strong>收集能量</strong></div><span>›</span><div><b>❯❯</b><strong>冲刺撞抢</strong></div><span>›</span><div><b>♻</b><strong>回站存分</strong></div></div>`;
+}
+function showDirectory() {
+  if (phase !== "directory") {
+    phase = "directory";
+    directorySignature = "";
+    renderKey = "";
+    app.className = "directory";
+    surface.innerHTML = `<div class="center garage-center"><section class="card garage directory-card"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="directory-heading"><div><h2>选择你的赛场</h2><p>2–8 人同场 · 全员准备即发车</p></div><button id="create-room" class="primary">＋ 创建房间</button></div><form id="join-code" class="join-code"><input id="room-input" maxlength="16" placeholder="输入朋友的房间码" aria-label="房间码"><button class="secondary" type="submit">加入</button></form><div id="room-list" class="room-list"></div><div class="error" id="error" role="alert"></div>${raceGuide()}</section></div>`;
+    document.querySelector<HTMLButtonElement>("#create-room")!.onclick = () =>
+      send({ type: "create_room" });
+    document.querySelector<HTMLFormElement>("#join-code")!.onsubmit = (
+      event,
+    ) => {
+      event.preventDefault();
+      const code = document
+        .querySelector<HTMLInputElement>("#room-input")!
+        .value.trim();
+      const room = rooms.find(
+        (r) =>
+          r.roomCode.toLowerCase() === code.toLowerCase() || r.roomId === code,
+      );
+      if (code) send({ type: "join_room", roomId: room?.roomId ?? code });
+    };
+  }
+  const signature = JSON.stringify(
+    rooms.map(({ remaining: _remaining, ...room }) => room),
+  );
+  if (directorySignature === signature) {
+    document
+      .querySelectorAll<HTMLElement>("[data-remaining]")
+      .forEach((node) => {
+        const room = rooms.find((r) => r.roomId === node.dataset.remaining);
+        if (room)
+          node.textContent = String(Math.max(0, Math.ceil(room.remaining)));
+      });
+    return;
+  }
+  directorySignature = signature;
+  document.querySelector("#room-list")!.innerHTML = rooms.length
+    ? rooms
+        .map(
+          (room) =>
+            `<article class="room-tile"><div><strong>房间 ${escape(room.roomCode)}</strong><span>${room.phase === "lobby" ? "等待发车" : room.phase === "playing" ? `比赛中 · 剩余 <span class="remaining-seconds" data-remaining="${escape(room.roomId)}">${Math.ceil(room.remaining)}</span> 秒` : "本场结算"}</span><small>${room.playerCount} / 8 位车手 · ${room.readyCount} 已准备 · ${room.spectatorCount} 观战</small></div><div class="room-actions"><button class="primary" data-join="${escape(room.roomId)}" ${room.canJoin ? "" : "disabled"}>${room.playerCount >= 8 ? "已满员" : room.phase !== "lobby" ? "比赛中" : "加入"}</button><button class="secondary" data-watch="${escape(room.roomId)}" ${room.canSpectate ? "" : "disabled"}>观战</button></div></article>`,
+        )
+        .join("")
+    : '<p class="empty-rooms">赛场还空着。创建房间，邀请朋友来一局！</p>';
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-join]")
+    .forEach(
+      (b) =>
+        (b.onclick = () => send({ type: "join_room", roomId: b.dataset.join })),
+    );
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-watch]")
+    .forEach(
+      (b) =>
+        (b.onclick = () => send({ type: "spectate", roomId: b.dataset.watch })),
+    );
+}
 function render() {
   if (!state || !joined) return;
-  if (phase !== state.phase) {
+  const nextKey = roomRenderKey(roomId, role, state.phase);
+  if (renderKey !== nextKey) {
+    renderKey = nextKey;
     phase = state.phase;
     app.className = phase;
     keys.clear();
@@ -404,36 +513,75 @@ function render() {
     mouseDown = false;
     boost = false;
     if (phase === "lobby")
-      surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">THE GARAGE / 准备大厅</div><h2>车手们，准备好了吗？</h2><p class="subtitle">打开同一个游戏地址，朋友就能加入。<br>至少 2 位车手到齐，即可开始比赛。</p><div id="roster" class="roster"></div><div id="slots" class="slots"></div><button id="start" class="primary">开始比赛 →</button><div class="error" id="error" role="alert"></div><div class="instructions"><div><b>WASD</b>或方向键移动</div><div><b>SPACE</b>空格冲刺 · 4 秒冷却</div><div><b>⚡</b>手机摇杆 + 冲刺</div></div><p class="footer-note">身上的电池还不算分。驶入任意回收站，才会存入积分！</p></section></div>`;
+      surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><button id="start" class="primary race-start">❯❯ 开始比赛</button><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
     if (phase === "playing") {
-      surface.innerHTML = `<div class="hud"><div class="stat"><small>积分</small><b id="score">0</b></div><div class="stat timer"><small>剩余时间</small><b id="timer">3:00</b></div><div class="stat"><small>载货</small><b id="cargo">0 / 20</b></div></div><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-controls="settings" aria-expanded="false">设置</button><aside class="leaderboard"><h3>实时排行榜</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
+      surface.innerHTML = `<div class="hud"><div class="stat"><small>积分</small><b id="score">0</b></div><div class="stat timer"><small>剩余时间</small><b id="timer">1:40</b></div><div class="stat"><small>载货</small><b id="cargo">0 / 20</b></div></div><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-controls="settings" aria-expanded="false">设置</button><aside class="leaderboard"><h3>实时排行榜</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
       wireControls();
-      notice("出发！把电池送到绿色回收站。");
+      surface.insertAdjacentHTML(
+        "beforeend",
+        `<div class="room-toolbar"><button class="secondary leave-room">返回大厅</button>${role === "spectator" ? '<label>观战视角 <select id="follow-player" aria-label="观战视角"><option value="">全场</option></select></label>' : ""}</div>`,
+      );
+      if (role === "spectator") {
+        app.classList.add("spectating");
+        document.querySelector<HTMLSelectElement>("#follow-player")!.onchange =
+          (event) => {
+            world.follow = (event.target as HTMLSelectElement).value;
+          };
+      } else notice("出发！把电池送到绿色回收站。");
     }
     if (phase === "finished") {
-      surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">FINISH LINE / 本局结束</div><h1>好电量，好成绩。</h1><p class="subtitle" id="resultsubtitle"></p><div id="results"></div><p id="return-countdown" class="footer-note"></p><button id="again" class="primary">再来一局 →</button><div class="error" id="error" role="alert"></div><p class="footer-note">同分共享名次 · 只有存入回收站的电池计分</p></section></div>`;
+      surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">FINISH LINE / 本局结束</div><h1>好电量，好成绩。</h1><p class="subtitle" id="resultsubtitle"></p><div id="results"></div><p id="return-countdown" class="footer-note"></p>${role === "player" ? '<button id="again" class="primary">再来一局 →</button>' : ""}<button class="secondary leave-room">返回房间大厅</button><div class="error" id="error" role="alert"></div><p class="footer-note">同分共享名次 · 只有存入回收站的电池计分</p></section></div>`;
       document
-        .querySelector("#again")!
-        .addEventListener("click", () => send({ type: "again" }));
+        .querySelector("#again")
+        ?.addEventListener("click", () => send({ type: "again" }));
     }
+    document.querySelector("#start")?.addEventListener("click", () =>
+      send({
+        type: "ready",
+        ready: !state?.players.find((p) => p.id === id)?.ready,
+      }),
+    );
     document
-      .querySelector("#start")
-      ?.addEventListener("click", () => send({ type: "start" }));
+      .querySelectorAll<HTMLButtonElement>(".leave-room")
+      .forEach(
+        (button) => (button.onclick = () => send({ type: "leave_room" })),
+      );
+    const copy = document.querySelector<HTMLButtonElement>("#copy-room");
+    if (copy)
+      copy.onclick = async () => {
+        const code = state?.roomCode ?? roomId ?? "";
+        try {
+          await navigator.clipboard.writeText(code);
+          notice(`房间码 ${code} 已复制`);
+        } catch {
+          notice(`房间码：${code}，请手动复制`);
+        }
+      };
   }
   const me = state.players.find((p) => p.id === id);
   if (phase === "lobby") {
+    document.querySelector("#room-code")!.textContent =
+      state.roomCode ?? roomId ?? "";
     document.querySelector("#roster")!.innerHTML = state.players
       .map(
         (p) =>
-          `<div class="person"><span class="swatch" style="background:${COLORS.includes(p.color) ? p.color : COLORS[0]}"></span><span>${escape(p.name)}${p.id === id ? " · 你" : ""}${p.connected ? "" : " · 离线"}</span></div>`,
+          `<article class="car-card ${p.ready ? "is-ready" : ""}" style="--car-color:${COLORS.includes(p.color) ? p.color : COLORS[0]}"><div class="car-art" aria-hidden="true"><span class="toy-car"><i></i></span></div><strong>${escape(p.name)}${p.id === id ? " · 你" : ""}</strong><span class="ready-chip">${!p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备"}</span></article>`,
       )
       .join("");
-    const n = state.players.filter((p) => p.connected).length;
-    document.querySelector("#slots")!.textContent =
-      `${n} / 8 位车手已就位${n < 2 ? " · 等待朋友加入" : ""}`;
+    const n = state.players.length;
+    document.querySelector("#slots")!.innerHTML =
+      `<strong>${n}</strong> / 8 人`;
     const b = document.querySelector<HTMLButtonElement>("#start")!;
-    b.disabled = n < 2;
-    b.textContent = n < 2 ? "等待至少 2 位车手" : "开始比赛 →";
+    b.disabled = role !== "player";
+    b.textContent =
+      role === "spectator"
+        ? "观战中 · 等待发车"
+        : me?.ready
+          ? "✓ 已准备 · 点击取消"
+          : "❯❯ 开始比赛";
+    b.setAttribute("aria-pressed", String(!!me?.ready));
+    document.querySelector("#ready-hint")!.textContent =
+      `${state.readyCount ?? state.players.filter((p) => p.ready).length} 人已准备 · 至少 2 人，全部准备后自动发车`;
   }
   if (phase === "playing") {
     document.querySelector("#score")!.textContent = String(me?.score ?? 0);
@@ -450,6 +598,25 @@ function render() {
           `<div class="rankrow ${p.id === id ? "me" : ""}"><span class="ranknum">${sharedRank(sorted, p.score)}</span><span class="swatch" style="background:${COLORS.includes(p.color) ? p.color : COLORS[0]}"></span><span class="name">${escape(p.name)}</span><b>${p.score}</b></div>`,
       )
       .join("");
+    if (role === "spectator") {
+      const select =
+        document.querySelector<HTMLSelectElement>("#follow-player")!;
+      const signature = state.players.map((p) => `${p.id}:${p.name}`).join("|");
+      if (select.dataset.players !== signature) {
+        select.innerHTML =
+          '<option value="">全场</option>' +
+          state.players
+            .map(
+              (p) =>
+                `<option value="${escape(p.id)}">跟随 ${escape(p.name)}</option>`,
+            )
+            .join("");
+        if (!state.players.some((p) => p.id === world.follow))
+          world.follow = "";
+        select.value = world.follow;
+        select.dataset.players = signature;
+      }
+    }
     const cooldown = me?.cooldown ?? 0;
     const b = document.querySelector<HTMLButtonElement>("#boost")!;
     const stun = me?.stun ?? 0;
@@ -472,7 +639,9 @@ function render() {
     const results =
       state.results ?? [...state.players].sort((a, b) => b.score - a.score);
     document.querySelector("#resultsubtitle")!.textContent =
-      `你存入了 ${me?.score ?? results.find((p) => p.id === id)?.score ?? 0} 点电量。准备好下一趟旅程了吗？`;
+      role === "spectator"
+        ? "比赛结束 · 一起看看本场成绩"
+        : `你存入了 ${me?.score ?? results.find((p) => p.id === id)?.score ?? 0} 点电量。准备好下一趟旅程了吗？`;
     document.querySelector("#results")!.innerHTML = results
       .map(
         (p, i) =>
@@ -563,6 +732,7 @@ function wireControls() {
 function requestBoost(pointer: number | null) {
   const me = state?.players.find((player) => player.id === id);
   if (
+    role !== "player" ||
     phase !== "playing" ||
     !connected ||
     document.hidden ||
@@ -575,7 +745,14 @@ function requestBoost(pointer: number | null) {
   boostPointer = pointer;
 }
 window.addEventListener("keydown", (e) => {
-  if (phase !== "playing" || e.target instanceof HTMLInputElement) return;
+  if (
+    role !== "player" ||
+    phase !== "playing" ||
+    !!(e.target as HTMLElement | null)?.closest?.(
+      "button, select, textarea, input, [contenteditable=true]",
+    )
+  )
+    return;
   if ([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
     e.preventDefault();
   keys.add(e.key.toLowerCase());
@@ -651,6 +828,7 @@ const driveSurface = document.querySelector<HTMLElement>("#game")!;
 driveSurface.addEventListener("pointerdown", (e) => {
   if (
     e.pointerType !== "touch" ||
+    role !== "player" ||
     phase !== "playing" ||
     !connected ||
     document.hidden
@@ -730,7 +908,14 @@ setInterval(() => {
   if (now - lastState > 8000) ws?.close();
 }, 250);
 setInterval(() => {
-  if (document.hidden || phase !== "playing" || !connected || !joined) return;
+  if (
+    role !== "player" ||
+    document.hidden ||
+    phase !== "playing" ||
+    !connected ||
+    !joined
+  )
+    return;
   let x =
       joy.x +
       (keys.has("d") || keys.has("arrowright") ? 1 : 0) -

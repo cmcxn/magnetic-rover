@@ -13,9 +13,16 @@ export interface Player {
   hitSeq: number;
   pickupSeq: number;
   connected: boolean;
+  ready?: boolean;
 }
 export interface State {
   type: "state";
+  roomId?: string;
+  roomCode?: string;
+  canStart?: boolean;
+  readyCount?: number;
+  playerCount?: number;
+  spectatorCount?: number;
   phase: "lobby" | "playing" | "finished";
   remaining: number;
   returnIn?: number;
@@ -121,4 +128,26 @@ export function pickupCount(prev: State | null, next: State, id: string) {
     b! > a!
     ? b! - a!
     : 0;
+}
+
+export type RoomRole = "directory" | "player" | "spectator";
+export interface RoomSummary {
+  roomId: string;
+  roomCode: string;
+  phase: State["phase"];
+  remaining: number;
+  playerCount: number;
+  readyCount: number;
+  spectatorCount: number;
+  maxPlayers: number;
+  maxSpectators: number;
+  canJoin: boolean;
+  canSpectate: boolean;
+}
+export function roomRenderKey(
+  roomId: string | null,
+  role: RoomRole,
+  phase: string,
+) {
+  return `${roomId ?? "directory"}:${role}:${phase}`;
 }

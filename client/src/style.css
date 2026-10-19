@@ -901,3 +901,468 @@ details input {
     display: none;
   }
 }
+/* The garage is real, responsive DOM; only the arena remains on the canvas. */
+.garage-center {
+  background: #15354877;
+  backdrop-filter: blur(3px);
+  padding: 82px 20px 18px;
+}
+.card.garage {
+  width: min(740px, 100%);
+  max-height: calc(100dvh - 100px);
+  border: 5px solid #fff9e8;
+  border-radius: 38px;
+  padding: 22px 30px;
+  color: #233451;
+  background:
+    radial-gradient(circle at 20% 30%, #efdbb33d 0 8px, transparent 9px) 0 0 /
+      75px 65px,
+    #fff0d5;
+  box-shadow:
+    0 8px 0 #adac8b,
+    0 20px 70px #092d4266;
+  text-align: center;
+}
+.race-logo {
+  margin: 0 auto 18px;
+}
+.race-logo > strong {
+  display: inline-block;
+  position: relative;
+  background: linear-gradient(#294765, #152d46);
+  border: 3px solid #446780;
+  box-shadow: 0 5px 0 #10243a;
+  color: #fffbea;
+  border-radius: 25px;
+  padding: 8px 28px 12px;
+  font-size: clamp(30px, 5vw, 49px);
+  font-weight: 950;
+  letter-spacing: 3px;
+  text-shadow: 0 4px #152b43;
+}
+.race-logo > strong span {
+  color: #ffcd38;
+  margin-left: 8px;
+}
+.garage .race-logo h1 {
+  margin: -3px auto 0;
+  position: relative;
+  display: table;
+  background: #213d59;
+  color: #ffdc58;
+  border: 2px solid #52758d;
+  border-radius: 22px;
+  padding: 6px 22px;
+  font-size: 19px;
+}
+.room-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 6px 20px;
+  border-radius: 30px;
+  background: #eedbbd;
+  font-weight: 800;
+  font-size: 18px;
+}
+.room-code strong {
+  letter-spacing: 4px;
+  font-size: 30px;
+}
+.copy-room {
+  background: #fff7e9;
+  border: 0;
+  border-radius: 10px;
+  color: #233451;
+  padding: 9px;
+  font-size: 12px;
+}
+.car-roster {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0 12px;
+}
+.car-card {
+  min-width: 0;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--car-color), white 28%);
+  border: 2px solid #ffffff90;
+}
+.car-card > strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: linear-gradient(#2a4c6a, #172e49);
+  color: white;
+  border-radius: 12px;
+  padding: 9px 5px;
+  font-size: 14px;
+}
+.car-art {
+  height: 86px;
+  display: grid;
+  place-items: center;
+}
+.toy-car {
+  display: block;
+  position: relative;
+  width: 60px;
+  height: 43px;
+  border: 4px solid #18314e;
+  border-radius: 12px;
+  background: var(--car-color);
+  transform: rotate(-28deg);
+  box-shadow:
+    inset 0 4px 0 #ffffff88,
+    0 6px 0 #193750;
+}
+.toy-car:before,
+.toy-car:after {
+  content: "";
+  position: absolute;
+  width: 15px;
+  height: 20px;
+  border-radius: 7px;
+  background: #23324c;
+  border: 2px solid #15273f;
+  top: -12px;
+  box-shadow: 0 40px 0 #23324c;
+}
+.toy-car:before {
+  left: 3px;
+}
+.toy-car:after {
+  right: 3px;
+}
+.toy-car i {
+  position: absolute;
+  inset: 10px 15px;
+  border-radius: 4px;
+  background: #253d5a;
+}
+.ready-chip {
+  display: block;
+  border-radius: 22px;
+  border: 2px solid #aab6b6;
+  color: #e4eaeb;
+  background: #284459;
+  margin: 3px 3px -5px;
+  padding: 6px 2px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.is-ready .ready-chip {
+  color: #8eff9b;
+  border-color: #45ed85;
+}
+.garage .slots {
+  display: table;
+  padding: 4px 24px;
+  margin: 15px auto 10px;
+  background: #eedbbd;
+  border-radius: 30px;
+  font-weight: 900;
+  font-size: 22px;
+}
+.slots strong {
+  color: #ffb900;
+  font-size: 30px;
+}
+.garage .race-start {
+  width: min(360px, 100%);
+  min-height: 66px;
+  margin: 0 auto;
+  border: 4px solid #175879;
+  box-shadow:
+    inset 0 4px 0 #9cfcff,
+    0 5px 0 #0f536e,
+    0 8px 15px #23345133;
+  border-radius: 40px;
+  color: white;
+  background: linear-gradient(#2ceaf5, #00aeed);
+  font-size: 25px;
+  font-weight: 900;
+}
+.ready-hint {
+  font-size: 12px;
+  margin: 14px 0 0;
+  color: #65717d;
+}
+.race-guide {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  background: #efdfc5aa;
+  border: 1px solid #e9d5b5;
+  border-radius: 25px;
+  margin: 16px 0 12px;
+  padding: 12px 8px;
+}
+.race-guide div {
+  display: grid;
+  gap: 5px;
+}
+.race-guide b {
+  font-size: 30px;
+  color: #17afaa;
+}
+.race-guide div:first-child b {
+  color: #f0b300;
+}
+.race-guide strong {
+  font-size: 14px;
+}
+.race-guide > span {
+  color: #b8ac98;
+  font-size: 35px;
+}
+.garage .leave-room {
+  padding: 7px 14px;
+  font-size: 12px;
+}
+.directory-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+.directory-heading h2 {
+  font-size: 24px;
+}
+.directory-heading p {
+  font-size: 12px;
+}
+.directory-heading .primary {
+  width: auto;
+  margin: 0;
+  white-space: nowrap;
+  background: #06afd5;
+  color: #fff;
+}
+.join-code {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0;
+}
+.join-code input {
+  flex: 1;
+  min-width: 0;
+}
+.join-code button {
+  white-space: nowrap;
+}
+.room-list {
+  display: grid;
+  gap: 10px;
+}
+.room-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e4cfaa;
+  border-radius: 18px;
+  background: #fff9ec;
+  text-align: left;
+}
+.room-tile strong,
+.room-tile span,
+.room-tile small {
+  display: block;
+}
+.room-tile span {
+  font-size: 13px;
+  margin: 5px 0;
+  color: #2a877c;
+}
+.room-tile small {
+  font-size: 11px;
+  color: #738082;
+}
+.room-actions {
+  display: flex;
+  gap: 6px;
+}
+.room-actions button {
+  width: auto;
+  margin: 0;
+  padding: 10px 13px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.empty-rooms {
+  padding: 24px;
+  color: #697983;
+  font-size: 14px;
+}
+.room-toolbar {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+  background: #fff9e8ed;
+  border-radius: 15px;
+  padding: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.room-toolbar button {
+  padding: 8px 12px;
+}
+.room-toolbar select {
+  max-width: 150px;
+  padding: 7px;
+  border: 1px solid #c3d0bd;
+  border-radius: 8px;
+  font: inherit;
+  background: #fff9e8;
+  color: #233451;
+}
+.spectating .joystick,
+.spectating .boost,
+.spectating #mouse,
+.spectating .hint,
+.spectating .hud .stat:not(.timer) {
+  display: none;
+}
+@media (max-width: 700px) {
+  .garage-center {
+    padding: 70px 10px 12px;
+  }
+  .card.garage {
+    padding: 16px 12px;
+    max-height: calc(100dvh - 82px);
+    border-radius: 26px;
+    border-width: 3px;
+  }
+  .race-logo {
+    margin-bottom: 14px;
+  }
+  .car-roster {
+    gap: 8px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 14px;
+  }
+  .car-art {
+    height: 65px;
+  }
+  .toy-car {
+    transform: rotate(-28deg) scale(0.73);
+  }
+  .car-card {
+    border-radius: 16px;
+  }
+  .car-card > strong {
+    font-size: 11px;
+    padding: 7px 2px;
+  }
+  .ready-chip {
+    font-size: 10px;
+    padding: 5px 1px;
+    margin-inline: 0;
+  }
+  .garage .race-start {
+    min-height: 55px;
+    font-size: 21px;
+  }
+  .race-guide strong {
+    font-size: 12px;
+  }
+  .room-code {
+    font-size: 14px;
+  }
+  .room-code strong {
+    font-size: 25px;
+  }
+  .directory-heading h2 {
+    font-size: 20px;
+  }
+  .directory-heading .primary {
+    padding: 12px;
+    font-size: 13px;
+  }
+  .room-toolbar {
+    bottom: 12px;
+  }
+  .room-toolbar button {
+    font-size: 11px;
+  }
+  .playing:not(.spectating) .room-toolbar {
+    left: auto;
+    right: 10px;
+    top: 100px;
+    bottom: auto;
+    transform: none;
+    background: transparent;
+    padding: 0;
+  }
+  .room-tile {
+    padding: 12px 9px;
+    gap: 5px;
+  }
+  .room-actions button {
+    padding: 9px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .garage-center {
+    padding: 48px 14px 8px;
+  }
+  .card.garage {
+    max-height: calc(100dvh - 56px);
+    padding: 12px 20px;
+  }
+  .race-logo > strong {
+    font-size: 27px;
+    padding-block: 3px;
+  }
+  .garage .race-logo h1 {
+    font-size: 14px;
+    padding-block: 3px;
+  }
+  .race-logo {
+    margin-bottom: 10px;
+  }
+  .car-art {
+    height: 55px;
+  }
+  .car-roster {
+    margin: 12px 0;
+  }
+  .race-guide {
+    padding: 7px;
+  }
+  .garage .race-start {
+    min-height: 48px;
+  }
+  .room-toolbar {
+    bottom: 8px;
+  }
+}
+.playing:not(.spectating) .hint {
+  bottom: 76px;
+}
+.spectating .hud {
+  display: flex;
+  justify-content: center;
+  width: auto;
+}
+@media (max-width: 700px) {
+  .playing:not(.spectating) .hint {
+    bottom: 30px;
+  }
+}
+.room-tile .remaining-seconds {
+  display: inline;
+  font: inherit;
+  color: inherit;
+}

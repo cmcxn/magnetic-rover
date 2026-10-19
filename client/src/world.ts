@@ -3,6 +3,8 @@ import { cameraPolicy, type State } from "./types";
 export class World extends Phaser.Scene {
   state: State | null = null;
   self = "";
+  spectating = false;
+  follow = "";
   diagnostics = false;
   reducedEffects = false;
   liveEffects = true;
@@ -193,14 +195,22 @@ export class World extends Phaser.Scene {
       let da = Phaser.Math.Angle.Wrap(p.angle - v.angle);
       v.angle += da * a;
     }
-    const me = this.state?.players.find((p) => p.id === this.self);
+    const me = this.state?.players.find(
+      (p) => p.id === (this.spectating ? this.follow : this.self),
+    );
     const policy = cameraPolicy(
       w,
       h,
       window.matchMedia("(pointer: coarse)").matches,
     );
-    if (policy.follows && this.state?.phase === "playing" && me) {
-      this.worldScale = policy.scale;
+    if (
+      (policy.follows || this.spectating) &&
+      this.state?.phase === "playing" &&
+      me
+    ) {
+      this.worldScale = this.spectating
+        ? Math.min(w / 620, h / 460)
+        : policy.scale;
       const v = this.smooth.get(me.id) ?? me;
       this.ox = w / 2 - v.x * this.worldScale;
       this.oy = h * 0.52 - v.y * this.worldScale;
