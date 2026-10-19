@@ -10,7 +10,7 @@ From the `magnetic-rover` directory:
 ./server/run.sh
 ```
 
-Open `http://127.0.0.1:18080` after the frontend has built `client/dist`. The same listener serves static files and real WebSockets at `/ws`. It binds loopback only. Override `SKYNET_ROOT` (a trailing `/` is optional) or `ROVER_CLIENT` if relocating. `run.sh` finds the sibling `pluto-aoi-integration/vendor/skynet` by default. Skynet must already be built.
+Open `http://127.0.0.1:18080` after the frontend has built `client/dist`. The same listener serves static files and real WebSockets at `/ws`. `run.sh` defaults to `ROVER_BIND=0.0.0.0` for LAN access as well as localhost. Set `ROVER_BIND=127.0.0.1` before starting for loopback only. Override `SKYNET_ROOT` (a trailing `/` is optional) or `ROVER_CLIENT` if relocating. `run.sh` finds the sibling `pluto-aoi-integration/vendor/skynet` by default. Skynet must already be built.
 
 To play two guests on one machine, use separate browser profiles/private windows. Reusing a live guest token deliberately cannot evict the original connection.
 

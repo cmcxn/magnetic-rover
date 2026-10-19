@@ -50,9 +50,10 @@ local function serve(fd,addr)
  httpd.write_response(helper.writefunc(fd),status,content,{['Content-Type']=ctype,['Cache-Control']='no-cache',['X-Content-Type-Options']='nosniff'});socket.close(fd)
 end
 skynet.start(function()
- local listener=socket.listen('127.0.0.1',18080)
+ local bind=os.getenv('ROVER_BIND') or '127.0.0.1'
+ local listener=socket.listen(bind,18080)
  socket.start(listener,function(fd,addr) skynet.fork(function() local ok,e=pcall(serve,fd,addr);if not ok then handle.close(fd);pcall(socket.close,fd);skynet.error('Connection closed',tostring(e)) end end) end)
- skynet.error('Magnetic Rover: http://127.0.0.1:18080 ; ws://127.0.0.1:18080/ws')
+ skynet.error('Magnetic Rover listening on '..bind..':18080 ; HTTP / and WebSocket /ws')
  skynet.fork(function()
   local nextWake=skynet.now()+5
   local nextSnapshot=skynet.now()+10
