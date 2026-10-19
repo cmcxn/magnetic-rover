@@ -12,3 +12,29 @@ World center (0,0), radius500. Stations at (-330,-220),(330,-220),(0,380), depos
 - A finished match displays results for ten seconds then automatically returns connected guests to the lobby. Manual `again` may return earlier. State snapshots in the finished phase include `returnIn` seconds. An entirely abandoned finished room can reset after the existing ten-second disconnection grace; disconnected playing guest tokens remain valid until the match is reset.
 - A new valid join during playing, results or a full lobby enters a connection-owned FIFO (maximum 32 waiters). The server sends `{type:"waiting",reason:"playing"|"finished"|"full"|"queued",phase,remaining,availableIn?}` immediately and about once per second. Playing estimates include the ten-second results window; full lobbies omit `availableIn` because no slot is guaranteed. An available lobby slot still queues behind earlier waiters (`queued`, estimate one second). Automatic admission is checked once per second, retains the provided nickname/color/token, and sends exactly one normal welcome plus state on success. Existing valid tokens reconnect before admission rules; live tokens cannot be taken over. Connected old players retain their slots; disconnected players are pruned on rematch, or after ten seconds in the lobby. Waiters cannot start/input/again until joined. Closing/cancelling the waiting WebSocket removes its request; reconnecting creates a fresh request at the end of the queue.
 - The client retries unexpected disconnects with bounded exponential delay (1–10 seconds), restores on foreground return, isolates callbacks by WebSocket instance, and allows cancellation. Tokens remain scoped to browser origin plus canonical WS endpoint. This does not transfer a guest identity between localhost/LAN/public URLs or browser profiles.
+
+## Cargo, dash and impact feedback update
+
+Cargo remains capped at 20. Full cars leave uncollected batteries on the ground.
+Snapshots still include everyone's cargo for rack rendering; only the local driver's
+UI prints exact cargo/20 text. This is a display rule, not network secrecy.
+
+Dash uses server-owned heading when idle (spawn/rematch heading +X), otherwise the
+current nontrivial input direction. Direction locks for 0.32 s, speed is 3x the
+cargo-adjusted base speed, and cooldown remains 4 s. The final partial physics tick
+integrates only the remaining dash duration. Stale input (>0.3 s), disconnect and
+stun cancel the dash. Extra input angle/speed values have no authority.
+
+Swept relative motion detects glancing contacts between physics ticks. Existing
+closing-speed, safe-zone, contact hysteresis and drop percentages remain; an empty
+victim can now also be hit. Each victim receives at most one hit per tick, the
+largest applicable drop (not summed), 24 units of combined-direction knockback,
+1 s stun and 1.6 s protection including a 0.6 s recovery window. Opposite equal
+impacts cancel displacement. Knockback is clamped to the arena and stops before a
+station; it does not participate in attack motion or cause chain impacts. Stunned
+inputs are discarded; fresh input is required after recovery.
+
+Player snapshots add numeric `boost` and `stun` remaining seconds, and `hitSeq`
+(monotonic within a match, reset on rematch). Client feedback reacts to server
+confirmation. Reduced effects disables shake/haptics and keeps readable dash/hit
+indicators; native vibration is optional and failure-safe.

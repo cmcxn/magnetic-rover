@@ -22,17 +22,21 @@ function G:join(fd,name,color,token,deferNew)
  if #self.players>=8 then return nil,'Lobby full','full' end
  if deferNew then return nil,'Earlier guests are waiting','queued' end
  self.nextid=self.nextid+1;local n=self.nextid
- local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos(n*2.4)*100,y=math.sin(n*2.4)*100,angle=0,cargo=0,score=0,cooldown=0,boost=0,protect=0,connected=true,ix=0,iy=0,last=self.time}
+ local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos(n*2.4)*100,y=math.sin(n*2.4)*100,angle=0,cargo=0,score=0,cooldown=0,boost=0,stun=0,hitSeq=0,protect=0,connected=true,ix=0,iy=0,last=self.time}
  table.insert(self.players,p);return p
 end
-function G:disconnect(fd) for _,p in ipairs(self.players) do if p.fd==fd and p.connected then p.connected=false;p.disconnected=self.time;p.ix=0;p.iy=0 end end end
+function G:disconnect(fd) for _,p in ipairs(self.players) do if p.fd==fd and p.connected then p.connected=false;p.disconnected=self.time;p.ix=0;p.iy=0;p.boost=0 end end end
 function G:input(p,m)
  local x,y=m.x,m.y
  if type(x)~='number' or type(y)~='number' or x~=x or y~=y or math.abs(x)>1000 or math.abs(y)>1000 or (m.boost~=nil and type(m.boost)~='boolean') then return nil,'Invalid input' end
- if self.phase~='playing' then return false end
+ if self.phase~='playing' or not p.connected or p.removed then return false end
+ if p.stun>0 then p.ix=0;p.iy=0;return false end
  local n=math.sqrt(x*x+y*y);if n>1 then x=x/n;y=y/n end
  p.ix=x;p.iy=y;p.last=self.time
- if m.boost and n>=.1 and p.cooldown<=0 then p.boost=.35;p.cooldown=4 end
+ if m.boost and p.cooldown<=0 then
+  if n>=.1 then p.angle=math.atan(y,x) end
+  p.bx=math.cos(p.angle);p.by=math.sin(p.angle);p.boost=.32;p.cooldown=4
+ end
  return true
 end
 function G:addbattery(x,y,unlock)
@@ -56,7 +60,7 @@ function G:start()
 end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
- local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*2.4)*100;p.y=math.sin(#keep*2.4)*100;keep[#keep+1]=p end end
+ local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.stun=0;p.hitSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*2.4)*100;p.y=math.sin(#keep*2.4)*100;keep[#keep+1]=p end end
  self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=180;self.finishedAt=nil;return true
 end
 function G:drop(p,n)
@@ -84,13 +88,16 @@ function G:step(dt,elapsed,remaining)
  local motion={}
  for _,p in ipairs(self.players) do
   motion[p]={x=p.x,y=p.y}
-  p.cooldown=math.max(0,p.cooldown-elapsed);p.protect=math.max(0,p.protect-elapsed)
+  p.stun=math.max(0,p.stun-elapsed);p.cooldown=math.max(0,p.cooldown-elapsed);if p.cooldown<1e-9 then p.cooldown=0 end;p.protect=math.max(0,p.protect-elapsed)
   if dt==0 then p.boost=math.max(0,p.boost-elapsed) end
   if p.connected then
-   if self.time-p.last>.3 then p.ix=0;p.iy=0 end
-   local speed=120*(1-.2*p.cargo/20)*(p.boost>0 and 2 or 1)
-   p.x=p.x+p.ix*speed*dt;p.y=p.y+p.iy*speed*dt;clamp(p)
-   if p.ix~=0 or p.iy~=0 then p.angle=math.atan(p.iy,p.ix) end
+   if self.time-p.last>.3 or p.stun>0 then p.ix=0;p.iy=0;p.boost=0 end
+   local ix,iy=p.ix,p.iy
+   if p.boost>0 and p.bx then ix=p.bx;iy=p.by end
+   local speed=120*(1-.2*p.cargo/20)
+   local dash=math.min(dt,p.boost)
+   p.x=p.x+speed*(ix*3*dash+p.ix*(dt-dash));p.y=p.y+speed*(iy*3*dash+p.iy*(dt-dash));clamp(p)
+   if ix~=0 or iy~=0 then p.angle=math.atan(iy,ix) end
   end
  end
  if dt==0 then return end
@@ -102,10 +109,16 @@ function G:step(dt,elapsed,remaining)
    if q.connected then
     local key=tonumber(p.id)<tonumber(q.id) and p.id..':'..q.id or q.id..':'..p.id
     local distance=dist(p,q)
+    local a,b=motion[p],motion[q]
+    local rx,ry=b.x-a.x,b.y-a.y
+    local dx,dy=(q.x-b.x)-(p.x-a.x),(q.y-b.y)-(p.y-a.y)
+    local denom=dx*dx+dy*dy
+    local t=denom>0 and math.max(0,math.min(1,-(rx*dx+ry*dy)/denom)) or 0
+    local swept=(rx+t*dx)^2+(ry+t*dy)^2
     if distance<=40^2 and self.contacts[key] then contacts[key]=true end
-    if distance<=32^2 then
+    if swept<=32^2 then
      contacts[key]=true
-     if not self.contacts[key] and not self:station(p) and not self:station(q) then
+     if not self.contacts[key] and not self:station(p) and not self:station(q) and not self:station(a) and not self:station(b) then
       local a,b=motion[p],motion[q];local nx,ny=b.x-a.x,b.y-a.y
       local length=math.sqrt(nx*nx+ny*ny)
       if length>.001 then
@@ -114,9 +127,12 @@ function G:step(dt,elapsed,remaining)
        local qv=-((q.x-b.x)*nx+(q.y-b.y)*ny)/dt
        if pv+qv>=40 then
         local function impact(attacker,victim,forward)
-         if forward>=30 and victim.protect<=0 and victim.cargo>0 then
+         if forward>=30 and victim.protect<=0 then
           local n=attacker.boost>0 and math.min(5,math.ceil(victim.cargo*.25)) or math.min(2,math.ceil(victim.cargo*.1))
-          hit[victim]=math.max(hit[victim] or 0,n)
+          local h=hit[victim] or {n=0,x=0,y=0};hit[victim]=h
+          h.n=math.max(h.n,n)
+          local sign=attacker==p and 1 or -1
+          h.x=h.x+nx*sign;h.y=h.y+ny*sign
          end
         end
         impact(p,q,pv);impact(q,p,qv)
@@ -128,7 +144,20 @@ function G:step(dt,elapsed,remaining)
   end
  end end
  self.contacts=contacts
- for p,n in pairs(hit) do self:drop(p,n);p.protect=1 end
+ for p,h in pairs(hit) do
+  self:drop(p,h.n);p.protect=1.6;p.stun=1;p.hitSeq=p.hitSeq+1;p.boost=0;p.ix=0;p.iy=0
+  local length=math.sqrt(h.x*h.x+h.y*h.y)
+  if length>.001 then
+   -- Stop at the first safe-zone boundary; knockback is never attack motion.
+   local startx,starty=p.x,p.y
+   for step=1,24 do
+    local nextpos={x=startx+h.x/length*step,y=starty+h.y/length*step}
+    clamp(nextpos)
+    if self:station(nextpos) then break end
+    p.x=nextpos.x;p.y=nextpos.y
+   end
+  end
+ end
  for _,p in ipairs(self.players) do if p.connected then
   if self:station(p) then p.score=p.score+p.cargo;p.cargo=0
   else for i=#self.batteries,1,-1 do local b=self.batteries[i];if p.cargo<20 and b.unlock<=self.time and dist(p,b)<=20^2 then p.cargo=p.cargo+1;table.remove(self.batteries,i) end end end
@@ -137,7 +166,7 @@ end
 function G:snapshot(array)
  array=array or function(t)return t or {} end
  local s={type='state',phase=self.phase,remaining=self.remaining,radius=500,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
- for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,connected=p.connected} end end
+ for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,connected=p.connected} end end
  for _,b in ipairs(self.batteries) do s.batteries[#s.batteries+1]={id=b.id,x=b.x,y=b.y} end
  if self.phase=='finished' then s.results=array();for _,p in ipairs(self.players) do s.results[#s.results+1]={id=p.id,name=p.name,color=p.color,score=p.score} end;table.sort(s.results,function(a,b)return a.score>b.score or (a.score==b.score and tonumber(a.id)<tonumber(b.id)) end) end
  return s

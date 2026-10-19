@@ -54,3 +54,12 @@ Clock regressions: test_clock.lua verifies execution-overhead drift, exact deadl
 The current rules supersede the earlier boost-only collision and indefinitely-finished-room descriptions above. See `../PROTOCOL.md` for exact impact thresholds, RTT probe validation, ten-second results return and bounded FIFO waiting admission. Ordinary hits now drop 10% (1–2 batteries), boosted hits 25% (1–5), only for genuine closing motion. No rigid-body collision or client prediction is introduced.
 
 `./server/test.sh` also runs `test_collisions.lua`, `test_lifecycle.lua`, `test_latency.lua` and `test_admission.lua`. `python tests/waiting_match.py` against an isolated running server exercises a real 180-second match plus ten-second result display, waiting estimates, automatic join and cancelled-waiter cleanup; it intentionally takes approximately 190 seconds.
+
+### Cargo and impact controls
+
+Every car shows a compact 20-slot cargo rack; only your own car/HUD prints exact
+cargo/20. At 20, ground batteries remain for others until you make room. Space or
+the dash button launches forward even when stopped (3x speed, 0.32 s, 4 s cooldown).
+A hit pushes a car back and stuns it for 1 s, including empty cars; stations remain
+safe. The **减少特效** control reduces animation/shake/haptics and defaults to your
+system reduced-motion preference. Audio remains separately switchable.

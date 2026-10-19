@@ -10,7 +10,7 @@ local g,a,b=setup();g:input(a,{x=1,y=0});g:step(.05)
 assert(b.cargo==18,'ordinary moving impact drops ten percent capped at two');assert(a.cargo==20,'stationary victim cannot attack')
 local g,a,b=setup();g:input(a,{x=1,y=0,boost=true});g:step(.05);assert(b.cargo==15,'boost drops twenty-five percent capped at five')
 local g,a,b=setup();b.cargo=1;g:input(a,{x=1,y=0});g:step(.05);assert(b.cargo==0,'small cargo loses one')
-local g,a,b=setup();b.x=20;g:input(a,{x=0,y=0,boost=true});g:step(.05);assert(b.cargo==20 and a.cooldown==0 and a.boost==0,'stationary boost neither spends cooldown nor attacks')
+local g,a,b=setup();b.x=20;g:input(a,{x=0,y=0,boost=true});g:step(.05);assert(b.cargo==15 and a.cooldown>0 and a.boost>0,'idle boost launches forward and attacks')
 local g,a,b=setup();b.x=20;g:input(a,{x=-1,y=0,boost=true});g:step(.05);assert(b.cargo==20,'separating boosted car cannot attack')
 local g,a,b=setup();g:input(a,{x=1,y=0});g:input(b,{x=1,y=0});g:step(.05);assert(a.cargo==20 and b.cargo==20,'equal speed following is not an impact')
 for _,reverse in ipairs({false,true}) do

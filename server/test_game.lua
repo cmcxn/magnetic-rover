@@ -24,7 +24,7 @@ print('PASS limits: 8 guests, UTF-8 sanitization, six-color allowlist, station s
 local c=G.new();local p1=c:join('1','One','#38bdf8');c:join('2','Two','#fb7185');c:start();c.batteries={};p1.x=0;p1.y=0
 for i=1,30 do c:addbattery(0,0) end;c:step(.05);assert(p1.cargo==20 and #c.batteries==10,'cargo cap')
 c:input(p1,{x=1,y=0});c:step(.05);assert(math.abs(p1.x-4.8)<.001,'twenty cargo slows to eighty percent')
-p1.cargo=0;p1.x=100;p1.y=0;c:input(p1,{x=1,y=0,boost=true});c:step(.05);assert(math.abs(p1.x-112)<.001,'boost doubles speed');local cd=p1.cooldown;c:input(p1,{x=1,y=0,boost=true});assert(p1.cooldown==cd,'boost spam cannot reset cooldown')
+p1.cargo=0;p1.x=100;p1.y=0;c:input(p1,{x=1,y=0,boost=true});c:step(.05);assert(math.abs(p1.x-118)<.001,'boost triples speed');local cd=p1.cooldown;c:input(p1,{x=1,y=0,boost=true});assert(p1.cooldown==cd,'boost spam cannot reset cooldown')
 print('PASS mechanics: cargo cap, loaded speed, boost speed and cooldown spam rejection')
 local abandoned=G.new();for i=1,8 do abandoned:join(i,'Guest','#38bdf8');abandoned:disconnect(i) end;abandoned:step(10.1);assert(abandoned:join(9,'New','#38bdf8'),'abandoned lobby frees reservations')
 for _,reverse in ipairs({false,true}) do local duel=G.new();local aa=duel:join('a','A','#38bdf8');local bb=duel:join('b','B','#fb7185');duel:start();for _,p in ipairs({aa,bb}) do p.x=-330;p.y=-220;p.cargo=20;p.boost=.35 end;if reverse then duel.players={bb,aa} end;duel:step(.05);assert(aa.score==20 and bb.score==20,'station safety independent of join order') end
