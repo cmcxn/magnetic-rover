@@ -30,7 +30,7 @@ async def main():
         await send(a,type='input',x=0,y=0,boost=True,angle=2,speed=99999)
         while True:
             s=await recv(a,'state');p=player(s,wa['id'])
-            if p['cooldown']>0:break
+            if p['cooldown']>0 and p['x']!=origin['x']:break
         assert p['x']>origin['x'] and abs(p['y']-origin['y'])<.01 and p['angle']==0
         first_cd=p['cooldown']
         for _ in range(4):

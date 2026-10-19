@@ -7,9 +7,9 @@ g:step(.05); assert(p.cargo==1 and #g.batteries==0,'pickup exactly once')
 p.x=-330;p.y=-220;g:step(.05);g:step(.05); assert(p.score==1 and p.cargo==0,'deposit exactly once')
 p.x=0;p.y=0;g:input(p,{x=1e200,y=1e200,boost=false});g:step(.05);assert(p.x==0,'reject huge input')
 assert(not g:input(p,{x='1',y=0})); assert(not g:input(p,{x=0/0,y=0}));
-g:input(p,{x=1,y=1,boost=false}); g:step(.05);assert(math.abs(math.sqrt(p.x^2+p.y^2)-6)<.001,'normalized diagonal')
+g:input(p,{x=1,y=1,boost=false}); g:step(.05);assert(math.abs(math.sqrt(p.x^2+p.y^2)-12)<.001,'normalized diagonal')
 p.x=499;p.y=0;g:input(p,{x=1,y=0});g:step(.05); assert(math.sqrt(p.x^2+p.y^2)<=500,'arena clamp')
-p.x=0;p.y=0;g:input(p,{x=1,y=0}); for i=1,20 do g:step(.05) end; assert(p.x<=42,'stale input stops')
+p.x=0;p.y=0;g:input(p,{x=1,y=0}); for i=1,20 do g:step(.05) end; assert(p.x<=84,'stale input stops')
 p.x=0;p.y=0;p.cargo=0;q.x=12;q.y=0;q.cargo=20;g:input(p,{x=1,y=0,boost=true});g:step(.05);assert(q.cargo==15,'boost drops five');local n=#g.batteries;g:step(.05);assert(q.cargo==15 and #g.batteries==n,'victim protection and drop lock')
 g:disconnect('two');local id=q.id;g:step(.05);local re=g:join('new','ignored','#38bdf8',q.token);assert(re.id==id and re.connected,'reconnect retains identity')
 g:disconnect('new');for i=1,201 do g:step(.05) end;assert(q.removed and q.cargo==0,'disconnect removes after ten seconds')
@@ -23,8 +23,8 @@ local t=G.new();t:join('a','A','#38bdf8');t:join('b','B','#fb7185');assert(t:sta
 print('PASS limits: 8 guests, UTF-8 sanitization, six-color allowlist, station spawn exclusion, last-ten-seconds refill stop, shared ties, token privacy, full 180-second simulated match')
 local c=G.new();local p1=c:join('1','One','#38bdf8');c:join('2','Two','#fb7185');c:start();c.batteries={};p1.x=0;p1.y=0
 for i=1,30 do c:addbattery(0,0) end;c:step(.05);assert(p1.cargo==20 and #c.batteries==10,'cargo cap')
-c:input(p1,{x=1,y=0});c:step(.05);assert(math.abs(p1.x-4.8)<.001,'twenty cargo slows to eighty percent')
-p1.cargo=0;p1.x=100;p1.y=0;c:input(p1,{x=1,y=0,boost=true});c:step(.05);assert(math.abs(p1.x-118)<.001,'boost triples speed');local cd=p1.cooldown;c:input(p1,{x=1,y=0,boost=true});assert(p1.cooldown==cd,'boost spam cannot reset cooldown')
+c:input(p1,{x=1,y=0});c:step(.05);assert(math.abs(p1.x-9.6)<.001,'twenty cargo slows to eighty percent')
+p1.cargo=0;p1.x=100;p1.y=0;c:input(p1,{x=1,y=0,boost=true});c:step(.05);assert(math.abs(p1.x-136)<.001,'boost triples speed');local cd=p1.cooldown;c:input(p1,{x=1,y=0,boost=true});assert(p1.cooldown==cd,'boost spam cannot reset cooldown')
 print('PASS mechanics: cargo cap, loaded speed, boost speed and cooldown spam rejection')
 local abandoned=G.new();for i=1,8 do abandoned:join(i,'Guest','#38bdf8');abandoned:disconnect(i) end;abandoned:step(10.1);assert(abandoned:join(9,'New','#38bdf8'),'abandoned lobby frees reservations')
 for _,reverse in ipairs({false,true}) do local duel=G.new();local aa=duel:join('a','A','#38bdf8');local bb=duel:join('b','B','#fb7185');duel:start();for _,p in ipairs({aa,bb}) do p.x=-330;p.y=-220;p.cargo=20;p.boost=.35 end;if reverse then duel.players={bb,aa} end;duel:step(.05);assert(aa.score==20 and bb.score==20,'station safety independent of join order') end

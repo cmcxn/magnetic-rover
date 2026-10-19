@@ -263,3 +263,56 @@ test("local pickup feedback aggregates into one +N label, reduced motion keeps t
   assert.equal(w.pickupRemaining, 0);
   assert.ok(calls.some((c) => c.key === "setVisible" && c.args[0] === false));
 });
+
+test("phone rover visuals double without changing world, labels or desktop sizing", () => {
+  for (const [width, height, multiplier] of [
+    [390, 844, 2],
+    [844, 390, 2],
+    [1200, 800, 1],
+  ]) {
+    const { w, calls } = renderCar(20, 0.2);
+    w.scale = { width, height };
+    w.self = "p";
+    const sprites = [];
+    w.sprite = (...args) => {
+      sprites.push(args);
+      return false;
+    };
+    calls.length = 0;
+    w.update(116, 16);
+    const car = sprites.find((args) => args[0] === "car-p");
+    assert.equal(car[4], 49 * multiplier);
+    assert.equal(car[5], 34 * multiplier);
+    const rack = calls.find(
+      (c) =>
+        c.key === "fillPoints" &&
+        Math.abs(c.args[0][0].x + 53.5 * multiplier) < 0.01,
+    );
+    assert.ok(rack, "rack scales around rover center with the body");
+    assert.equal(w.worldScale, cameraPolicy(width, height).scale);
+    assert.ok(
+      calls.some(
+        (c) =>
+          c.kind === "text" &&
+          c.key === "setPosition" &&
+          c.args[1] <= w.oy - 34 * multiplier * w.worldScale,
+      ),
+    );
+    assert.ok(!calls.some((c) => c.kind === "text" && c.key === "setScale"));
+  }
+});
+
+test("phone pickup text stays above the enlarged upright loaded rack", () => {
+  const { w, calls } = renderCar(20, 0, Math.PI / 2);
+  w.scale = { width: 390, height: 844 };
+  w.self = "p";
+  w.pickupFeedback(1);
+  calls.length = 0;
+  w.update(116, 16);
+  const positions = calls.filter(
+    (c) => c.kind === "text" && c.key === "setPosition",
+  );
+  const nameY = positions[0].args[1];
+  const pickupY = positions.at(-1).args[1];
+  assert.ok(pickupY < nameY - 20, "pickup text clears both car and name label");
+});

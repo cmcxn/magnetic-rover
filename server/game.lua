@@ -1,6 +1,18 @@
 local G={}; G.__index=G
 local colors={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=true,['#34d399']=true,['#fb923c']=true}
 local function dist(a,b) return (a.x-b.x)^2+(a.y-b.y)^2 end
+-- Entry/exit times along the frozen, clamped tick movement; nil means no contact.
+local function circleInterval(a,b,p,r)
+ local dx,dy=b.x-a.x,b.y-a.y;local x,y=a.x-p.x,a.y-p.y
+ local length=dx*dx+dy*dy;local c=x*x+y*y-r*r
+ if length==0 then if c<=0 then return 0,1 end;return end
+ local dot=x*dx+y*dy;local disc=dot*dot-length*c
+ if disc < -1e-9 then return end
+ local root=math.sqrt(math.max(0,disc));local enter=(-dot-root)/length;local leave=(-dot+root)/length
+ if leave<0 or enter>1 then return end
+ return math.max(0,enter),math.min(1,leave)
+end
+local function along(a,b,t) return {x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t} end
 local function clamp(p) local d=math.sqrt(p.x*p.x+p.y*p.y);if d>500 then p.x=p.x*500/d;p.y=p.y*500/d end end
 function G.new(tokenfn)
  return setmetatable({phase='lobby',remaining=180,time=0,players={},batteries={},contacts={},nextid=0,nextbat=0,stations={{x=-330,y=-220,r=65},{x=330,y=-220,r=65},{x=0,y=380,r=65}},tokenfn=tokenfn},G)
@@ -94,12 +106,13 @@ function G:step(dt,elapsed,remaining)
    if self.time-p.last>.3 or p.stun>0 then p.ix=0;p.iy=0;p.boost=0 end
    local ix,iy=p.ix,p.iy
    if p.boost>0 and p.bx then ix=p.bx;iy=p.by end
-   local speed=120*(1-.2*p.cargo/20)
+   local speed=240*(1-.2*p.cargo/20)
    local dash=math.min(dt,p.boost)
    p.x=p.x+speed*(ix*3*dash+p.ix*(dt-dash));p.y=p.y+speed*(iy*3*dash+p.iy*(dt-dash));clamp(p)
    if ix~=0 or iy~=0 then p.angle=math.atan(iy,ix) end
   end
  end
+ for _,p in ipairs(self.players) do motion[p].finish={x=p.x,y=p.y} end
  if dt==0 then return end
  -- Resolve new contacts from pre-step positions and actual server displacement.
  -- Hysteresis prevents a touching pair from farming drops after immunity expires.
@@ -118,7 +131,9 @@ function G:step(dt,elapsed,remaining)
     if distance<=40^2 and self.contacts[key] then contacts[key]=true end
     if swept<=32^2 then
      contacts[key]=true
-     if not self.contacts[key] and not self:station(p) and not self:station(q) and not self:station(a) and not self:station(b) then
+     local contactTime=circleInterval({x=rx,y=ry},{x=rx+dx,y=ry+dy},{x=0,y=0},32) or 0
+     local contactSafe=self:station(along(a,p,contactTime)) or self:station(along(b,q,contactTime))
+     if not self.contacts[key] and not contactSafe and not self:station(p) and not self:station(q) and not self:station(a) and not self:station(b) then
       local a,b=motion[p],motion[q];local nx,ny=b.x-a.x,b.y-a.y
       local length=math.sqrt(nx*nx+ny*ny)
       if length>.001 then
@@ -159,8 +174,40 @@ function G:step(dt,elapsed,remaining)
   end
  end
  for _,p in ipairs(self.players) do if p.connected then
-  if self:station(p) then p.score=p.score+p.cargo;p.cargo=0
-  else for i=#self.batteries,1,-1 do local b=self.batteries[i];if p.cargo<20 and b.unlock<=self.time and dist(p,b)<=20^2 then p.cargo=p.cargo+1;p.pickupSeq=p.pickupSeq+1;table.remove(self.batteries,i) end end end
+  -- Keep the existing collision-loss-before-collection contract, then process
+  -- pickups and station deposits in travel order within this 50ms tick.
+  local start,finish=motion[p],motion[p].finish
+  local events,exits={},{}
+  for _,station in ipairs(self.stations) do
+   local enter,leave=circleInterval(start,finish,station,station.r)
+   if enter then
+    events[#events+1]={t=enter,deposit=true}
+    if leave<1 then exits[#exits+1]=math.min(1,leave+1e-7) end
+   end
+  end
+  for _,battery in ipairs(self.batteries) do if battery.unlock<=self.time then
+   local enter,leave=circleInterval(start,finish,battery,20)
+   if enter then
+    events[#events+1]={t=enter,battery=battery}
+    -- A battery's pickup circle may overlap the station: try again just outside.
+    for _,t in ipairs(exits) do if t>=enter and t<=leave then events[#events+1]={t=t,battery=battery} end end
+   end
+   if dist(p,battery)<=20^2 then events[#events+1]={t=1,battery=battery,position=p} end
+  end end
+  if self:station(p) then events[#events+1]={t=1,deposit=true} end
+  table.sort(events,function(a,b)
+   if a.t~=b.t then return a.t<b.t end
+   if a.deposit~=b.deposit then return a.deposit==true end
+   return a.battery and b.battery and tonumber(a.battery.id)>tonumber(b.battery.id) or false
+  end)
+  local collected={}
+  for _,event in ipairs(events) do
+   if event.deposit then p.score=p.score+p.cargo;p.cargo=0
+   elseif p.cargo<20 and not collected[event.battery] and not self:station(event.position or along(start,finish,event.t)) then
+    collected[event.battery]=true;p.cargo=p.cargo+1;p.pickupSeq=p.pickupSeq+1
+   end
+  end
+  for i=#self.batteries,1,-1 do if collected[self.batteries[i]] then table.remove(self.batteries,i) end end
  end;p.boost=math.max(0,p.boost-elapsed) end
 end
 function G:snapshot(array)

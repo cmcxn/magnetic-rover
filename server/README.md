@@ -25,7 +25,7 @@ Requires the existing Skynet Lua binary and Python `websockets` (tested with 16.
 Verified 2026-10-18:
 - Game-core tests pass: exactly-once pickup/deposit; malformed and oversized numeric inputs; NaN; normalized diagonal movement; circular world bound; stale input stop; collision drop amount; victim protection and drop lock; reconnect; ten-second removal; finish/restart.
 - Limits pass: eight players; nickname Unicode validation/sanitization; allowlisted colors; no station-zone resource spawn; last-ten-seconds refill stop; shared score ties; no token disclosure; full match timer.
-- Mechanics pass: twenty cargo maximum, loaded speed 80%, boost double speed, cooldown cannot be reset by repeated inputs.
+- Mechanics pass: twenty cargo maximum, loaded speed 80%, boost triple speed, cooldown cannot be reset by repeated inputs.
 - Two-client integration passes: Chinese nicknames, different random tokens, array encoding, two-player start requirement, live-token takeover rejection, authoritative movement, fabricated score/action rejection, shared state, reconnect retains guest identity.
 
 ## Implementation
@@ -63,3 +63,7 @@ the dash button launches forward even when stopped (3x speed, 0.32 s, 4 s cooldo
 A hit pushes a car back and stuns it for 1 s, including empty cars; stations remain
 safe. The **减少特效** control reduces animation/shake/haptics and defaults to your
 system reduced-motion preference. Audio remains separately switchable.
+
+## Faster movement and swept collection
+
+Base speed is 240 world units/second (up from 120); full cargo remains 80%, dash remains 3x for 0.32 s with a 4 s cooldown. Server collision/pickup radii and arena bounds are unchanged on every device. The 50 ms movement segment now processes battery pickups and station entries in travel order, including grazing passes and station exits. Collision losses still resolve before collection, as before; collision safe-zone checks also include first contact along the segment. No device-specific hitboxes or physics substeps are introduced.

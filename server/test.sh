@@ -4,6 +4,7 @@ HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SKYNET_ROOT="${SKYNET_ROOT:-$HERE/../../pluto-aoi-integration/vendor/skynet/}"
 cd "$HERE"
 "$SKYNET_ROOT/3rd/lua/lua" test_game.lua
+"$SKYNET_ROOT/3rd/lua/lua" test_fast_movement.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_pickup_seq.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_boost_hit.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_clock.lua

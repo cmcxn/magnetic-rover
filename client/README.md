@@ -40,3 +40,7 @@ Three independent generated transparent PNG sprites (rover, battery, recycle sta
 Narrow/coarse-pointer/short-landscape layouts use a fixed-height three-column score/time/cargo strip. Ranking and settings start collapsed; RTT stays visible. All score and cargo values remain authoritative and unchanged.
 
 `node tests/mobile-layout.browser.mjs` is an optional real Chromium check with Vite running on localhost:5173 and Playwright available. It uses a deterministic WebSocket fixture and checks 320/375/390/430 portrait, 740/844 landscape and 1200 desktop, writing screenshots to `/tmp/rover-mobile-layout` (override `SCREENSHOTS`). It does not test a live backend or physical touch hardware. This cloud session could not launch Chromium due to sandbox socket restrictions; structural CSS and handler tests passed, but visual/device acceptance remains pending.
+
+## Phone rover scale
+
+The existing narrow/coarse-pointer/short-landscape device policy now draws rover bodies, cargo racks, rings and boost flames at 2x visual scale. Desktop visuals and world/camera/HUD/text scales are unchanged. Name and pickup labels shift above the enlarged rotated rack without enlarging their text. This is visual only: collision and pickup distances remain server-owned, so visible body/rack overlap on phones does not imply physical contact.
