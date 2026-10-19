@@ -6,7 +6,7 @@ function G.new(tokenfn)
  return setmetatable({phase='lobby',remaining=180,time=0,players={},batteries={},contacts={},nextid=0,nextbat=0,stations={{x=-330,y=-220,r=65},{x=330,y=-220,r=65},{x=0,y=380,r=65}},tokenfn=tokenfn},G)
 end
 function G:station(p) for _,s in ipairs(self.stations) do if dist(p,s)<=s.r^2 then return true end end return false end
-function G:join(fd,name,color,token)
+function G:join(fd,name,color,token,deferNew)
  for _,p in ipairs(self.players) do
   if p.fd==fd then return nil,'Already joined' end
   if token and token==p.token then
@@ -20,6 +20,7 @@ function G:join(fd,name,color,token)
  if len>16 then name=name:sub(1,utf8.offset(name,17)-1) end
  if self.phase~='lobby' then return nil,'Match in progress; wait for the next lobby',self.phase end
  if #self.players>=8 then return nil,'Lobby full','full' end
+ if deferNew then return nil,'Earlier guests are waiting','queued' end
  self.nextid=self.nextid+1;local n=self.nextid
  local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos(n*2.4)*100,y=math.sin(n*2.4)*100,angle=0,cargo=0,score=0,cooldown=0,boost=0,protect=0,connected=true,ix=0,iy=0,last=self.time}
  table.insert(self.players,p);return p

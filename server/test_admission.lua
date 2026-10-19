@@ -19,3 +19,7 @@ local _,status=q:request('first',{name='First'});assert(status.reason=='full' an
 q:request('second',{name='Second'});full:disconnect(1);full:step(.05,10.1);local events=q:process();assert(events[1].player.name=='First' and events[2].message.reason=='full','FIFO uses first free slot')
 q:remove('second');assert(#q:process()==0)
 print('PASS admission: bounded FIFO, truthful estimates, invalid rejection, automatic one-time join, cancellation cleanup, old token priority, live-token protection and full room')
+local fair=G.new();for i=1,8 do fair:join(i,'P') end;local line=A.new(fair,32)
+line:request('first',{name='First'});fair:disconnect(1);fair:step(.05,10.1)
+local late,status=line:request('late',{name='Late'});assert(not late and status.type=='waiting','new join cannot jump existing FIFO after a slot frees')
+local events=line:process();assert(events[1].player.name=='First' and events[2].message.reason=='full','earlier waiter receives free slot before new arrival')

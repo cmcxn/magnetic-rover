@@ -5,13 +5,14 @@ function A:has(fd) for _,entry in ipairs(self.entries) do if entry.fd==fd then r
 function A:remove(fd) for i=#self.entries,1,-1 do if self.entries[i].fd==fd then table.remove(self.entries,i) end end end
 function A:status(reason)
  local g=self.game;local available
- if reason=='playing' then available=g.remaining+10
+ if reason=='queued' then available=1
+ elseif reason=='playing' then available=g.remaining+10
  elseif reason=='finished' then available=math.max(0,10-(g.time-(g.finishedAt or g.time))) end
  return {type='waiting',reason=reason,phase=g.phase,remaining=g.remaining,availableIn=available}
 end
 function A:request(fd,message)
  if self:has(fd) then return nil,{type='error',message='Already waiting'} end
- local p,err,reason=self.game:join(fd,message.name,message.color,message.token)
+ local p,err,reason=self.game:join(fd,message.name,message.color,message.token,#self.entries>0)
  if p then return p end
  if not reason then return nil,{type='error',message=err} end
  if #self.entries>=self.limit then return nil,{type='error',message='Waiting room full; try again later'} end
