@@ -1,4 +1,6 @@
 local G={}; G.__index=G
+local config=require 'game_config'
+local resources=config.resources
 local colors={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=true,['#34d399']=true,['#fb923c']=true}
 local function dist(a,b) return (a.x-b.x)^2+(a.y-b.y)^2 end
 -- Entry/exit times along the frozen, clamped tick movement; nil means no contact.
@@ -15,7 +17,7 @@ end
 local function along(a,b,t) return {x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t} end
 local function clamp(p) local d=math.sqrt(p.x*p.x+p.y*p.y);if d>500 then p.x=p.x*500/d;p.y=p.y*500/d end end
 function G.new(tokenfn)
- return setmetatable({phase='lobby',remaining=180,time=0,players={},batteries={},contacts={},nextid=0,nextbat=0,stations={{x=-330,y=-220,r=65},{x=330,y=-220,r=65},{x=0,y=380,r=65}},tokenfn=tokenfn},G)
+ return setmetatable({phase='lobby',remaining=config.matchDuration,time=0,players={},batteries={},contacts={},nextid=0,nextbat=0,stations={{x=-330,y=-220,r=65},{x=330,y=-220,r=65},{x=0,y=380,r=65}},tokenfn=tokenfn},G)
 end
 function G:station(p) for _,s in ipairs(self.stations) do if dist(p,s)<=s.r^2 then return true end end return false end
 function G:join(fd,name,color,token,deferNew)
@@ -51,33 +53,43 @@ function G:input(p,m)
  end
  return true
 end
-function G:addbattery(x,y,unlock)
- local b={x=x,y=y};clamp(b);if self:station(b) then return end
- self.nextbat=self.nextbat+1;b.id=tostring(self.nextbat);b.unlock=unlock or 0;self.batteries[#self.batteries+1]=b
+function G:addbattery(x,y,unlock,source)
+ local b={x=x,y=y,source=source or 'natural'};clamp(b);if self:station(b) then return end
+ self.nextbat=self.nextbat+1;b.id=tostring(self.nextbat);b.unlock=unlock or 0;self.batteries[#self.batteries+1]=b;return b
 end
-function G:replenish()
- local counts={0,0,0,0,0,0}
- local function region(x,y) return math.min(6,math.floor((math.atan(y,x)+math.pi)/(math.pi/3))+1) end
- for _,b in ipairs(self.batteries) do local r=region(b.x,b.y);counts[r]=counts[r]+1 end
- for r=1,6 do for _=1,160 do if counts[r]>=18 then break end
-  local a=-math.pi+(r-1+math.random())*math.pi/3;local d=math.sqrt(math.random())*470;local b={x=math.cos(a)*d,y=math.sin(a)*d}
-  if not self:station(b) then self:addbattery(b.x,b.y);counts[r]=counts[r]+1 end
- end end
+function G:replenish(limit)
+ local natural=0
+ for _,b in ipairs(self.batteries) do if b.source~='drop' then natural=natural+1 end end
+ local amount=math.min(limit or resources.refillBatch,math.max(0,resources.groundCap-natural))
+ local progress=math.min(1,math.max(0,(config.matchDuration-self.remaining)/resources.shrinkSeconds))
+ local inner=resources.innerStart+(resources.innerEnd-resources.innerStart)*progress
+ local outer=resources.outerStart+(resources.outerEnd-resources.outerStart)*progress
+ -- Equal-area samples in a continuously shrinking annulus. Existing resources
+ -- and collision drops stay put; skipped refill deadlines never create a burst.
+ local offset=math.random(resources.sectors)-1
+ for i=1,amount do
+  for _=1,resources.attemptsPerBattery do
+   local sector=(offset+i-1)%resources.sectors
+   local angle=(sector+math.random())*2*math.pi/resources.sectors
+   local radius=math.sqrt(inner*inner+math.random()*(outer*outer-inner*inner))
+   if self:addbattery(math.cos(angle)*radius,math.sin(angle)*radius) then break end
+  end
+ end
 end
 function G:start()
  if self.phase~='lobby' then return nil,'Not in lobby' end
  local count=0;for _,p in ipairs(self.players) do if p.connected then count=count+1 end end
  if count<2 then return nil,'At least two players required' end
- self.phase='playing';self.remaining=180;self.nextrefill=self.time+5;self:replenish();return true
+ self.phase='playing';self.remaining=config.matchDuration;self.nextrefill=self.time+resources.refillInterval;self:replenish(resources.initial);return true
 end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
  local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.stun=0;p.hitSeq=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*2.4)*100;p.y=math.sin(#keep*2.4)*100;keep[#keep+1]=p end end
- self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=180;self.finishedAt=nil;return true
+ self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=config.matchDuration;self.finishedAt=nil;self.nextrefill=nil;return true
 end
 function G:drop(p,n)
  p.cargo=p.cargo-n
- for i=1,n do local a=i*2.4;self:addbattery(p.x+math.cos(a)*28,p.y+math.sin(a)*28,self.time+.5) end
+ for i=1,n do local a=i*2.4;self:addbattery(p.x+math.cos(a)*28,p.y+math.sin(a)*28,self.time+.5,'drop') end
 end
 function G:step(dt,elapsed,remaining)
  elapsed=elapsed or dt
@@ -96,7 +108,7 @@ function G:step(dt,elapsed,remaining)
  if self.phase~='playing' then return end
  self.remaining=remaining or math.max(0,self.remaining-elapsed)
  if self.remaining<=0 then self.phase='finished';self.finishedAt=self.time;return end
- if self.time>=self.nextrefill and self.remaining>10 then self:replenish();self.nextrefill=self.time+5 end
+ if self.time>=self.nextrefill and self.remaining>resources.stopRemaining then self:replenish();self.nextrefill=self.time+resources.refillInterval end
  local motion={}
  for _,p in ipairs(self.players) do
   motion[p]={x=p.x,y=p.y}

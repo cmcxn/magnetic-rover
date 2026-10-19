@@ -19,8 +19,8 @@ local h=G.new();for i=1,8 do assert(h:join('fd'..i,'p'..i,'#fb923c')) end;assert
 local bad=G.new();assert(not bad:join('a','\255','#fff'));local clean=bad:join('b',' <昵称> ','#fff');assert(clean.name=='昵称' and clean.color=='#38bdf8')
 local z=G.new();local a=z:join('a','A','#38bdf8');local b=z:join('b','B','#fb7185');assert(z:start());for _,r in ipairs(z.batteries) do assert(not z:station(r),'station spawn exclusion');assert(r.x*r.x+r.y*r.y<=500^2) end
 z.batteries={};z.nextrefill=z.time;z.remaining=9;z:step(.05);assert(#z.batteries==0,'no last-ten-seconds refill');a.score=3;b.score=3;z.remaining=.01;z:step(.05);local s=z:snapshot();assert(#s.results==2 and s.results[1].score==s.results[2].score,'shared ties');assert(s.players[1].token==nil)
-local t=G.new();t:join('a','A','#38bdf8');t:join('b','B','#fb7185');assert(t:start());for i=1,3601 do t:step(.05) end;assert(t.phase=='finished' and t.remaining==0,'full 180 second clock')
-print('PASS limits: 8 guests, UTF-8 sanitization, six-color allowlist, station spawn exclusion, last-ten-seconds refill stop, shared ties, token privacy, full 180-second simulated match')
+local t=G.new();t:join('a','A','#38bdf8');t:join('b','B','#fb7185');assert(t:start());for i=1,2001 do t:step(.05) end;assert(t.phase=='finished' and t.remaining==0,'full 100 second clock')
+print('PASS limits: 8 guests, UTF-8 sanitization, six-color allowlist, station spawn exclusion, last-ten-seconds refill stop, shared ties, token privacy, full 100-second simulated match')
 local c=G.new();local p1=c:join('1','One','#38bdf8');c:join('2','Two','#fb7185');c:start();c.batteries={};p1.x=0;p1.y=0
 for i=1,30 do c:addbattery(0,0) end;c:step(.05);assert(p1.cargo==20 and #c.batteries==10,'cargo cap')
 c:input(p1,{x=1,y=0});c:step(.05);assert(math.abs(p1.x-9.6)<.001,'twenty cargo slows to eighty percent')

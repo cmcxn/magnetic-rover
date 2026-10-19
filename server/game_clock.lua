@@ -9,7 +9,7 @@ function Clock:start(now)
  self:advance(now)
  local ok,e=self.game:start();if not ok then return nil,e end
  self.last=math.max(self.last,now);self.accumulator=0
- self.deadline=self.last+180
+ self.deadline=self.last+self.game.remaining
  return true
 end
 function Clock:disconnect(fd,now)

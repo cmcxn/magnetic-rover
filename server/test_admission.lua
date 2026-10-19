@@ -3,7 +3,7 @@ local ok,A=pcall(require,'admission');assert(ok,'admission queue exists')
 local G=require 'game'
 local g=G.new();local a=g:join('a','A','#38bdf8');g:join('b','B','#fb7185');g:start()
 local queue=A.new(g,2)
-local p,status=queue:request('c',{name='C',color='#38bdf8'});assert(not p and status.type=='waiting' and status.reason=='playing' and status.availableIn==190,'playing estimate includes results window')
+local p,status=queue:request('c',{name='C',color='#38bdf8'});assert(not p and status.type=='waiting' and status.reason=='playing' and status.availableIn==110,'playing estimate includes results window')
 assert(queue:has('c'));assert(queue:request('d',{name='D'} )==nil)
 local _,rejected=queue:request('e',{name='E'});assert(rejected.type=='error','queue bound enforced')
 local _,bad=queue:request('invalid',{name=''});assert(bad.type=='error','invalid guest does not reserve queue space')
