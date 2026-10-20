@@ -101,3 +101,49 @@ Clients use only the local player's positive `pickupSeq` delta for pickup reward
 never a cargo delta. Establish a silent baseline on the first snapshot of each
 connection and after a sequence reset or phase transition; reconnect snapshots
 must not replay previous pickups. A non-increasing sequence produces no reward.
+
+## Smooth-motion prediction and timestamped snapshots
+
+The simulation remains server-authoritative at 20 Hz, snapshots at 10 Hz, with
+100-second rounds and eight players per room. No collision, pickup, station,
+cargo, score, or camera geometry changed in this iteration.
+
+- Inputs may include `seq`, an increasing integer from 1 through
+  9007199254740991. Invalid values are rejected; duplicate or older sequences
+  are ignored. Inputs without a sequence remain compatible with older clients.
+- State includes `serverTime` (cumulative room simulation/wall-aging seconds)
+  and `roundId` (increments whenever the next match starts).
+- Player state includes `inputSeq`, the latest sequence consumed by a positive
+  physics step, and `inputElapsed`, the actual physics seconds simulated under
+  that held sequence. Neither receipt nor skipped-time aging acknowledges a
+  command. Multiple packets may coalesce into one held input before a tick;
+  unacknowledged packet count is never interpreted as extra simulation time.
+  Stunned input is acknowledged as a no-op only on the next positive tick.
+- `ix`/`iy` report current authoritative held control (including zero after
+  timeout/stun); `bx`/`by`, when present, report locked dash heading. Reconnection
+  resets sequence tracking. Round/room/role changes reset client motion history.
+- The client predicts local kinematics from authority plus its bounded input
+  timeline, with 64 retained commands maximum and a 250 ms replay horizon.
+  Alignment uses the acknowledged command's local send time plus its actual
+  simulated duration; it is an estimate, not synchronized clocks or an RTT
+  measurement. Replay uses cargo-adjusted speed, cooldown, dash heading and
+  partial dash duration, and the arena clamp. It never predicts pickups,
+  deposits, collision outcomes, rewards, or scores.
+- Small local corrections decay over 80 ms. A new hit/stun snaps to authority
+  and discards old pending motion; large corrections also discard pending
+  history. Prediction freezes at its bounded horizon during missing packets;
+  after 500 ms without a snapshot it returns to last authority rather than
+  extrapolating indefinitely. A prolonged outage can therefore visibly correct
+  the rover. Blur/visibility and connection resets wait for a fresh snapshot.
+- Remote rovers interpolate timestamped snapshots approximately 100 ms behind
+  the estimated server timeline. Late delivery does not add its full jitter to
+  that timeline; absent newer data freezes at the latest pose. Earlier room
+  timestamps and prior-round snapshots are rejected before effects and HUD
+  updates. Equal-time snapshots remain allowed because readiness, membership,
+  and phase changes can occur between simulation ticks on ordered WebSockets.
+- Input sampling/sending is still every 50 ms. Predicted movement can respond
+  before the next authoritative snapshot, but this is not zero input latency
+  and does not reduce real network RTT. Dash sound/flame/haptics, hit feedback,
+  and pickup rewards remain server-confirmed, avoiding duplicate feedback when
+  prediction is acknowledged. Older servers without motion metadata retain
+  the previous authoritative-position smoothing fallback.

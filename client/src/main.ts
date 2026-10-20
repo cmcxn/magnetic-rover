@@ -3,6 +3,7 @@ const sounds = new Sounds();
 import Phaser from "phaser";
 import "./style.css";
 import { World } from "./world";
+import { FrameMetrics, type FrameSample } from "./performance";
 import {
   FloatingJoystick,
   pickupCount,
@@ -33,7 +34,7 @@ motionPreference?.addEventListener?.("change", (e) => {
   const button = document.querySelector("#effects");
   if (button) button.textContent = `减少特效：${reducedEffects ? "开" : "关"}`;
 });
-new Phaser.Game({
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: "game",
   backgroundColor: "#c3d8b9",
@@ -85,7 +86,7 @@ let nextPing = 0,
   rtt: number | null = null;
 function latency(reason = "测量中") {
   document.querySelector("#latency")!.textContent =
-    rtt === null ? `网络 RTT：${reason}` : `网络 RTT：${Math.round(rtt)} ms`;
+    rtt === null ? `RTT：${reason}` : `RTT：${Math.round(rtt)} ms`;
 }
 function resetLatency(reason: string) {
   pendingPing = null;
@@ -116,8 +117,21 @@ world.diagnostics = debug;
 const defaultUrl =
   query.get("ws") ||
   `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`;
-app.innerHTML = `<div class="brand"><div class="brand-icon">ϟ</div><div><strong>磁力小车</strong><small>MAGNETIC ROVER CLUB</small></div></div><div class="connection pill"><span class="dot"></span><span id="status">尚未连接</span><span id="latency" title="WebSocket 应用层往返时间，不是帧率或快照间隔">网络 RTT：未连接</span></div>${debug ? '<div id="diagnostics" class="diagnostics">FPS：— · 快照间隔：—</div>' : ""}<div id="surface"></div><div id="notice" class="toast hidden" role="status"></div>`;
+app.innerHTML = `<div class="brand"><div class="brand-icon">ϟ</div><div><strong>磁力小车</strong><small>MAGNETIC ROVER CLUB</small></div></div><div class="connection pill"><span class="dot"></span><span id="status">尚未连接</span><div class="performance-line"><span id="fps" title="实际渲染循环帧率，约每秒测量一次；不是网络更新率">FPS：—</span><span id="latency" title="网络 RTT：WebSocket 应用层往返时间，不是帧率或快照间隔">RTT：未连接</span></div></div>${debug ? '<div id="diagnostics" class="diagnostics">FPS：— · 快照间隔：—</div>' : ""}<div id="surface"></div><div id="notice" class="toast hidden" role="status"></div>`;
 const surface = document.querySelector<HTMLDivElement>("#surface")!;
+const frameMetrics = new FrameMetrics();
+const fpsElement = document.querySelector<HTMLElement>("#fps")!;
+let frameSample: FrameSample | null = null;
+// POST_RENDER fires after Phaser's renderer finishes submitting the frame.
+// Use wall-clock intervals, never Phaser's smoothed/capped simulation delta.
+game.events.on(Phaser.Core.Events.POST_RENDER, () => {
+  if (document.hidden) return;
+  const sample = frameMetrics.record(performance.now());
+  if (!sample) return;
+  frameSample = sample;
+  fpsElement.textContent = `FPS：${Math.round(sample.fps)}`;
+  fpsElement.title = `渲染帧间隔 P95：${sample.p95Ms.toFixed(1)} ms · P99：${sample.p99Ms.toFixed(1)} ms · 本次采样 >50 ms：${sample.longFrames} 帧 · 本页累计：${sample.totalLongFrames} 帧`;
+});
 function status(text: string) {
   document.querySelector("#status")!.textContent = text;
   document.querySelector(".dot")!.classList.toggle("online", connected);
@@ -141,6 +155,7 @@ function canSendInput() {
   );
 }
 function resetControls() {
+  world.resetMotion();
   keys.clear();
   resetJoystick();
   mouseDown = false;
@@ -161,6 +176,10 @@ function leaveRoom() {
   leavingRoom = true;
   resetControls();
   transmitLeave();
+}
+function sendInput(input: { x: number; y: number; boost: boolean }) {
+  if (!canSendInput()) return;
+  send(world.inputCommand(input));
 }
 function send(data: object) {
   if ((data as { type?: string }).type === "input" && !canSendInput()) return;
@@ -242,6 +261,7 @@ function connect(automatic = false) {
   resetJoystick();
   boost = false;
   mouseDown = false;
+  world.resetMotion();
   status("正在连接");
   const old = ws;
   if (old) {
@@ -331,6 +351,7 @@ function connect(automatic = false) {
       state = world.state = null;
       world.clearPickupFeedback();
       world.smooth.clear();
+      world.resetMotion();
       world.spectating = role === "spectator";
       world.follow = "";
       renderKey = "";
@@ -370,6 +391,19 @@ function connect(automatic = false) {
     }
     if (data.type === "state") {
       if (role === "directory" || (data.roomId && data.roomId !== roomId))
+        return;
+      // Keep HUD, effects and motion on the same authoritative timeline. Equal
+      // ticks can carry roster changes and are intentionally still accepted.
+      if (
+        state &&
+        ((data.roundId !== undefined &&
+          state.roundId !== undefined &&
+          data.roundId < state.roundId) ||
+          (data.roundId === state.roundId &&
+            data.serverTime !== undefined &&
+            state.serverTime !== undefined &&
+            data.serverTime < state.serverTime))
+      )
         return;
       const previous = state?.players.find((p) => p.id === id);
       const current = (data as State).players.find((p) => p.id === id);
@@ -414,6 +448,7 @@ function connect(automatic = false) {
     if (socket !== ws) return;
     clearTimeout(leaveTimer);
     leaveTimer = undefined;
+    world.resetMotion();
     world.liveEffects = false;
     world.clearPickupFeedback();
     connected = false;
@@ -431,6 +466,7 @@ function connect(automatic = false) {
   };
 }
 function cancelConnection() {
+  world.resetMotion();
   leavingRoom = false;
   clearTimeout(leaveTimer);
   leaveTimer = undefined;
@@ -809,13 +845,18 @@ window.addEventListener("keydown", (e) => {
 });
 window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
 window.addEventListener("blur", () => {
+  world.resetMotion();
   keys.clear();
   resetJoystick();
   mouseDown = false;
   boost = false;
-  send({ type: "input", x: 0, y: 0, boost: false });
+  sendInput({ x: 0, y: 0, boost: false });
 });
 document.addEventListener("visibilitychange", () => {
+  world.resetMotion();
+  frameMetrics.reset();
+  frameSample = null;
+  fpsElement.textContent = "FPS：—";
   if (document.hidden) {
     world.clearPickupFeedback();
     clearTimeout(retryTimer);
@@ -825,7 +866,7 @@ document.addEventListener("visibilitychange", () => {
     resetJoystick();
     mouseDown = false;
     boost = false;
-    send({ type: "input", x: 0, y: 0, boost: false });
+    sendInput({ x: 0, y: 0, boost: false });
   } else {
     resetLatency(connected ? "测量中" : "已断开");
     if (retryAllowed && !connecting) {
@@ -923,13 +964,19 @@ for (const event of ["resize", "orientationchange"])
 setInterval(() => {
   if (debug) {
     const valid = !document.hidden && connected;
-    const fps = valid && world.fps != null ? Math.round(world.fps) : "—";
+    const fps =
+      !document.hidden && frameSample ? Math.round(frameSample.fps) : "—";
     const interval =
       valid && snapshotInterval !== null
         ? `${Math.round(snapshotInterval)} ms`
         : "—";
-    document.querySelector("#diagnostics")!.textContent =
-      `FPS：${fps} · 快照间隔：${interval}`;
+    const detail =
+      frameSample && !document.hidden
+        ? ` · P95/P99：${frameSample.p95Ms.toFixed(1)}/${frameSample.p99Ms.toFixed(1)} ms · >50 ms：${frameSample.longFrames}（累计 ${frameSample.totalLongFrames}）`
+        : "";
+    const diagnostics = document.querySelector("#diagnostics")!;
+    const text = `渲染 FPS：${fps} · 快照间隔：${interval}${detail}`;
+    if (diagnostics.textContent !== text) diagnostics.textContent = text;
   }
   if (document.hidden || !connected || (!joined && !waiting)) return;
   const now = performance.now();
@@ -960,7 +1007,7 @@ setInterval(() => {
       (keys.has("s") || keys.has("arrowdown") ? 1 : 0) -
       (keys.has("w") || keys.has("arrowup") ? 1 : 0);
   if (mouseMode && mouseDown && x === 0 && y === 0) {
-    const me = state?.players.find((p) => p.id === id);
+    const me = world.smooth.get(id) ?? state?.players.find((p) => p.id === id);
     if (me) {
       const target = world.screenToWorld(mouse.x, mouse.y),
         dx = target.x - me.x,
@@ -973,8 +1020,7 @@ setInterval(() => {
   }
   const v = normalize(x, y);
   const stunned = (state?.players.find((p) => p.id === id)?.stun ?? 0) > 0;
-  send({
-    type: "input",
+  sendInput({
     ...(stunned ? { x: 0, y: 0 } : v),
     boost: boost && !stunned,
   });

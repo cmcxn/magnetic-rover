@@ -1,7 +1,33 @@
 import Phaser from "phaser";
+import { Motion, type Control } from "./motion";
 import { cameraPolicy, type State } from "./types";
 export class World extends Phaser.Scene {
   state: State | null = null;
+  private motion = new Motion();
+  private motionSnapshot: State | null = null;
+  private motionRole = "";
+  resetMotion() {
+    this.motion.reset();
+    // Wait for a fresh snapshot after a focus/session reset.
+    this.motionSnapshot = this.state;
+    this.motionRole = `${this.self}:${this.spectating}`;
+    this.smooth.clear();
+  }
+  private syncMotion(now: number) {
+    const role = `${this.self}:${this.spectating}`;
+    if (
+      this.state &&
+      (this.motionSnapshot !== this.state || this.motionRole !== role)
+    ) {
+      this.motion.receive(this.state, this.self, this.spectating, now);
+      this.motionSnapshot = this.state;
+      this.motionRole = role;
+    }
+  }
+  inputCommand(control: Control, now = performance.now()) {
+    this.syncMotion(now);
+    return this.motion.input(control, now);
+  }
   self = "";
   spectating = false;
   follow = "";
@@ -181,14 +207,25 @@ export class World extends Phaser.Scene {
     this.spriteIds.clear();
     const w = this.scale.width,
       h = this.scale.height;
-    // Smooth before camera placement so the local car and follow camera agree.
+    // Use one display pose for both camera and rover. Older servers retain the fallback.
+    const motionNow = performance.now();
+    this.syncMotion(motionNow);
+    const poses =
+      this.state?.serverTime !== undefined
+        ? this.motion.sample(motionNow)
+        : null;
     for (const p of this.state?.players ?? []) {
+      const pose = poses?.get(p.id);
+      if (pose) {
+        this.smooth.set(p.id, pose);
+        continue;
+      }
       let v = this.smooth.get(p.id);
       if (!v) {
         v = { x: p.x, y: p.y, angle: p.angle };
         this.smooth.set(p.id, v);
       }
-      // Follow received authority more promptly for the local driver; no prediction.
+      // Compatibility fallback for servers without sequenced motion metadata.
       const a = Math.min(1, delta / (p.id === this.self ? 25 : 65));
       v.x += (p.x - v.x) * a;
       v.y += (p.y - v.y) * a;

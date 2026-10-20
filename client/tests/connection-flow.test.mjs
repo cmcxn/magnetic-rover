@@ -4,6 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 import * as helpers from "../src/types.ts";
+import { FrameMetrics } from "../src/performance.ts";
 
 // Execute the real connection handlers with fake browser dependencies. Removing
 // imports through the TypeScript AST remains safe across source formatting changes.
@@ -126,6 +127,7 @@ function harness(search = "", options = {}) {
   }
   const context = {
     ...helpers,
+    FrameMetrics,
     Sounds: class {
       update() {}
       unlock() {
@@ -134,6 +136,14 @@ function harness(search = "", options = {}) {
     },
     World: class {
       smooth = new Map();
+      inputSeq = 0;
+      inputCommand(input) {
+        return { type: "input", ...input, seq: ++this.inputSeq };
+      }
+      resetMotion() {
+        this.motionResets = (this.motionResets ?? 0) + 1;
+      }
+
       pickupFeedback(n) {
         this.pickups = [...(this.pickups ?? []), n];
       }
@@ -144,7 +154,14 @@ function harness(search = "", options = {}) {
         this.boostCount = (this.boostCount ?? 0) + 1;
       }
     },
-    Phaser: { Game: class {}, AUTO: 0, Scale: { RESIZE: 0 } },
+    Phaser: {
+      Game: class {
+        events = { on: (event, fn) => register(event, fn) };
+      },
+      Core: { Events: { POST_RENDER: "postrender" } },
+      AUTO: 0,
+      Scale: { RESIZE: 0 },
+    },
     localStorage: {
       getItem: (key) => storage.get(key) ?? null,
       setItem: (key, value) => storage.set(key, value),
@@ -1151,6 +1168,7 @@ test("leaving immediately quiesces all inputs until directory acknowledgement", 
   h.tick(50);
   assert.deepEqual(socket.sent.at(-1), {
     type: "input",
+    seq: 1,
     x: 0,
     y: 0,
     boost: false,
@@ -1179,8 +1197,14 @@ test("focus loss sends neutral only for an acknowledged playing player", () => {
         role === "player" && phase === "playing" ? 2 : 0,
         `${role} ${phase}`,
       );
-      for (const input of inputs)
-        assert.deepEqual(input, { type: "input", x: 0, y: 0, boost: false });
+      for (const [index, input] of inputs.entries())
+        assert.deepEqual(input, {
+          type: "input",
+          x: 0,
+          y: 0,
+          boost: false,
+          seq: index + 1,
+        });
     }
   }
 });
@@ -1233,6 +1257,7 @@ test("leave rejection resynchronizes membership before restoring controls", () =
   h.tick(50);
   assert.deepEqual(resumed.sent.at(-1), {
     type: "input",
+    seq: 1,
     x: 0,
     y: 0,
     boost: false,
@@ -1286,4 +1311,63 @@ test("manual reconnect cancels the old leave deadline while awaiting a new hands
   );
   roomWelcome(resumed, "1234");
   assert.equal(resumed.sent.at(-1).type, "leave_room");
+});
+
+test("FPS is visible by default and measured from completed renders independently of connection", () => {
+  const h = harness();
+  assert.match(h.node("#app").innerHTML, /id="fps"/);
+  h.dispatch("postrender");
+  for (let i = 0; i < 50; i++) {
+    h.tick(20);
+    h.dispatch("postrender");
+  }
+  assert.equal(h.node("#fps").textContent, "FPS：50");
+  h.context.document.hidden = true;
+  h.dispatch("visibilitychange");
+  assert.equal(h.node("#fps").textContent, "FPS：—");
+  h.tick(60000);
+  h.context.document.hidden = false;
+  h.dispatch("visibilitychange");
+  h.dispatch("postrender");
+  assert.equal(h.node("#fps").textContent, "FPS：—");
+  for (let i = 0; i < 50; i++) {
+    h.tick(20);
+    h.dispatch("postrender");
+  }
+  assert.equal(h.node("#fps").textContent, "FPS：50");
+});
+
+test("regular and neutral inputs use sequenced prediction commands, resets discard stale control", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  playing(h, {});
+  h.tick(50);
+  const first = socket.sent.filter((m) => m.type === "input").at(-1);
+  assert.equal(first.seq, 1);
+  const resets = h.context.testWorld.motionResets;
+  h.dispatch("blur");
+  const neutral = socket.sent.filter((m) => m.type === "input").at(-1);
+  assert.equal(neutral.seq, 2);
+  assert.equal(neutral.x, 0);
+  assert.equal(neutral.y, 0);
+  assert.ok(h.context.testWorld.motionResets > resets);
+  const beforeClose = h.context.testWorld.motionResets;
+  socket.close();
+  assert.ok(h.context.testWorld.motionResets > beforeClose);
+});
+
+test("out-of-order snapshots cannot rewind authoritative HUD or effects, equal ticks remain valid", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  playing(h, {});
+  const base = { ...h.context.testWorld.state, roundId: 2, serverTime: 10 };
+  deliver(socket, base);
+  deliver(socket, { ...base, serverTime: 9, remaining: 999 });
+  assert.equal(h.context.testWorld.state.serverTime, 10);
+  deliver(socket, { ...base, roundId: 1, serverTime: 11, remaining: 999 });
+  assert.equal(h.context.testWorld.state.roundId, 2);
+  deliver(socket, { ...base, remaining: 77 });
+  assert.equal(h.context.testWorld.state.remaining, 77);
 });

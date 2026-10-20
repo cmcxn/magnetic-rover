@@ -17,7 +17,7 @@ end
 local function along(a,b,t) return {x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t} end
 local function clamp(p) local d=math.sqrt(p.x*p.x+p.y*p.y);if d>500 then p.x=p.x*500/d;p.y=p.y*500/d end end
 function G.new(tokenfn)
- return setmetatable({phase='lobby',remaining=config.matchDuration,time=0,players={},batteries={},contacts={},nextid=0,nextbat=0,stations={{x=-330,y=-220,r=65},{x=330,y=-220,r=65},{x=0,y=380,r=65}},tokenfn=tokenfn},G)
+ return setmetatable({phase='lobby',remaining=config.matchDuration,time=0,roundId=0,players={},batteries={},contacts={},nextid=0,nextbat=0,stations={{x=-330,y=-220,r=65},{x=330,y=-220,r=65},{x=0,y=380,r=65}},tokenfn=tokenfn},G)
 end
 function G:station(p) for _,s in ipairs(self.stations) do if dist(p,s)<=s.r^2 then return true end end return false end
 function G:join(fd,name,color,token,deferNew)
@@ -25,7 +25,7 @@ function G:join(fd,name,color,token,deferNew)
   if p.fd==fd then return nil,'Already joined' end
   if token and token==p.token then
    if p.connected then return nil,'Guest already connected; close the other tab first' end
-   p.fd=fd;p.connected=true;p.removed=false;p.ix=0;p.iy=0;p.last=self.time;return p
+   p.fd=fd;p.connected=true;p.removed=false;p.ix=0;p.iy=0;p.last=self.time;p.lastInputSeq=0;p.pendingSeq=0;p.inputSeq=0;p.inputElapsed=0;return p
   end
  end
  if type(name)~='string' or #name>256 then return nil,'Invalid nickname' end
@@ -36,14 +36,19 @@ function G:join(fd,name,color,token,deferNew)
  if #self.players>=8 then return nil,'Lobby full','full' end
  if deferNew then return nil,'Earlier guests are waiting','queued' end
  self.nextid=self.nextid+1;local n=self.nextid
- local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos(n*2.4)*100,y=math.sin(n*2.4)*100,angle=0,cargo=0,score=0,cooldown=0,boost=0,stun=0,hitSeq=0,pickupSeq=0,protect=0,connected=true,ix=0,iy=0,last=self.time}
+ local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos(n*2.4)*100,y=math.sin(n*2.4)*100,angle=0,cargo=0,score=0,cooldown=0,boost=0,stun=0,hitSeq=0,pickupSeq=0,protect=0,connected=true,ix=0,iy=0,last=self.time,lastInputSeq=0,pendingSeq=0,inputSeq=0,inputElapsed=0}
  table.insert(self.players,p);return p
 end
 function G:disconnect(fd) for _,p in ipairs(self.players) do if p.fd==fd and p.connected then p.connected=false;p.disconnected=self.time;p.ix=0;p.iy=0;p.boost=0 end end end
 function G:input(p,m)
  local x,y=m.x,m.y
  if type(x)~='number' or type(y)~='number' or x~=x or y~=y or math.abs(x)>1000 or math.abs(y)>1000 or (m.boost~=nil and type(m.boost)~='boolean') then return nil,'Invalid input' end
+ if m.seq~=nil and (type(m.seq)~='number' or m.seq~=m.seq or m.seq<1 or m.seq>9007199254740991 or m.seq%1~=0) then return nil,'Invalid input sequence' end
  if self.phase~='playing' or not p.connected or p.removed then return false end
+ if m.seq then
+  if m.seq<=(p.lastInputSeq or 0) then return false end
+  p.lastInputSeq=m.seq;p.pendingSeq=m.seq
+ end
  if p.stun>0 then p.ix=0;p.iy=0;return false end
  local n=math.sqrt(x*x+y*y);if n>1 then x=x/n;y=y/n end
  p.ix=x;p.iy=y;p.last=self.time
@@ -80,7 +85,7 @@ function G:start()
  if self.phase~='lobby' then return nil,'Not in lobby' end
  local count=0;for _,p in ipairs(self.players) do if p.connected then count=count+1 end end
  if count<2 then return nil,'At least two players required' end
- self.phase='playing';self.remaining=config.matchDuration;self.nextrefill=self.time+resources.refillInterval;self:replenish(resources.initial);return true
+ self.roundId=self.roundId+1;self.phase='playing';self.remaining=config.matchDuration;self.nextrefill=self.time+resources.refillInterval;self:replenish(resources.initial);return true
 end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
@@ -112,6 +117,10 @@ function G:step(dt,elapsed,remaining)
  local motion={}
  for _,p in ipairs(self.players) do
   motion[p]={x=p.x,y=p.y}
+  if dt>0 and p.connected then
+   if p.inputSeq~=p.pendingSeq then p.inputSeq=p.pendingSeq;p.inputElapsed=0 end
+   p.inputElapsed=p.inputElapsed+dt
+  end
   p.stun=math.max(0,p.stun-elapsed);p.cooldown=math.max(0,p.cooldown-elapsed);if p.cooldown<1e-9 then p.cooldown=0 end;p.protect=math.max(0,p.protect-elapsed)
   if dt==0 then p.boost=math.max(0,p.boost-elapsed) end
   if p.connected then
@@ -224,8 +233,8 @@ function G:step(dt,elapsed,remaining)
 end
 function G:snapshot(array)
  array=array or function(t)return t or {} end
- local s={type='state',phase=self.phase,remaining=self.remaining,radius=500,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
- for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,pickupSeq=p.pickupSeq,connected=p.connected} end end
+ local s={type='state',serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=500,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
+ for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,pickupSeq=p.pickupSeq,connected=p.connected,inputSeq=p.inputSeq,inputElapsed=p.inputElapsed,ix=p.ix,iy=p.iy,bx=p.bx,by=p.by} end end
  for _,b in ipairs(self.batteries) do s.batteries[#s.batteries+1]={id=b.id,x=b.x,y=b.y} end
  if self.phase=='finished' then s.results=array();for _,p in ipairs(self.players) do s.results[#s.results+1]={id=p.id,name=p.name,color=p.color,score=p.score} end;table.sort(s.results,function(a,b)return a.score>b.score or (a.score==b.score and tonumber(a.id)<tonumber(b.id)) end) end
  return s

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { Motion } from "../src/motion.ts";
 import { cameraPolicy } from "../src/types.ts";
 const source = fs.readFileSync(
   new URL("../src/world.ts", import.meta.url),
@@ -36,6 +37,8 @@ function harness() {
   }
   const context = {
     cameraPolicy,
+    Motion,
+    performance: { now: () => 0 },
     window: { matchMedia: () => ({ matches: false }) },
     Phaser: {
       Scene: class {},
@@ -315,4 +318,44 @@ test("phone pickup text stays above the enlarged upright loaded rack", () => {
   const nameY = positions[0].args[1];
   const pickupY = positions.at(-1).args[1];
   assert.ok(pickupY < nameY - 20, "pickup text clears both car and name label");
+});
+
+test("world exposes sequenced local prediction and reset without changing camera policy", () => {
+  const { w } = harness();
+  w.self = "self";
+  w.state = {
+    phase: "playing",
+    roomId: "a",
+    roundId: 1,
+    serverTime: 0,
+    radius: 500,
+    players: [
+      {
+        id: "self",
+        name: "A",
+        color: "#38bdf8",
+        x: 0,
+        y: 0,
+        angle: 0,
+        cargo: 0,
+        score: 0,
+        cooldown: 0,
+        boost: 0,
+        stun: 0,
+        hitSeq: 0,
+        connected: true,
+        inputSeq: 0,
+        inputElapsed: 0,
+      },
+    ],
+    stations: [],
+    batteries: [],
+  };
+  assert.equal(typeof w.inputCommand, "function");
+  const command = w.inputCommand({ x: 1, y: 0, boost: false }, 0);
+  assert.equal(command.seq, 1);
+  w.update(0, 16);
+  assert.ok(w.smooth.has("self"));
+  w.resetMotion();
+  assert.equal(w.smooth.size, 0);
 });

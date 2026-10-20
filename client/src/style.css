@@ -1561,3 +1561,46 @@ details input {
     padding-block: 6px;
   }
 }
+
+/* Stable two-line status: completed render FPS and network RTT remain distinct. */
+.performance-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.performance-line #fps {
+  min-width: 53px;
+}
+.performance-line #latency {
+  display: inline;
+  padding-left: 0;
+  margin-top: 0;
+}
+.playing .performance-line {
+  margin-top: 0;
+}
+.diagnostics {
+  max-width: calc(100vw - 24px);
+  white-space: normal;
+  text-align: center;
+}
+@media (max-width: 380px) {
+  .connection {
+    right: 8px;
+    padding: 6px 8px;
+  }
+  .performance-line {
+    gap: 5px;
+  }
+  .brand {
+    left: 10px;
+    gap: 6px;
+  }
+  .brand small {
+    letter-spacing: 0;
+    font-size: 8px;
+  }
+}

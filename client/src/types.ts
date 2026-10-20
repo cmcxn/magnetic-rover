@@ -14,9 +14,17 @@ export interface Player {
   pickupSeq: number;
   connected: boolean;
   ready?: boolean;
+  inputSeq?: number;
+  inputElapsed?: number;
+  ix?: number;
+  iy?: number;
+  bx?: number;
+  by?: number;
 }
 export interface State {
   type: "state";
+  serverTime?: number;
+  roundId?: number;
   roomId?: string;
   roomCode?: string;
   canStart?: boolean;
