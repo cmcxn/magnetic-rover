@@ -1,0 +1,301 @@
+{
+  "method": "Real Skynet WebSocket clients; protocol and wall-clock integration, not device FPS",
+  "checks": [
+    {
+      "name": "sequence acknowledgement accompanies simulated tick and motion",
+      "passed": true,
+      "detail": {
+        "inputSeq": 100,
+        "inputElapsed": 0.1
+      }
+    },
+    {
+      "name": "stale and duplicate sequence cannot replace movement",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "invalid sequence types and bounds rejected",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "client position score clock and acknowledgement fields have no authority",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "legacy unsequenced input still moves authoritative player",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "reconnect keeps player room and server clock but resets sequence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "reconnected client may restart sequence at one",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "motion and sequence are isolated to joined room",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "focused clients have no unexpected protocol or reader errors",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "serverTime and roundId continuous through full match results lobby and next round",
+      "passed": true,
+      "detail": {
+        "generations": [
+          0,
+          1,
+          2
+        ],
+        "phases": [
+          "finished",
+          "lobby",
+          "playing"
+        ]
+      }
+    },
+    {
+      "name": "all observed states have finite protocol fields and monotonic room clocks",
+      "passed": true,
+      "detail": {
+        "states_checked": 6216
+      }
+    }
+  ],
+  "started_utc": "2026-10-20T03:49:04.181646+00:00",
+  "full_match": {
+    "method": "Real Skynet with independent Python WebSocket clients; full wall-clock match; not browser/mobile QA",
+    "started_utc": "2026-10-20T03:49:04.181620+00:00",
+    "checks": [
+      {
+        "name": "join opens directory without player seat",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "create produces two distinct rooms",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "one player cannot start even when ready",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "room players isolated",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "malformed and unknown room identifiers rejected",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "repeated room commands cannot duplicate membership or rooms",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "eight player cap enforced server-side",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "sixteen spectators independent from eight player seats",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "explicit leave frees lobby seats and spectators",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "stable guest token across rooms and repeated leave",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "one of two ready cannot start",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "ready can be cancelled",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "all players ready autostarts; start aliases ready",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "other room remains pristine lobby",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "live spectator receives state but all mutations rejected",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "active token cannot take over connection",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "real movement collects batteries and scores in room A",
+        "passed": true,
+        "detail": {
+          "score": 4
+        }
+      },
+      {
+        "name": "room A batteries and scores never appear in lobby B",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "disconnect/reconnect restores same room identity and score",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "rooms have independent match clocks and batteries",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "directory reflects authoritative room counts and admission",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "full match lasts real 100 seconds",
+        "passed": true,
+        "detail": {
+          "wall_seconds": 99.857
+        }
+      },
+      {
+        "name": "only room participants appear in identical player/spectator results",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "room B continues while room A is finished",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "finished match movement and results frozen",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "automatic results settle lasts real ten seconds",
+        "passed": true,
+        "detail": {
+          "wall_seconds": 10.112
+        }
+      },
+      {
+        "name": "next round clears scores batteries and all ready flags",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "next round cannot start from stale ready flag",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "next round starts only after fresh readiness from both players",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "all observed states restricted to joined or spectated rooms",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "leave returns active and finished participants to directory",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "no unexpected protocol errors or receive failures",
+        "passed": true,
+        "detail": null
+      }
+    ],
+    "status": "passed"
+  },
+  "status": "passed",
+  "ended_utc": "2026-10-20T03:51:02.746477+00:00",
+  "eight_active_clients": {
+    "method": "Real Skynet WebSocket clients; protocol and wall-clock integration, not device FPS",
+    "checks": [
+      {
+        "name": "eight active players accept 20 Hz intent stream without disconnects or protocol errors",
+        "passed": true,
+        "detail": {
+          "active_clients": 8,
+          "intent_hz_per_client": 20,
+          "sequences_per_client": 400,
+          "wall_seconds": 20.102
+        }
+      },
+      {
+        "name": "eight active players remain within authoritative arena bounds",
+        "passed": true,
+        "detail": null
+      },
+      {
+        "name": "snapshot interval observations collected for eight active players",
+        "passed": true,
+        "detail": {
+          "sample_count": 1600,
+          "p50_ms": 103.997,
+          "p95_ms": 112.067,
+          "max_ms": 155.309,
+          "scope": "Local Python WebSocket snapshot arrivals; not browser FPS or capacity guarantee"
+        }
+      }
+    ],
+    "started_utc": "2026-10-20T03:51:09.542525+00:00",
+    "status": "passed",
+    "ended_utc": "2026-10-20T03:51:30.910511+00:00"
+  },
+  "standalone_suite": {
+    "command": "server/test.sh",
+    "status": "passed",
+    "note": "Lua regression suite plus real WebSocket integration; receipt-versus-simulation and zero-dt acknowledgement tested deterministically in test_motion_protocol.lua."
+  },
+  "server_log_review": {
+    "status": "passed",
+    "error_patterns": [
+      "error",
+      "traceback",
+      "failed",
+      "exception"
+    ],
+    "matches": 0
+  }
+}
