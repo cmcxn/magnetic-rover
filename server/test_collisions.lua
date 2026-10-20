@@ -23,8 +23,8 @@ local g,a,b=setup();g:input(a,{x=1,y=0});g:step(.05);assert(b.cargo==18)
 -- Repeated forward pressure while still touching must not become a new collision.
 for i=1,30 do a.x=0;b.x=31;g:input(a,{x=1,y=0});g:step(.05);g.batteries={} end
 assert(b.cargo==18,'continuous contact never farms cargo after protection expires')
-a.x=-50;b.x=31;g:input(a,{x=0,y=0});g:step(.05);a.x=0;g:input(a,{x=1,y=0});g:step(.05);assert(b.cargo==16,'separation then genuine impact can hit again')
-local g,a,b=setup();g:input(a,{x=1,y=0});g:step(.05);a.x=-50;g:input(a,{x=0,y=0});g:step(.05);a.x=0;g:input(a,{x=1,y=0});g:step(.05);assert(b.cargo==18,'separated return during protection does not hit')
+a.x=-100;b.x=31;g:input(a,{x=0,y=0});g:step(.05);a.x=0;g:input(a,{x=1,y=0});g:step(.05);assert(b.cargo==16,'separation then genuine impact can hit again')
+local g,a,b=setup();g:input(a,{x=1,y=0});g:step(.05);a.x=-100;g:input(a,{x=0,y=0});g:step(.05);a.x=0;g:input(a,{x=1,y=0});g:step(.05);assert(b.cargo==18,'separated return during protection does not hit')
 for i=1,30 do a.x=0;b.x=31;g:input(a,{x=1,y=0});g:step(.05);g.batteries={} end
 assert(b.cargo==18,'protected recontact consumes contact until another separation')
 print('PASS collision regressions: ordinary/boost amounts, static/separating/following rejection, safe zones, simultaneous fairness, contact hysteresis and immunity')

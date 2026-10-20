@@ -1,5 +1,6 @@
 local G={}; G.__index=G
 local config=require 'game_config'
+local vehicleCollision=require 'vehicle_collision'
 local resources=config.resources
 local colors={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=true,['#34d399']=true,['#fb923c']=true}
 local function dist(a,b) return (a.x-b.x)^2+(a.y-b.y)^2 end
@@ -62,35 +63,55 @@ function G:addbattery(x,y,unlock,source)
  local b={x=x,y=y,source=source or 'natural'};clamp(b);if self:station(b) then return end
  self.nextbat=self.nextbat+1;b.id=tostring(self.nextbat);b.unlock=unlock or 0;self.batteries[#self.batteries+1]=b;return b
 end
+function G:supply()
+ local elapsed=config.matchDuration-self.remaining
+ local index=1
+ for i,stage in ipairs(resources.stages) do if elapsed>=stage.at then index=i end end
+ local stage=resources.stages[index];local nextStage=resources.stages[index+1]
+ return {stage=index,outerRadius=stage.outer,nextOuterRadius=nextStage and nextStage.outer or nil,
+  secondsToShrink=nextStage and math.max(0,nextStage.at-elapsed) or nil,banking=self.remaining<=resources.stopRemaining}
+end
+function G:supplyPosition(index,sector)
+ local stage=resources.stages[index];sector=sector or (math.random(resources.sectors)-1)
+ for _=1,resources.attemptsPerBattery do
+  local angle=(sector+math.random())*2*math.pi/resources.sectors
+  local radius=math.sqrt(stage.inner^2+math.random()*(stage.outer^2-stage.inner^2))
+  local p={x=math.cos(angle)*radius,y=math.sin(angle)*radius}
+  if not self:station(p) then return p end
+ end
+end
+function G:contractSupply()
+ local index=self:supply().stage
+ if self.supplyStage==index then return end
+ local outer=resources.stages[index].outer
+ for _,b in ipairs(self.batteries) do
+  if b.source~='drop' and b.x*b.x+b.y*b.y>outer*outer then
+   local p=self:supplyPosition(index)
+   if p then b.x=p.x;b.y=p.y end
+  end
+ end
+ self.supplyStage=index
+end
 function G:replenish(limit)
  local natural=0
  for _,b in ipairs(self.batteries) do if b.source~='drop' then natural=natural+1 end end
  local amount=math.min(limit or resources.refillBatch,math.max(0,resources.groundCap-natural))
- local progress=math.min(1,math.max(0,(config.matchDuration-self.remaining)/resources.shrinkSeconds))
- local inner=resources.innerStart+(resources.innerEnd-resources.innerStart)*progress
- local outer=resources.outerStart+(resources.outerEnd-resources.outerStart)*progress
- -- Equal-area samples in a continuously shrinking annulus. Existing resources
- -- and collision drops stay put; skipped refill deadlines never create a burst.
  local offset=math.random(resources.sectors)-1
  for i=1,amount do
-  for _=1,resources.attemptsPerBattery do
-   local sector=(offset+i-1)%resources.sectors
-   local angle=(sector+math.random())*2*math.pi/resources.sectors
-   local radius=math.sqrt(inner*inner+math.random()*(outer*outer-inner*inner))
-   if self:addbattery(math.cos(angle)*radius,math.sin(angle)*radius) then break end
-  end
+  local p=self:supplyPosition(self:supply().stage,(offset+i-1)%resources.sectors)
+  if p then self:addbattery(p.x,p.y) end
  end
 end
 function G:start()
  if self.phase~='lobby' then return nil,'Not in lobby' end
  local count=0;for _,p in ipairs(self.players) do if p.connected then count=count+1 end end
  if count<2 then return nil,'At least two players required' end
- self.roundId=self.roundId+1;self.phase='playing';self.remaining=config.matchDuration;self.nextrefill=self.time+resources.refillInterval;self:replenish(resources.initial);return true
+ self.roundId=self.roundId+1;self.phase='playing';self.remaining=config.matchDuration;self.nextrefill=self.time+resources.refillInterval;self.supplyStage=1;self:replenish(resources.initial);return true
 end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
  local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.stun=0;p.hitSeq=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*2.4)*100;p.y=math.sin(#keep*2.4)*100;keep[#keep+1]=p end end
- self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=config.matchDuration;self.finishedAt=nil;self.nextrefill=nil;return true
+ self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=config.matchDuration;self.finishedAt=nil;self.nextrefill=nil;self.supplyStage=nil;return true
 end
 function G:drop(p,n)
  p.cargo=p.cargo-n
@@ -113,6 +134,7 @@ function G:step(dt,elapsed,remaining)
  if self.phase~='playing' then return end
  self.remaining=remaining or math.max(0,self.remaining-elapsed)
  if self.remaining<=0 then self.phase='finished';self.finishedAt=self.time;return end
+ self:contractSupply()
  if self.time>=self.nextrefill and self.remaining>resources.stopRemaining then self:replenish();self.nextrefill=self.time+resources.refillInterval end
  local motion={}
  for _,p in ipairs(self.players) do
@@ -142,17 +164,13 @@ function G:step(dt,elapsed,remaining)
   for j=i+1,#self.players do local q=self.players[j]
    if q.connected then
     local key=tonumber(p.id)<tonumber(q.id) and p.id..':'..q.id or q.id..':'..p.id
-    local distance=dist(p,q)
     local a,b=motion[p],motion[q]
-    local rx,ry=b.x-a.x,b.y-a.y
-    local dx,dy=(q.x-b.x)-(p.x-a.x),(q.y-b.y)-(p.y-a.y)
-    local denom=dx*dx+dy*dy
-    local t=denom>0 and math.max(0,math.min(1,-(rx*dx+ry*dy)/denom)) or 0
-    local swept=(rx+t*dx)^2+(ry+t*dy)^2
-    if distance<=40^2 and self.contacts[key] then contacts[key]=true end
-    if swept<=32^2 then
+    -- Same 98x68 oriented body as every client's artwork. A small release gap
+    -- consumes continuous contact even after the 24-unit non-solid knockback.
+    if self.contacts[key] and vehicleCollision.sweep(p,p,p.angle,q,q,q.angle,config.vehicleBody.releasePadding) then contacts[key]=true end
+    local contactTime=vehicleCollision.sweep(a,p,p.angle,b,q,q.angle)
+    if contactTime then
      contacts[key]=true
-     local contactTime=circleInterval({x=rx,y=ry},{x=rx+dx,y=ry+dy},{x=0,y=0},32) or 0
      local contactSafe=self:station(along(a,p,contactTime)) or self:station(along(b,q,contactTime))
      if not self.contacts[key] and not contactSafe and not self:station(p) and not self:station(q) and not self:station(a) and not self:station(b) then
       local a,b=motion[p],motion[q];local nx,ny=b.x-a.x,b.y-a.y
@@ -207,13 +225,13 @@ function G:step(dt,elapsed,remaining)
    end
   end
   for _,battery in ipairs(self.batteries) do if battery.unlock<=self.time then
-   local enter,leave=circleInterval(start,finish,battery,20)
+   local enter,leave=circleInterval(start,finish,battery,config.pickupRadius)
    if enter then
     events[#events+1]={t=enter,battery=battery}
     -- A battery's pickup circle may overlap the station: try again just outside.
     for _,t in ipairs(exits) do if t>=enter and t<=leave then events[#events+1]={t=t,battery=battery} end end
    end
-   if dist(p,battery)<=20^2 then events[#events+1]={t=1,battery=battery,position=p} end
+   if dist(p,battery)<=config.pickupRadius^2 then events[#events+1]={t=1,battery=battery,position=p} end
   end end
   if self:station(p) then events[#events+1]={t=1,deposit=true} end
   table.sort(events,function(a,b)
@@ -233,7 +251,8 @@ function G:step(dt,elapsed,remaining)
 end
 function G:snapshot(array)
  array=array or function(t)return t or {} end
- local s={type='state',serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=500,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
+ local s={type='state',serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=500,pickupRadius=config.pickupRadius,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
+ if self.phase~='lobby' then s.supply=self:supply() end
  for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,pickupSeq=p.pickupSeq,connected=p.connected,inputSeq=p.inputSeq,inputElapsed=p.inputElapsed,ix=p.ix,iy=p.iy,bx=p.bx,by=p.by} end end
  for _,b in ipairs(self.batteries) do s.batteries[#s.batteries+1]={id=b.id,x=b.x,y=b.y} end
  if self.phase=='finished' then s.results=array();for _,p in ipairs(self.players) do s.results[#s.results+1]={id=p.id,name=p.name,color=p.color,score=p.score} end;table.sort(s.results,function(a,b)return a.score>b.score or (a.score==b.score and tonumber(a.id)<tonumber(b.id)) end) end

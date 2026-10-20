@@ -10,6 +10,7 @@ cd "$HERE"
 "$SKYNET_ROOT/3rd/lua/lua" test_boost_hit.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_clock.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_collisions.lua
+"$SKYNET_ROOT/3rd/lua/lua" test_vehicle_collision.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_lifecycle.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_latency.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_admission.lua

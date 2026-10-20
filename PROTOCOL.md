@@ -35,14 +35,33 @@ rooms and scores are memory-only; a process restart clears them.
   Dash is 3x cargo-adjusted speed for 0.32 seconds, cooldown 4 seconds.
 - Initial natural batteries: 36. Replenishment every 10 seconds, at most six
   per batch, natural ground cap 42, no replenishment during the final 10 seconds.
-- Natural spawn annulus moves from outer radius band 320–470 toward inner band
-  60–210 through the match. Previously spawned and collision-dropped batteries
-  stay where they are; this is not a damaging or deleting shrinking circle.
+- Natural supply uses four stages at elapsed 0/25/50/75 seconds, with spawn
+  annuli 260–470, 160–340, 70–230 and 0–140. On a stage change only natural
+  batteries beyond the new outer radius relocate into the current annulus;
+  IDs, counts and unlock times are conserved. Collision drops never relocate.
+- State `supply` advertises `stage`, `outerRadius`, optional `nextOuterRadius`
+  and `secondsToShrink`, plus `banking` during the final ten seconds. Main map
+  and minimap show the active boundary, preview the next boundary for five
+  seconds, and the timer caption shows stage/countdown. No damage or station
+  movement is attached to the supply boundary.
 - Collision drops do not consume the natural spawn cap and are not deleted to
   enforce it. Station zones remain excluded from natural spawns.
-- Existing authoritative collision, 20-unit pickup radius, cargo cap 20,
-  1-second stun and 24-unit knockback rules remain. Mobile car visuals are 2x;
-  shared collision geometry does not vary by client device.
+- Magnet pickup radius is 56 world units on every device, advertised as
+  `pickupRadius` in state snapshots and drawn at that radius around the displayed
+  rover. Battery centers at the boundary count; the swept path also collects.
+  Collection and pickup feedback still await authoritative snapshots, so local
+  prediction may enter the guide before server confirmation arrives. Legacy
+  snapshots without this field retain the old 20-unit guide.
+- Every client renders a 98×68-world-unit rover body, local +X forward. The
+  server uses that oriented rectangle with continuous swept SAT per movement
+  tick; cargo rack, flame and magnet guide are excluded. Camera zoom can differ
+  by device, but body and magnet geometry do not.
+- Continuous contact rearms only after bodies separate beyond a 4-unit padding
+  per body. Cars remain non-solid: 24-unit knockback is a displacement, not a
+  guarantee of separation. Cargo cap 20, 1-second stun, protection, center-based
+  arena clamp and station safety remain unchanged. Full cargo, station zones
+  and dropped-battery locks prevent collection. A contested battery is awarded
+  once in server player order.
 
 Historical implementation notes below are retained for background only.
 

@@ -23,7 +23,7 @@ local function triple(reverse)
 end
 triple(false);triple(true)
 local g,a,b=setup();a.x=-430;a.y=-220;b.x=-397;b.y=-220;g:input(a,{x=1,y=0,boost=true});g:step(.05);assert(b.x < -395 and not g:station(b),'push stops outside station perimeter')
-local g=G.new();local a=g:join('a','A','#38bdf8');local b=g:join('b','B','#fb7185');local c=g:join('c','C','#34d399');g:start();g.batteries={};a.x=0;a.y=0;b.x=36;b.y=0;c.x=80;c.y=0;g:input(a,{x=1,y=0});g:step(.05);assert(b.hitSeq==1 and c.hitSeq==0,'push cannot trigger chain attack');g:input(a,{x=0,y=0});g:step(.05);assert(c.hitSeq==0,'push never persists as attack velocity')
+local g=G.new();local a=g:join('a','A','#38bdf8');local b=g:join('b','B','#fb7185');local c=g:join('c','C','#34d399');g:start();g.batteries={};a.x=0;a.y=0;b.x=36;b.y=0;c.x=140;c.y=0;g:input(a,{x=1,y=0});g:step(.05);assert(b.hitSeq==1 and c.hitSeq==0,'push cannot trigger chain attack');g:input(a,{x=0,y=0});g:step(.05);assert(c.hitSeq==0,'push never persists as attack velocity')
 local g,a,b=setup();b.x=36;b.y=0;g:input(a,{x=1,y=0});g:step(.05);g:step(0,1.1);assert(b.stun==0 and b.protect>0,'recovery retains protective window');a.x=-100;g:input(a,{x=0,y=0});g:step(.05);a.x=b.x-36;g:input(a,{x=1,y=0,boost=true});g:step(.05);assert(b.hitSeq==1 and b.stun==0,'fresh collision cannot restun during recovery protection')
 print('PASS exact dash duration, simultaneous multi-hit, station push boundary, no knockback chain, recovery protection')
 local g,a,b=setup();g:input(a,{x=0,y=0,boost=true});for i=1,80 do g:step(.05) end;assert(a.cooldown==0,'cooldown ready exactly four seconds');g:input(a,{x=0,y=0,boost=true});assert(a.boost==.32,'dash accepted at four second boundary')

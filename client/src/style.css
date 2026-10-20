@@ -1296,15 +1296,6 @@ details input {
   .room-toolbar button {
     font-size: 11px;
   }
-  .playing:not(.spectating) .room-toolbar {
-    left: auto;
-    right: 10px;
-    top: 100px;
-    bottom: auto;
-    transform: none;
-    background: transparent;
-    padding: 0;
-  }
   .room-tile {
     padding: 12px 9px;
     gap: 5px;
@@ -1377,6 +1368,8 @@ details input {
 .lobby .card.garage {
   display: grid;
   grid-template-columns: minmax(74px, 1fr) minmax(0, 3fr);
+  grid-template-rows: repeat(8, max-content);
+  align-content: start;
   grid-template-areas:
     "logo logo"
     "code code"
@@ -1431,15 +1424,22 @@ details input {
   margin: 2px 0;
 }
 .lobby .car-art {
-  height: clamp(28px, 6dvh, 64px);
+  /* Include rotated wheels and their second-axle shadows in the art slot. */
+  height: 52px;
+  min-height: 52px;
 }
 .lobby .toy-car {
   transform: rotate(-28deg) scale(0.55);
 }
 .lobby .car-card {
+  display: flex;
+  flex-direction: column;
   border-radius: 14px;
 }
 .lobby .car-card > strong {
+  flex: 1;
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-size: 12px;
   line-height: 1.25;
   padding: 4px 2px;
@@ -1513,9 +1513,6 @@ details input {
     gap: 4px;
     padding: 8px;
   }
-  .lobby .car-art {
-    height: 28px;
-  }
 }
 @media (max-height: 520px) and (orientation: landscape) {
   .lobby .garage-center {
@@ -1524,6 +1521,7 @@ details input {
   }
   .lobby .card.garage {
     grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: repeat(6, max-content);
     grid-template-areas:
       "logo logo code code code code"
       "roster roster roster roster roster roster"
@@ -1544,7 +1542,8 @@ details input {
     padding: 0 8px;
   }
   .lobby .car-art {
-    height: 26px;
+    height: 36px;
+    min-height: 36px;
   }
   .lobby .toy-car {
     transform: rotate(-28deg) scale(0.38);
@@ -1603,4 +1602,54 @@ details input {
     letter-spacing: 0;
     font-size: 8px;
   }
+}
+
+/* Related match actions share one row, so Return Lobby cannot cover menus.
+   FPS/RTT may wrap on the narrowest phones rather than paint over this row. */
+@media (max-width: 700px),
+  (pointer: coarse),
+  (max-height: 520px) and (orientation: landscape) {
+  .playing .match-actions {
+    position: absolute;
+    top: calc(var(--hud-top) + 56px);
+    right: var(--edge-right);
+    display: flex;
+    gap: 4px;
+    align-items: flex-start;
+  }
+  .playing .match-actions .secondary {
+    position: static;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .playing:not(.spectating) .connection {
+    max-width: calc(100% - 192px);
+  }
+  .playing .performance-line {
+    flex-wrap: wrap;
+    column-gap: 5px;
+    row-gap: 0;
+  }
+  .playing .leaderboard,
+  .playing .controls {
+    top: calc(var(--hud-top) + 124px);
+  }
+}
+@media (min-width: 701px) and (pointer: fine) and (min-height: 521px) {
+  .match-actions > .leave-room {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+  }
+}
+
+/* Reuse the timer caption: supply status adds no HUD row or top overlap. */
+#supply-status { white-space: nowrap; letter-spacing: 0; }
+#supply-status.supply-warning { color: #a45d12; font-weight: 700; }
+@media (max-width: 700px), (max-height: 520px) {
+  .playing #supply-status { font-size: 9px; }
 }

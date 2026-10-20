@@ -405,6 +405,9 @@ function connect(automatic = false) {
             data.serverTime < state.serverTime))
       )
         return;
+      if (state?.phase === "playing" && data.phase === "playing" && state.supply && data.supply && data.supply.stage > state.supply.stage) {
+        notice(`补给区收缩至第 ${data.supply.stage}/4 阶段，外围补给已向中心集中`, 2500);
+      }
       const previous = state?.players.find((p) => p.id === id);
       const current = (data as State).players.find((p) => p.id === id);
       if (
@@ -604,12 +607,14 @@ function render() {
     if (phase === "lobby")
       surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><button id="start" class="primary race-start">❯❯ 开始比赛</button><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
     if (phase === "playing") {
-      surface.innerHTML = `<div class="hud"><div class="stat"><small>积分</small><b id="score">0</b></div><div class="stat timer"><small>剩余时间</small><b id="timer">1:40</b></div><div class="stat"><small>载货</small><b id="cargo">0 / 20</b></div></div><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-controls="settings" aria-expanded="false">设置</button><aside class="leaderboard"><h3>实时排行榜</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
-      wireControls();
+      surface.innerHTML = `<div class="hud"><div class="stat"><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat"><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="match-actions"><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-controls="settings" aria-expanded="false">设置</button>${role !== "spectator" ? '<button class="secondary leave-room">返回大厅</button>' : ""}</div><aside class="leaderboard"><h3>实时排行榜</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
       surface.insertAdjacentHTML(
         "beforeend",
-        `<div class="room-toolbar"><button class="secondary leave-room">返回大厅</button>${role === "spectator" ? '<label>观战视角 <select id="follow-player" aria-label="观战视角"><option value="">全场</option></select></label>' : ""}</div>`,
+        role === "spectator"
+          ? '<div class="room-toolbar"><button class="secondary leave-room">返回大厅</button><label>观战视角 <select id="follow-player" aria-label="观战视角"><option value="">全场</option></select></label></div>'
+          : "",
       );
+      wireControls();
       if (role === "spectator") {
         app.classList.add("spectating");
         document.querySelector<HTMLSelectElement>("#follow-player")!.onchange =
@@ -674,6 +679,14 @@ function render() {
     document.querySelector("#score")!.textContent = String(me?.score ?? 0);
     document.querySelector("#cargo")!.textContent =
       `${(me?.cargo ?? 0) >= 20 ? "满载 " : ""}${me?.cargo ?? 0} / 20`;
+    const supply = state.supply;
+    const supplyStatus = document.querySelector<HTMLElement>("#supply-status")!;
+    supplyStatus.textContent = !supply ? "剩余时间" : supply.banking
+      ? "停补给 · 快回收"
+      : supply.secondsToShrink !== undefined
+        ? `${supply.stage}/4区 · ${Math.ceil(supply.secondsToShrink)}秒缩`
+        : "4/4区 · 中心争夺";
+    supplyStatus.classList.toggle("supply-warning", !!supply && (supply.banking || (supply.secondsToShrink ?? 99) <= 5));
     const sec = Math.max(0, Math.ceil(state.remaining));
     document.querySelector("#timer")!.textContent =
       `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
@@ -747,6 +760,21 @@ function drawMap() {
   ctx.beginPath();
   ctx.arc(100, 100, 95, 0, Math.PI * 2);
   ctx.fill();
+  if (state.supply) {
+    ctx.strokeStyle = "#318f80";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(100, 100, state.supply.outerRadius * 0.18, 0, Math.PI * 2);
+    ctx.stroke();
+    if (state.supply.nextOuterRadius !== undefined && (state.supply.secondsToShrink ?? 99) <= 5) {
+      ctx.strokeStyle = "#d89427";
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.arc(100, 100, state.supply.nextOuterRadius * 0.18, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
   for (const s of state.stations) {
     ctx.fillStyle = "#79b896";
     ctx.beginPath();

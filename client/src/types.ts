@@ -38,6 +38,8 @@ export interface State {
   batteries: { id: string; x: number; y: number }[];
   stations: { x: number; y: number; r: number }[];
   radius: number;
+  pickupRadius?: number;
+  supply?: { stage: number; outerRadius: number; nextOuterRadius?: number; secondsToShrink?: number; banking: boolean };
   results?: { id: string; name: string; color: string; score: number }[];
 }
 export const COLORS = [

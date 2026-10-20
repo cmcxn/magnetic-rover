@@ -2,7 +2,7 @@ package.path = './?.lua;' .. package.path
 local G = require 'game'
 local g=G.new(); local p=g:join('one','甲','#38bdf8'); local q=g:join('two','乙','#fb7185')
 assert(p and q); assert(not g:join('three','bad','#fff',p.token)); assert(g:start())
-g.batteries={{id='test',x=0,y=0,unlock=0}}; p.x=0;p.y=0;q.x=150;q.y=0
+g.batteries={{id='test',x=0,y=0,unlock=0}}; p.x=0;p.y=0;q.x=300;q.y=0
 g:step(.05); assert(p.cargo==1 and #g.batteries==0,'pickup exactly once')
 p.x=-330;p.y=-220;g:step(.05);g:step(.05); assert(p.score==1 and p.cargo==0,'deposit exactly once')
 p.x=0;p.y=0;g:input(p,{x=1e200,y=1e200,boost=false});g:step(.05);assert(p.x==0,'reject huge input')

@@ -264,6 +264,21 @@ export class World extends Phaser.Scene {
       g.fillStyle(c, a);
       g.fillCircle(x, y, r);
     };
+    const supply = this.state?.phase === "playing" ? this.state.supply : undefined;
+    if (supply) {
+      g.fillStyle(0x67bba4, 0.055);
+      g.fillCircle(0, 0, supply.outerRadius);
+      g.lineStyle(3, 0x318f80, 0.8);
+      g.strokeCircle(0, 0, supply.outerRadius);
+      if (supply.nextOuterRadius !== undefined && (supply.secondsToShrink ?? 99) <= 5) {
+        g.lineStyle(3, 0xe0a13c, 0.9);
+        for (let i = 0; i < 48; i++) {
+          g.beginPath();
+          g.arc(0, 0, supply.nextOuterRadius, i * Math.PI / 24, (i + 0.55) * Math.PI / 24);
+          g.strokePath();
+        }
+      }
+    }
     const stations = this.state?.stations ?? [
       { x: -330, y: -220, r: 65 },
       { x: 330, y: -220, r: 65 },
@@ -323,27 +338,28 @@ export class World extends Phaser.Scene {
       g.lineTo(b.x - 1, b.y + 7);
       g.strokePath();
     }
-    // Presentation only: authoritative collision and pickup radii stay device-independent.
-    const roverScale = policy.follows ? 2 : 1;
+    // All devices show the server body dimensions: 98x68, local +X forward.
+    const roverScale = 2;
+    // Magnet geometry comes from authority, never from device-specific artwork scale.
+    // The guide follows the displayed pose; collection still awaits the server snapshot.
+    const pickupRadius = this.state?.pickupRadius ?? 20;
     const labelClearance = (angle: number, cargo: number) =>
-      roverScale === 1
-        ? 34
-        : roverScale *
-          Math.max(
-            34,
-            Math.abs(Math.sin(angle)) * (cargo > 0 ? 54 : 25) +
-              Math.abs(Math.cos(angle)) * 17 +
-              8,
-          );
+      roverScale *
+      Math.max(
+        34,
+        Math.abs(Math.sin(angle)) * (cargo > 0 ? 54 : 25) +
+          Math.abs(Math.cos(angle)) * 17 +
+          8,
+      );
     const present = new Set<string>();
     for (const p of this.state?.players ?? []) {
       present.add(p.id);
       const v = this.smooth.get(p.id)!;
       const c = Phaser.Display.Color.HexStringToColor(p.color).color;
       circle(v.x, v.y + 7 * roverScale, 21 * roverScale, 0x51694b, 0.16);
-      circle(v.x, v.y, 28 * roverScale, c, 0.35);
+      circle(v.x, v.y, pickupRadius, c, 0.18);
       g.lineStyle(3, c, 0.9);
-      g.strokeCircle(v.x, v.y, 27 * roverScale);
+      g.strokeCircle(v.x, v.y, pickupRadius);
       const hasSprite = this.sprite(
         `car-${p.id}`,
         "rover",
@@ -356,7 +372,7 @@ export class World extends Phaser.Scene {
       );
       if (p.id === this.self) {
         g.lineStyle(2, 0x376e60, 0.65);
-        g.strokeCircle(v.x, v.y, 29 * roverScale);
+        g.strokeCircle(v.x, v.y, pickupRadius);
       }
       if (!p.connected) circle(v.x, v.y, 25 * roverScale, 0xffffff, 0.5);
       // Car points along +X. Four tires, windscreen, headlights and roof arrow.
@@ -377,16 +393,17 @@ export class World extends Phaser.Scene {
         g.fillPoints(pts, true);
       };
       if (!hasSprite) {
-        for (const x of [-12, 12])
-          for (const y of [-15, 15]) box(x, y, 12, 7, 0x32554d);
-        box(0, 0, 37, 27, 0x476355);
-        box(0, -1, 34, 25, c);
+        // Local footprint is 49x34 before the shared 2x body scale.
+        for (const x of [-18.5, 18.5])
+          for (const y of [-13.5, 13.5]) box(x, y, 12, 7, 0x32554d);
+        box(0, 0, 45, 27, 0x476355);
+        box(0, -1, 42, 25, c);
         box(7, -1, 8, 19, 0x244e4b);
         box(8, -4, 3, 9, 0xb8f0e5);
-        box(18, -8, 4, 5, 0xfff8c8);
-        box(18, 8, 4, 5, 0xfff8c8);
-        box(-17, -8, 3, 5, 0xc46755);
-        box(-17, 8, 3, 5, 0xc46755);
+        box(22.5, -8, 4, 5, 0xfff8c8);
+        box(22.5, 8, 4, 5, 0xfff8c8);
+        box(-22.5, -8, 3, 5, 0xc46755);
+        box(-22.5, 8, 3, 5, 0xc46755);
         const tip = rot(2, 0),
           u = rot(-5, -5),
           d = rot(-5, 5);

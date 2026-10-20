@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 const css = fs.readFileSync(
-  new URL("../src/style.css", import.meta.url),
+  process.env.MOBILE_CSS_PATH || new URL("../src/style.css", import.meta.url),
   "utf8",
 );
 const normalized = css.replace(/\s+/g, " ");
@@ -60,4 +60,30 @@ test("waiting room reflows to fit available height without clipping scroll fallb
   assert.match(lobby, /\.lobby \.error:empty \{[^}]*display: none/);
   assert.match(lobby, /\.lobby \.leave-room[^}]*min-height: 44px/);
   assert.doesNotMatch(lobby, /overflow(?:-y)?: (?:hidden|clip)/);
+});
+
+test("short lobby reserves painted-wheel space instead of shrinking artwork under names", () => {
+  const lobby = normalized.slice(normalized.indexOf("/* Waiting room fit"));
+  assert.match(
+    lobby,
+    /\.lobby \.car-art \{[^}]*height: 52px;[^}]*min-height: 52px/,
+  );
+  assert.doesNotMatch(lobby, /height: (?:28px|26px|clamp\(28px)/);
+  assert.match(lobby, /grid-template-rows: repeat\(8, max-content\)/);
+  assert.match(
+    lobby,
+    /\.lobby \.car-card > strong \{[^}]*white-space: normal[^}]*overflow-wrap: anywhere/,
+  );
+});
+
+test("return and mobile menus share flow layout and preserve wrapping FPS/RTT", () => {
+  assert.match(normalized, /\.playing \.match-actions \{[^}]*display: flex/);
+  assert.match(
+    normalized,
+    /\.playing \.match-actions \.secondary \{[^}]*position: static[^}]*min-height: 44px/,
+  );
+  assert.match(
+    normalized,
+    /\.playing \.performance-line \{[^}]*flex-wrap: wrap/,
+  );
 });

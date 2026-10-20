@@ -5,7 +5,9 @@ const { chromium } = createRequire(import.meta.url)("playwright");
 import assert from "node:assert/strict";
 import fs from "node:fs";
 const browser = await chromium.launch({
-  executablePath: "/usr/bin/chromium",
+  ...(process.env.BROWSER_EXECUTABLE
+    ? { executablePath: process.env.BROWSER_EXECUTABLE }
+    : {}),
   args: ["--no-sandbox"],
 });
 const out = process.env.SCREENSHOTS || "/tmp/rover-mobile-layout";
@@ -15,6 +17,9 @@ try {
   for (const [width, height, touch] of [
     [320, 640, true],
     [375, 667, true],
+    [375, 635, true],
+    [375, 520, true],
+    [812, 320, true],
     [390, 740, true],
     [430, 820, true],
     [740, 390, true],
@@ -42,7 +47,8 @@ try {
             JSON.stringify({
               type: "state",
               phase: "playing",
-              remaining: 137,
+              remaining: 55,
+              supply: {stage:2,outerRadius:340,nextOuterRadius:230,secondsToShrink:5,banking:false},
               radius: 500,
               players: [
                 {
@@ -108,6 +114,8 @@ try {
         connection: rect(".connection"),
         rankingToggle: rect("#ranking-toggle"),
         settingsToggle: rect("#settings-toggle"),
+        leaveRoom: rect(".leave-room"),
+        fps: rect("#fps"),
         minimap: rect(".minimap"),
         hud: rect(".hud"),
         labels: [...document.querySelectorAll(".stat small")].map((n) => ({
@@ -140,12 +148,14 @@ try {
         assert.equal(m.rankVisible, false, "ranking collapsed");
         assert.equal(m.controlsVisible, false, "settings collapsed");
         assert.ok(m.latency.height > 0, "RTT retained");
+        assert.ok(m.fps.height > 0, "FPS retained");
         assert.ok(m.boost.width >= 44, "touch target");
         const visible = [
           m.hud,
           m.connection,
           m.rankingToggle,
           m.settingsToggle,
+          m.leaveRoom,
           m.boost,
           m.minimap,
         ].filter((r) => r.width && r.height);

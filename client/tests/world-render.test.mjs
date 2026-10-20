@@ -267,11 +267,11 @@ test("local pickup feedback aggregates into one +N label, reduced motion keeps t
   assert.ok(calls.some((c) => c.key === "setVisible" && c.args[0] === false));
 });
 
-test("phone rover visuals double without changing world, labels or desktop sizing", () => {
+test("all devices render the same enlarged98x68body without changing camera policy or label font", () => {
   for (const [width, height, multiplier] of [
     [390, 844, 2],
     [844, 390, 2],
-    [1200, 800, 1],
+    [1200, 800, 2],
   ]) {
     const { w, calls } = renderCar(20, 0.2);
     w.scale = { width, height };
@@ -358,4 +358,86 @@ test("world exposes sequenced local prediction and reset without changing camera
   assert.ok(w.smooth.has("self"));
   w.resetMotion();
   assert.equal(w.smooth.size, 0);
+});
+
+test("magnet guide uses server radius and tracks rendered car on phone and desktop", () => {
+  for (const width of [390, 1200]) {
+    const { w, calls } = renderCar(13);
+    w.scale = { width, height: 844 };
+    w.self = "p";
+    w.state.pickupRadius = 56;
+    w.state.players[0].x = 100;
+    calls.length = 0;
+    w.update(116, 16);
+    assert.ok(w.smooth.get("p").x < 100, "display pose differs from authority");
+    assert.ok(
+      calls.some(
+        (c) =>
+          c.key === "strokeCircle" &&
+          c.args[0] === w.smooth.get("p").x &&
+          c.args[1] === 0 &&
+          c.args[2] === 56,
+      ),
+    );
+    assert.ok(
+      !calls.some((c) => c.key === "strokeCircle" && c.args[2] === 58),
+      "no oversized self outline masquerades as range",
+    );
+  }
+});
+
+test("legacy server magnet guide uses legacy20 radius rather than enlarged vehicle scale", () => {
+  const { w, calls } = renderCar(0);
+  w.scale = { width: 390, height: 844 };
+  calls.length = 0;
+  w.update(116, 16);
+  assert.ok(calls.some((c) => c.key === "strokeCircle" && c.args[2] === 20));
+});
+
+test("authoritative supply ring and five-second next-zone warning render on phone and desktop", () => {
+  for (const width of [390, 1200]) {
+    const { w, calls } = harness();
+    w.scale = { width, height: 844 };
+    w.state = {
+      phase: "playing",
+      players: [],
+      stations: [],
+      batteries: [],
+      supply: {
+        stage: 2,
+        outerRadius: 340,
+        nextOuterRadius: 230,
+        secondsToShrink: 6,
+        banking: false,
+      },
+    };
+    calls.length = 0;
+    w.update(0, 16);
+    assert.ok(calls.some((c) => c.key === "strokeCircle" && c.args[2] === 340));
+    assert.equal(calls.filter((c) => c.key === "arc").length, 0);
+    w.state.supply.secondsToShrink = 5;
+    calls.length = 0;
+    w.update(16, 16);
+    assert.equal(
+      calls.filter((c) => c.key === "arc" && c.args[2] === 230).length,
+      48,
+    );
+    w.state.phase = "lobby";
+    calls.length = 0;
+    w.update(32, 16);
+    assert.ok(
+      !calls.some((c) => c.key === "strokeCircle" && c.args[2] === 340),
+    );
+  }
+});
+
+test("missing rover sprite fallback has the same98x68body footprint", () => {
+  const { calls } = renderCar(0);
+  const vertices = calls
+    .filter((c) => c.key === "fillPoints")
+    .flatMap((c) => c.args[0]);
+  assert.equal(Math.max(...vertices.map((p) => p.x)), 49);
+  assert.equal(Math.min(...vertices.map((p) => p.x)), -49);
+  assert.equal(Math.max(...vertices.map((p) => p.y)), 34);
+  assert.equal(Math.min(...vertices.map((p) => p.y)), -34);
 });
