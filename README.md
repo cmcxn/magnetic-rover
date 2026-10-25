@@ -31,6 +31,10 @@ ROVER_PORT=18083 docker compose -p magnetic-rover-runtime up -d --build --wait
 
 基础镜像固定到 `sha-f1baee5051108fce40588738f4a5960f12edea97` 及多架构 manifest digest；Docker 自动匹配宿主架构。前端和 Lua 游戏代码在构建时验证。默认速度 480，可通过 `ROVER_BASE_SPEED` 覆盖。详细版本及验证记录见 [Docker Runtime](docs/docker-runtime.md)。下面的原生脚本保留为可选开发方式。
 
+## Windows 便携包
+
+下载好 Windows x64 Skynet runtime 后执行 `./scripts/package-windows.sh`，会在下载文件夹生成含游戏和运行时的 ZIP。解压后双击 `start.bat` 即可启动；参数和验收说明见 [Windows 发布包](docs/windows-release.md)。
+
 ## 本机运行
 1. 准备 Node.js 22+（前端测试需要），以及已编译的 skynet-demo `feat/pluto-aoi-submodule` 分支；验证版本见 `verification/skynet-aoi-runtime.md`。
 2. `cd client && npm ci && npm run build`。
