@@ -57,7 +57,7 @@ async def main():
         await send(a,type='input',x=0,y=0,boost=False)
         await send(b,type='input',x=1,y=0,boost=True)
         for _ in range(3):s=await recv(a,'state')
-        q=player(s,wb['id']);assert q['x']==hit_x and q['y']==hit_y and q['boost']==0 and q['hitSeq']==1
+        q=player(s,wb['id']);assert q['ix']==0 and q['iy']==0 and q['boost']==0 and q['hitSeq']==1 and math.hypot(q['x']-hit_x,q['y']-hit_y)<100
         print('PASS real WS idle forward dash, forged heading/speed ignored, cooldown spam, authoritative hit sequence, stun movement/boost rejection')
         p=next(p for p in s['players'] if p['id']==wa['id']);x,y=p['x'],p['y']
         await send(a,type='input',x=1e200,y=1e200,boost=False);assert 'Invalid input' in (await recv(a,'error'))['message']

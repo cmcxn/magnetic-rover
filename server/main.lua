@@ -43,7 +43,7 @@ local function serve(fd,addr)
  local path=url:match('^[^?]*');if path=='/' then path='/index.html' end
  local content,status,ctype='Not found',404,'text/plain'
  if method=='GET' and not path:find('..',1,true) and not path:find('%%') and path:match('^/[a-zA-Z0-9_./%-]+$') then
-  local root=os.getenv('ROVER_CLIENT') or '/workspace/scratch/0811cde7f1f9/magnetic-rover/client/dist'
+  local root=os.getenv('ROVER_CLIENT') or ((os.getenv('ROVER_SERVER') or './server'):gsub('/+$','')..'/../client/dist')
   local f=io.open(root..path,'rb');if f then content=f:read('*a');f:close();status=200;ctype=mime[path:match('%.([^%.]+)$')] or 'application/octet-stream' end
  end
  httpd.write_response(helper.writefunc(fd),status,content,{['Content-Type']=ctype,['Cache-Control']='no-cache',['X-Content-Type-Options']='nosniff'});socket.close(fd)

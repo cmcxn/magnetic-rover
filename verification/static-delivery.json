@@ -93,16 +93,16 @@
       "mime": "audio/wav"
     },
     {
-      "path": "assets/index-BdxYRJ_K.css",
-      "bytes": 11565,
-      "status": 200,
-      "mime": "text/css"
-    },
-    {
-      "path": "assets/index-DKhN26yo.js",
-      "bytes": 1514327,
+      "path": "assets/index-C5FSfsXK.js",
+      "bytes": 1531625,
       "status": 200,
       "mime": "text/javascript"
+    },
+    {
+      "path": "assets/index-X70QzK9L.css",
+      "bytes": 22696,
+      "status": 200,
+      "mime": "text/css"
     },
     {
       "path": "assets/sprites/battery.png",

@@ -1,0 +1,159 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> magnetic-rover-client@0.1.0 test
+> node --test tests/*.test.mjs
+
+✔ authoritative hit sequence plays collision sound even with zero cargo (75.450213ms)
+✔ boost sound is stronger than routine effects and ends within 320 milliseconds with a fade (15.174495ms)
+✔ pickup audio follows authority even if cargo falls, ignores cargo-only increases and initial snapshots (13.629473ms)
+✔ pickup sample has a short fade and rapid events cannot stack sources (10.470038ms)
+✔ normalizes diagonal keyboard input to unit speed (1.212168ms)
+✔ preserves joystick partial deflection (0.855759ms)
+✔ idle input stays zero, large mouse vectors stay bounded (0.152026ms)
+✔ nickname and URL markup are escaped (0.325763ms)
+✔ color choices match authoritative allowlist (0.164113ms)
+✔ tokens use canonical, isolated server keys (0.287246ms)
+✔ server addresses reject credentials, fragments and mixed content (0.37765ms)
+✔ ties share ranking without eliminating skipped ranks (0.131966ms)
+✔ mobile landscape and portrait follow the car at legible scale (0.288047ms)
+✔ desktop full arena and coarse-pointer tablet camera policies (0.29677ms)
+✔ pickup sequence delta never credits another player, baseline, reset or unsupported server (1.330613ms)
+✔ connection handlers isolate server tokens and never transmit legacy global token (5.007556ms)
+✔ stale socket onopen and onerror cannot mutate the replacement connection (1.507696ms)
+✔ join error survives close and renders a retry screen without dropping token (1.365045ms)
+✔ invalid socket URL is rejected before construction and connection remains retryable (1.174001ms)
+✔ default WebSocket uses the actual page port (0.932382ms)
+✔ default HUD measures actual matching pong RTT, ignores duplicates and expires stale values (1.419285ms)
+✔ hide invalidates RTT, foreground reconnects once with pinned endpoint and scoped token (1.276323ms)
+✔ network close retries, but rejected join stops automatic retries (1.173831ms)
+✔ pong from replaced socket cannot restore old RTT (1.329291ms)
+✔ waiting join shows estimate, stays alive, and accepts welcome without sending join again (1.406796ms)
+✔ waiting full has no invented ETA; cancel stops retries and invalidates old socket (2.473168ms)
+✔ cancel during reconnect backoff prevents the scheduled attempt and foreground retry (0.840577ms)
+✔ waiting connections measure pong RTT and hidden late pong cannot revive it (0.832796ms)
+✔ finished screen explains automatic return countdown (1.16001ms)
+✔ debug diagnostics are opt-in and snapshots never become network RTT (1.749575ms)
+✔ automatic reconnect retries a transient old-socket guest conflict until release (0.936239ms)
+✔ manual duplicate guest conflict does not retry or take over (0.788459ms)
+✔ authoritative hit sequence notifies empty-cargo driver and stun blocks boost inputs (1.53711ms)
+✔ reduced-effects toggle persists choice and updates renderer (0.896119ms)
+✔ system reduced motion defaults on and suppresses haptics while preserving boost renderer event (1.40919ms)
+✔ boost haptics use 25ms once per authoritative activation and tolerate denied vibration (1.307278ms)
+✔ hit notice expires with the one-second stun rather than lingering as a stale warning (1.109686ms)
+✔ disconnect suspends retained snapshot effects until a fresh state (0.963659ms)
+✔ floating joystick owns one touch, supports boost on a second finger, and resets on every interruption (1.720952ms)
+✔ menus and mouse do not start touch driving; the next touch picks a new origin (1.437192ms)
+✔ pickup feedback uses local authoritative counts, silently baselines reconnects and ignores hidden events (1.194732ms)
+✔ canceled boost touch and resize discard queued dash; normal up keeps the intended tap (3.482514ms)
+✔ movement-owner release or cancellation clears queued dash safely (2.482772ms)
+✔ playing HUD has separate compact mobile menus and horizontal cargo label (0.958682ms)
+✔ mobile menus toggle independently and close the other overlay (0.947646ms)
+✔ second concurrent field touch queues one boost; third touch and repeated moves do not (1.176726ms)
+✔ field boost cancels cleanly on interruption and is blocked by cooldown or stun (9.414822ms)
+✔ sequential single taps never boost and UI taps cannot become the field second finger (1.180701ms)
+✔ accessible boost activation works without a pointer and respects cooldown (1.072701ms)
+✔ directory handshake stays out of matches and lists safe join and spectate actions (1.179189ms)
+✔ ready toggles in a one-player lobby and waits for server authority (1.161763ms)
+✔ room and role transitions rerender the same phase and reject old-room snapshots (1.238857ms)
+✔ directory snapshots keep reconnect heartbeat alive and preserve the guest token (0.927195ms)
+✔ unchanged directory ticks preserve room action DOM and focus (1.039842ms)
+✔ Space on a native UI control does not hijack activation or boost (0.943489ms)
+✔ leaving immediately quiesces all inputs until directory acknowledgement (1.28836ms)
+✔ focus loss sends neutral only for an acknowledged playing player (7.632148ms)
+✔ pending leave survives disconnect and retries only after membership acknowledgement (1.339897ms)
+✔ leave rejection resynchronizes membership before restoring controls (1.295932ms)
+✔ missing leave acknowledgement reconnects despite ongoing room snapshots (1.451722ms)
+✔ manual reconnect cancels the old leave deadline while awaiting a new handshake (1.061965ms)
+✔ FPS is visible by default and measured from completed renders independently of connection (1.274239ms)
+✔ regular and neutral inputs use sequenced prediction commands, resets discard stale control (1.064359ms)
+✔ out-of-order snapshots cannot rewind authoritative HUD or effects, equal ticks remain valid (0.979763ms)
+✔ compact supply HUD follows server stage, warns before shrinking and signals final banking (1.089997ms)
+✔ normal collision notice ends with server stun instead of claiming one second (1.091008ms)
+✔ login instructions distinguish boosted drops from ordinary contact (0.752406ms)
+✔ first touch is neutral origin; only owning pointer moves or ends joystick (2.114946ms)
+✔ compact HUD applies to narrow, coarse and short-landscape viewports with explicit sizing (1.384103ms)
+✔ mobile secondary overlays and keyboard-only hint are hidden by default (0.366734ms)
+✔ waiting room reflows to fit available height without clipping scroll fallback (0.332012ms)
+✔ short lobby reserves painted-wheel space instead of shrinking artwork under names (0.243271ms)
+✔ return and mobile menus share flow layout and preserve wrapping FPS/RTT (0.302288ms)
+✔ local control moves before a snapshot; authority stats untouched (2.180995ms)
+✔ tick acknowledgement reconciles held time without per-packet movement (0.352072ms)
+✔ boost locks heading, respects cargo, cooldown and arena clamp (0.221648ms)
+✔ collision snapshot immediately cancels boost replay and pending movement (0.224973ms)
+✔ remote interpolation follows timestamp buffer and freezes on missing packets (0.418321ms)
+✔ pending inputs and stale extrapolation are bounded, reset drops prior room (0.466322ms)
+✔ foreground/round and spectator transitions never replay previous control (0.252825ms)
+✔ jittered remote snapshots interpolate actual time spacing and dropped snapshots do not cause runaway motion (0.161379ms)
+✔ coalesced burst commands do not each purchase a physics tick (0.251132ms)
+✔ predicted boost cannot bypass cooldown or mutate authoritative cargo score and pickups (0.96379ms)
+✔ stunned authority prevents input replay until an unstunned snapshot (0.252143ms)
+✔ late prior-round and phase snapshots cannot resurrect prediction (0.260656ms)
+✔ packet silence freezes the bounded prediction horizon rather than walking backward (0.144494ms)
+✔ expired authoritative held input is not resurrected from the acknowledged command (0.181188ms)
+✔ solid-circle prediction stops before an opponent rather than tunneling through (8.670599ms)
+✔ solid-circle prediction keeps the complete vehicle inside the arena (0.267948ms)
+✔ opposing timestamp interpolation and local prediction never visually overlap (1.003779ms)
+✔ circle display constraints handle three pinned vehicles and initial coincidence (1.050277ms)
+✔ recoil impact sequence cancels boost replay even when attacker is not stunned (0.318402ms)
+✔ stunned knockback moves smoothly but cannot replay user movement or run away on silence (0.19587ms)
+✔ solid-circle packet silence freezes the last bounded pose instead of snapping to pre-impact authority (0.12808ms)
+✔ lost-packet legal swapped endpoints rebase rather than pinning display at contact forever (2.065384ms)
+✔ large authoritative correction without long delivery silence also converges legally (0.919684ms)
+✔ reports measured render FPS after one second, not before (1.175463ms)
+✔ keeps slow frames in actual elapsed time and counts only intervals over 50ms (0.234638ms)
+✔ reset discards background time, waits for a fresh sample, preserves session counter (0.196812ms)
+✔ ignores duplicate or invalid timestamps without adding frames (0.150974ms)
+✔ garden background is rasterized once and not redrawn on every frame (5.88028ms)
+✔ self converges faster than remote without extrapolating authoritative positions (3.082662ms)
+✔ mobile camera uses the same current smoothed self position as the car (2.223308ms)
+✔ debug FPS measures render frames over elapsed time separately from network (3.439621ms)
+✔ compact cargo rack displays one distinct battery for each cargo from 1 through 20 (31.128324ms)
+✔ authoritative boost draws tail flames even with reduced effects (4.287088ms)
+✔ boost shake lasts 100 ms and reduced effects disables it (1.72625ms)
+✔ only local rover label exposes exact cargo capacity and full-load state (8.07794ms)
+✔ finished snapshots never render retained boost flame (1.580945ms)
+✔ disconnected or stale snapshot cannot animate retained tail flame (3.221317ms)
+✔ local pickup feedback aggregates into one +N label, reduced motion keeps text but no particles, stale effects clear (1.496089ms)
+✔ all devices render the same enlarged98x68body without changing camera policy or label font (5.858628ms)
+✔ phone pickup text stays above the enlarged upright loaded rack (1.4227ms)
+✔ world exposes sequenced local prediction and reset without changing camera policy (1.313878ms)
+✔ magnet guide uses server radius and tracks rendered car on phone and desktop (2.456593ms)
+✔ legacy server magnet guide uses legacy20 radius rather than enlarged vehicle scale (1.186831ms)
+✔ authoritative supply ring and five-second next-zone warning render on phone and desktop (1.930173ms)
+✔ missing rover sprite fallback has the same98x68body footprint (0.958231ms)
+✔ solid boundary uses authority radius, not the independent pickup radius (1.411444ms)
+✔ loaded vehicle body and all twenty cargo cells fit in hard circle at every heading (4.590858ms)
+✔ airborne dropped battery renders at server height with its ground shadow (1.013012ms)
+✔ contained cargo has a graphics layer above the car sprite, not hidden beneath it (0.940365ms)
+ℹ tests 122
+ℹ suites 0
+ℹ pass 122
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 628.658721
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> magnetic-rover-client@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v6.4.4 building for production...
+transforming...
+✓ 13 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     0.53 kB │ gzip:   0.36 kB
+dist/assets/index-X70QzK9L.css     22.70 kB │ gzip:   5.87 kB
+dist/assets/index-C5FSfsXK.js   1,531.63 kB │ gzip: 358.86 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.22s
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

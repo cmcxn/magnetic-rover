@@ -3,6 +3,7 @@ set -eu
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SKYNET_ROOT="${SKYNET_ROOT:-$HERE/../../pluto-aoi-integration/vendor/skynet/}"
 cd "$HERE"
+"$SKYNET_ROOT/3rd/lua/lua" test_client_root.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_game.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_motion_protocol.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_fast_movement.lua
@@ -11,6 +12,7 @@ cd "$HERE"
 "$SKYNET_ROOT/3rd/lua/lua" test_clock.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_collisions.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_vehicle_collision.lua
+"$SKYNET_ROOT/3rd/lua/lua" test_collision_redesign.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_lifecycle.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_latency.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_admission.lua

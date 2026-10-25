@@ -46,22 +46,44 @@ rooms and scores are memory-only; a process restart clears them.
   movement is attached to the supply boundary.
 - Collision drops do not consume the natural spawn cap and are not deleted to
   enforce it. Station zones remain excluded from natural spawns.
-- Magnet pickup radius is 56 world units on every device, advertised as
-  `pickupRadius` in state snapshots and drawn at that radius around the displayed
-  rover. Battery centers at the boundary count; the swept path also collects.
-  Collection and pickup feedback still await authoritative snapshots, so local
-  prediction may enter the guide before server confirmation arrives. Legacy
-  snapshots without this field retain the old 20-unit guide.
-- Every client renders a 98×68-world-unit rover body, local +X forward. The
-  server uses that oriented rectangle with continuous swept SAT per movement
-  tick; cargo rack, flame and magnet guide are excluded. Camera zoom can differ
-  by device, but body and magnet geometry do not.
-- Continuous contact rearms only after bodies separate beyond a 4-unit padding
-  per body. Cars remain non-solid: 24-unit knockback is a displacement, not a
-  guarantee of separation. Cargo cap 20, 1-second stun, protection, center-based
-  arena clamp and station safety remain unchanged. Full cargo, station zones
-  and dropped-battery locks prevent collection. A contested battery is awarded
-  once in server player order.
+- Natural battery magnet pickup remains 56 world units (`pickupRadius`). It is
+  not the solid car guide. Settled dropped batteries are collected on solid
+  contact at 70 units (60-unit car + 10-unit battery); this prevents an
+  unreachable pickup while keeping dropped batteries out of car bodies.
+- Every car has a server-owned radius-60 solid circle (`collisionRadius`),
+  independent of heading. The 98×68 artwork and twenty-cell cargo rack fit
+  inside it. Flames are decorative. All devices render the same boundary.
+- Continuous circle time-of-impact resolution, simultaneous incoming-velocity
+  classification and iterative projection keep cars mutually exclusive,
+  including during protection, stun, disconnection grace and at the arena wall.
+  The arena radius is 500 and car centers remain inside radius 440.
+- Any ordinary moving contact stuns both unprotected participants for 0.65 s,
+  recoils/pushes them apart, and never drops cargo. Equal-velocity following and
+  separating contacts do not create a gameplay hit. Front-facing motion gives
+  more impulse to the target with smaller attacker recoil.
+- An effective boosted attack requires forward dot >= 0.65, >=30 units/s of
+  attacking movement toward the target, and >=40 units/s relative closing.
+  Target loses `min(5,ceil(cargo*.25))`, stuns for 1 s and receives directional
+  impulse; attacker cancels dash, recoils, and does not stun. Two simultaneous
+  frontal boosts stun/drop both. Side/rear/grazing boosts use ordinary rules.
+- Recycle-station contact protects both participants from cargo loss, not from
+  physical blocking or ordinary stun/recoil. Protection lasts 1.6 s, blocks
+  repeated cargo loss/stun, and never disables physical collision. A consumed
+  pair rearms only after a genuine gap greater than four units; protected
+  recontact consumes the episode too. Each victim takes the largest simultaneous
+  drop, never their sum. Banked score is not dropped.
+- Knockback uses server velocity `kx`/`ky`, decaying at 5/s, rather than a fixed
+  teleport. `impactSeq` advances on new physical contact, including an unstunned
+  attacker; `hitSeq` advances when a new stun is applied. Client prediction is
+  canceled on either impact acknowledgement; displayed circles are swept and
+  projected to avoid visual penetration but cannot assign outcomes.
+- Each dropped battery remains one actual unit: server `x,y,vx,vy,z`, source
+  `drop`, and `unlock` describe bounded directional random scatter, hop/settle
+  and a 0.65 s global pickup lock. Drops avoid car bodies, stations and the wall;
+  expired protection or a failed placement cannot silently destroy value.
+  Pickup waits for landing. Natural refill never deletes collision drops.
+- Cargo cap is20. Full cargo, station zones, airborne/locked drops prevent
+  collection. A contested battery is awarded once in server player order.
 
 Historical implementation notes below are retained for background only.
 

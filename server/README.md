@@ -85,3 +85,11 @@ system reduced-motion preference. Audio remains separately switchable.
 ## Faster movement and swept collection
 
 Base speed is 240 world units/second (up from 120); full cargo remains 80%, dash remains 3x for 0.32 s with a 4 s cooldown. Every device now renders the same 98×68 world-unit body; server collisions use its oriented rectangle with continuous swept SAT and a 4-unit release padding per body. Cargo racks/flames are excluded. Cars remain non-solid and knockback is still 24 units, with contact hysteresis preventing repeat damage while touching. The center-based arena clamp is unchanged. Magnet pickup radius is 56 world units across all devices and is advertised in snapshots as `pickupRadius`, matching the visible guide. The 50 ms movement segment now processes battery pickups and station entries in travel order, including grazing passes and station exits. Collision losses still resolve before collection, as before; collision safe-zone checks also include first contact along the segment. No device-specific hitboxes or physics substeps are introduced.
+
+## Portable static asset root
+
+`ROVER_CLIENT` explicitly selects the public build directory. If it is absent,
+the handler derives `../client/dist` from `ROVER_SERVER`; without either variable
+the process must run from the repository root (`./server/../client/dist`). The
+provided `server/run.sh` sets both directories absolutely and can be invoked from
+any working directory. No machine-specific path is embedded in the fallback.

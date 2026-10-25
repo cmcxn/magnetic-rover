@@ -40,6 +40,7 @@ export class World extends Phaser.Scene {
   private frameCount = 0;
   private frameElapsed = 0;
   g!: Phaser.GameObjects.Graphics;
+  cargoG!: Phaser.GameObjects.Graphics;
   background!: Phaser.GameObjects.Image;
   labels = new Map<string, Phaser.GameObjects.Text>();
   smooth = new Map<string, { x: number; y: number; angle: number }>();
@@ -84,6 +85,7 @@ export class World extends Phaser.Scene {
     }
     this.createBackground();
     this.g = this.add.graphics();
+    this.cargoG = this.add.graphics().setDepth(5);
     this.scale.on("resize", () => this.layout());
     this.layout();
   }
@@ -204,6 +206,7 @@ export class World extends Phaser.Scene {
     this.pickupLabel?.setVisible(false);
     const g = this.g;
     g.clear();
+    this.cargoG.clear();
     this.spriteIds.clear();
     const w = this.scale.width,
       h = this.scale.height;
@@ -260,21 +263,32 @@ export class World extends Phaser.Scene {
     this.background.setPosition(this.ox, this.oy).setScale(s);
     g.setPosition(this.ox, this.oy);
     g.setScale(s);
+    this.cargoG.setPosition(this.ox, this.oy).setScale(s);
     const circle = (x: number, y: number, r: number, c: number, a = 1) => {
       g.fillStyle(c, a);
       g.fillCircle(x, y, r);
     };
-    const supply = this.state?.phase === "playing" ? this.state.supply : undefined;
+    const supply =
+      this.state?.phase === "playing" ? this.state.supply : undefined;
     if (supply) {
       g.fillStyle(0x67bba4, 0.055);
       g.fillCircle(0, 0, supply.outerRadius);
       g.lineStyle(3, 0x318f80, 0.8);
       g.strokeCircle(0, 0, supply.outerRadius);
-      if (supply.nextOuterRadius !== undefined && (supply.secondsToShrink ?? 99) <= 5) {
+      if (
+        supply.nextOuterRadius !== undefined &&
+        (supply.secondsToShrink ?? 99) <= 5
+      ) {
         g.lineStyle(3, 0xe0a13c, 0.9);
         for (let i = 0; i < 48; i++) {
           g.beginPath();
-          g.arc(0, 0, supply.nextOuterRadius, i * Math.PI / 24, (i + 0.55) * Math.PI / 24);
+          g.arc(
+            0,
+            0,
+            supply.nextOuterRadius,
+            (i * Math.PI) / 24,
+            ((i + 0.55) * Math.PI) / 24,
+          );
           g.strokePath();
         }
       }
@@ -320,46 +334,43 @@ export class World extends Phaser.Scene {
       }
     });
     for (const b of this.state?.batteries ?? []) {
-      if (this.sprite(`battery-${b.id}`, "battery", b.x, b.y, 14, 28, 2))
+      // Height is server-owned: the ground shadow remains at the true pickup position.
+      const z = Math.max(0, b.z ?? 0),
+        y = b.y - z;
+      g.fillStyle(0x796b4e, z > 0 ? 0.18 : 0.12);
+      g.fillEllipse(b.x, b.y + 6, Math.max(7, 15 - z * 0.12), 7);
+      if (this.sprite(`battery-${b.id}`, "battery", b.x, y, 14, 28, 2))
         continue;
-      g.fillStyle(0xc7a854, 0.23);
-      g.fillEllipse(b.x + 2, b.y + 7, 15, 7);
       g.fillStyle(0xd7aa33);
-      g.fillRoundedRect(b.x - 7, b.y - 11, 14, 23, 4);
+      g.fillRoundedRect(b.x - 7, y - 11, 14, 23, 4);
       g.fillStyle(0xffda57);
-      g.fillRoundedRect(b.x - 6, b.y - 12, 12, 21, 3);
+      g.fillRoundedRect(b.x - 6, y - 12, 12, 21, 3);
       g.fillStyle(0x776e49);
-      g.fillRect(b.x - 3, b.y - 15, 6, 3);
+      g.fillRect(b.x - 3, y - 15, 6, 3);
       g.lineStyle(2, 0xfff8d4);
       g.beginPath();
-      g.moveTo(b.x + 1, b.y - 8);
-      g.lineTo(b.x - 2, b.y);
-      g.lineTo(b.x + 2, b.y);
-      g.lineTo(b.x - 1, b.y + 7);
+      g.moveTo(b.x + 1, y - 8);
+      g.lineTo(b.x - 2, y);
+      g.lineTo(b.x + 2, y);
+      g.lineTo(b.x - 1, y + 7);
       g.strokePath();
     }
     // All devices show the server body dimensions: 98x68, local +X forward.
     const roverScale = 2;
-    // Magnet geometry comes from authority, never from device-specific artwork scale.
-    // The guide follows the displayed pose; collection still awaits the server snapshot.
-    const pickupRadius = this.state?.pickupRadius ?? 20;
-    const labelClearance = (angle: number, cargo: number) =>
-      roverScale *
-      Math.max(
-        34,
-        Math.abs(Math.sin(angle)) * (cargo > 0 ? 54 : 25) +
-          Math.abs(Math.cos(angle)) * 17 +
-          8,
-      );
+    // Modern servers advertise a solid boundary. Pickup range remains independent
+    // and has no competing circle; old servers retain their legacy magnet guide.
+    const boundaryRadius =
+      this.state?.collisionRadius ?? this.state?.pickupRadius ?? 20;
+    const labelClearance = (_angle: number, _cargo: number) => 68;
     const present = new Set<string>();
     for (const p of this.state?.players ?? []) {
       present.add(p.id);
       const v = this.smooth.get(p.id)!;
       const c = Phaser.Display.Color.HexStringToColor(p.color).color;
       circle(v.x, v.y + 7 * roverScale, 21 * roverScale, 0x51694b, 0.16);
-      circle(v.x, v.y, pickupRadius, c, 0.18);
-      g.lineStyle(3, c, 0.9);
-      g.strokeCircle(v.x, v.y, pickupRadius);
+      circle(v.x, v.y, boundaryRadius, c, 0.1);
+      g.lineStyle(3, this.state?.collisionRadius ? 0x269ad8 : c, 0.9);
+      g.strokeCircle(v.x, v.y, boundaryRadius);
       const hasSprite = this.sprite(
         `car-${p.id}`,
         "rover",
@@ -372,7 +383,7 @@ export class World extends Phaser.Scene {
       );
       if (p.id === this.self) {
         g.lineStyle(2, 0x376e60, 0.65);
-        g.strokeCircle(v.x, v.y, pickupRadius);
+        g.strokeCircle(v.x, v.y, boundaryRadius);
       }
       if (!p.connected) circle(v.x, v.y, 25 * roverScale, 0xffffff, 0.5);
       // Car points along +X. Four tires, windscreen, headlights and roof arrow.
@@ -382,15 +393,22 @@ export class World extends Phaser.Scene {
         y:
           v!.y + roverScale * (x * Math.sin(v!.angle) + y * Math.cos(v!.angle)),
       });
-      const box = (x: number, y: number, w: number, h: number, col: number) => {
+      const box = (
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        col: number,
+        layer = g,
+      ) => {
         const pts = [
           rot(x - w / 2, y - h / 2),
           rot(x + w / 2, y - h / 2),
           rot(x + w / 2, y + h / 2),
           rot(x - w / 2, y + h / 2),
         ];
-        g.fillStyle(col);
-        g.fillPoints(pts, true);
+        layer.fillStyle(col);
+        layer.fillPoints(pts, true);
       };
       if (!hasSprite) {
         // Local footprint is 49x34 before the shared 2x body scale.
@@ -410,19 +428,19 @@ export class World extends Phaser.Scene {
         g.fillStyle(0xffffff, 0.85);
         g.fillTriangle(tip.x, tip.y, u.x, u.y, d.x, d.y);
       }
-      // Four columns across the rack, five rows behind the car: one cell per battery.
+      // Twenty visible cells on the rear deck, wholly inside the solid radius60.
       const cargo = Math.min(20, Math.max(0, Math.floor(p.cargo)));
       if (cargo > 0) {
-        box(-39, 0, 29, 28, 0x476355);
+        box(-11, 0, 25, 24, 0x476355, this.cargoG);
         for (let k = 0; k < cargo; k++) {
-          const x = -28 - Math.floor(k / 4) * 5.5;
+          const x = -1 - Math.floor(k / 4) * 5;
           const y = -9 + (k % 4) * 6;
-          box(x, y, 4.5, 5, 0xedc34f);
-          box(x + 1, y - 1, 1, 2.5, 0xfff8d4);
+          box(x, y, 4, 5, 0xedc34f, this.cargoG);
+          box(x + 0.8, y - 1, 1, 2.5, 0xfff8d4, this.cargoG);
         }
       }
       if (effectsActive && p.boost > 0) {
-        const tail = cargo > 0 ? -54 : -23;
+        const tail = -24;
         const length = this.reducedEffects
           ? 20
           : 24 + Math.sin(_time * 0.045) * 4;

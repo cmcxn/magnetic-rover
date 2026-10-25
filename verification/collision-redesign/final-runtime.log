@@ -1,0 +1,25 @@
+PASS normal authoritative geometry advertised
+PASS normal ordinary impact stuns both
+PASS normal ordinary impact does not drop batteries
+PASS normal ordinary carried value preserved {'before': [0, 0], 'after': [0, 0]}
+PASS normal stun rejects movement intent and forged state
+PASS normal all sampled live circles solid and inside walls {'snapshots': 14, 'minimum_gap': 3.096258421371033}
+PASS normal one hit event during sampled recoil sequence
+PASS normal both clients receive same authoritative geometry
+PASS boost authoritative geometry advertised
+PASS boost victim has genuinely collected cargo
+PASS boost boosted attacker remains unstunned
+PASS boost target cargo becomes exact ground drop count {'lost': 2, 'drops': 2}
+PASS boost stun rejects movement intent and forged state
+PASS boost all sampled live circles solid and inside walls {'snapshots': 12, 'minimum_gap': 20.777241448767256}
+PASS boost one hit event during sampled recoil sequence
+PASS boost both clients receive same authoritative geometry
+PASS double-boost authoritative geometry advertised
+PASS double-boost victim has genuinely collected cargo
+PASS double-boost both have genuinely collected cargo
+PASS double-boost both boosted participants stun
+PASS double-boost double boost conserves both cargo losses {'lost': 4, 'drops': 4}
+PASS double-boost stun rejects movement intent and forged state
+PASS double-boost all sampled live circles solid and inside walls {'snapshots': 9, 'minimum_gap': 36.75360836044081}
+PASS double-boost one hit event during sampled recoil sequence
+PASS double-boost both clients receive same authoritative geometry

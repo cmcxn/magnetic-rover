@@ -201,3 +201,157 @@ test("expired authoritative held input is not resurrected from the acknowledged 
   );
   assert.equal(m.sample(500).get("1").x, 20);
 });
+
+const solidState = (time, players) =>
+  state(time, players[0], { players, collisionRadius: 60 });
+function separated(poses, radius = 60) {
+  const values = [...poses.values()];
+  for (const p of values)
+    assert.ok(Math.hypot(p.x, p.y) <= 500 - radius + 1e-5);
+  for (let i = 0; i < values.length; i++)
+    for (let j = i + 1; j < values.length; j++)
+      assert.ok(
+        Math.hypot(values[i].x - values[j].x, values[i].y - values[j].y) >=
+          radius * 2 - 1e-5,
+      );
+}
+test("solid-circle prediction stops before an opponent rather than tunneling through", () => {
+  const m = new motion.Motion();
+  const a = player({ x: -140 }),
+    b = player({ id: "2", x: 0 });
+  m.receive(solidState(0, [a, b]), "1", false, 0);
+  m.input({ x: 1, y: 0, boost: true }, 0);
+  const poses = m.sample(250);
+  separated(poses);
+  assert.ok(poses.get("1").x < poses.get("2").x);
+  assert.equal(a.x, -140, "display constraints never mutate authority");
+});
+test("solid-circle prediction keeps the complete vehicle inside the arena", () => {
+  const m = new motion.Motion();
+  m.receive(solidState(0, [player({ x: 435 })]), "1", false, 0);
+  m.input({ x: 1, y: 0, boost: true }, 0);
+  assert.equal(m.sample(250).get("1").x, 440);
+});
+test("opposing timestamp interpolation and local prediction never visually overlap", () => {
+  const m = new motion.Motion();
+  m.receive(
+    solidState(0, [player({ x: -100 }), player({ id: "2", x: 100 })]),
+    "1",
+    false,
+    0,
+  );
+  m.input({ x: 1, y: 0, boost: true }, 0);
+  m.sample(40);
+  m.receive(
+    solidState(0.1, [
+      player({ x: -60, impactSeq: 1, kx: -40 }),
+      player({ id: "2", x: 60, stun: 1, kx: 300 }),
+    ]),
+    "1",
+    false,
+    100,
+  );
+  for (let t = 100; t <= 350; t += 10) separated(m.sample(t));
+});
+test("circle display constraints handle three pinned vehicles and initial coincidence", () => {
+  for (const players of [
+    [
+      player({ x: 440 }),
+      player({ id: "2", x: 420 }),
+      player({ id: "3", x: 430 }),
+    ],
+    Array.from({ length: 8 }, (_, i) => player({ id: String(i + 1) })),
+  ]) {
+    const m = new motion.Motion();
+    m.receive(solidState(0, players), "", true, 0);
+    separated(m.sample(0));
+  }
+});
+test("recoil impact sequence cancels boost replay even when attacker is not stunned", () => {
+  const m = new motion.Motion();
+  m.receive(solidState(0, [player({ impactSeq: 0 })]), "1", false, 0);
+  m.input({ x: 1, y: 0, boost: true }, 0);
+  m.receive(
+    solidState(0.05, [player({ x: -10, impactSeq: 1, kx: -100 })]),
+    "1",
+    false,
+    50,
+  );
+  assert.equal(m.pendingCount, 0);
+  assert.ok(m.sample(100).get("1").x < -10);
+});
+test("stunned knockback moves smoothly but cannot replay user movement or run away on silence", () => {
+  const m = new motion.Motion();
+  const p = player({ stun: 1, kx: 200, ky: 0, impactSeq: 1 });
+  m.receive(solidState(0, [p]), "1", false, 0);
+  m.input({ x: -1, y: 0, boost: true }, 0);
+  assert.ok(m.sample(50).get("1").x > 0);
+  assert.ok(m.sample(100).get("1").x > m.sample(50).get("1").x);
+  assert.equal(m.sample(400).get("1").x, m.sample(250).get("1").x);
+  assert.equal(p.stun, 1);
+});
+test("solid-circle packet silence freezes the last bounded pose instead of snapping to pre-impact authority", () => {
+  const m = new motion.Motion();
+  m.receive(
+    solidState(0, [player({ stun: 1, kx: 200, ky: 0 })]),
+    "1",
+    false,
+    0,
+  );
+  const bounded = m.sample(250).get("1").x;
+  assert.equal(m.sample(501).get("1").x, bounded);
+  assert.equal(m.sample(5000).get("1").x, bounded);
+});
+
+test("lost-packet legal swapped endpoints rebase rather than pinning display at contact forever", () => {
+  for (const spectator of [true, false]) {
+    const m = new motion.Motion();
+    m.receive(
+      solidState(0, [player({ x: -150 }), player({ id: "2", x: 150 })]),
+      "1",
+      spectator,
+      0,
+    );
+    m.sample(0);
+    // The server's unseen route went around the other car, not through it.
+    for (let t = 2000; t <= 4000; t += 50) {
+      m.receive(
+        solidState(t / 1000, [
+          player({ x: 150 }),
+          player({ id: "2", x: -150 }),
+        ]),
+        "1",
+        spectator,
+        t,
+      );
+      separated(m.sample(t));
+    }
+    const poses = m.sample(4000);
+    assert.ok(Math.abs(poses.get("1").x - 150) < 1e-5);
+    assert.ok(Math.abs(poses.get("2").x + 150) < 1e-5);
+  }
+});
+test("large authoritative correction without long delivery silence also converges legally", () => {
+  const m = new motion.Motion();
+  m.receive(
+    solidState(0, [player({ x: -150 }), player({ id: "2", x: 150 })]),
+    "",
+    true,
+    0,
+  );
+  m.sample(0);
+  // A buffered receive can have a large server-time jump without >500ms arrival gap.
+  for (let t = 400; t <= 1400; t += 50) {
+    m.receive(
+      solidState(2 + t / 1000, [
+        player({ x: 150 }),
+        player({ id: "2", x: -150 }),
+      ]),
+      "",
+      true,
+      t,
+    );
+    separated(m.sample(t));
+  }
+  assert.ok(Math.abs(m.sample(1400).get("1").x - 150) < 1e-5);
+});

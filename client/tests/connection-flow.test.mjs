@@ -1384,3 +1384,16 @@ test("compact supply HUD follows server stage, warns before shrinking and signal
   snapshot({stage:4,outerRadius:140,banking:true});
   assert.equal(h.node("#supply-status").textContent, "停补给 · 快回收");
 });
+
+test("normal collision notice ends with server stun instead of claiming one second", () => {
+  const h = harness(); h.connect(); welcome(h); playing(h, {});
+  playing(h, { hitSeq: 1, stun: 0.65 });
+  assert.doesNotMatch(h.node("#notice").textContent, /眩晕1秒/);
+  h.tick(650);
+  assert.equal(h.node("#notice").classList.values.has("hidden"), true);
+});
+test("login instructions distinguish boosted drops from ordinary contact", () => {
+  const h = harness();
+  assert.doesNotMatch(h.node("#surface").innerHTML, /碰撞也会掉落电池/);
+  assert.match(h.node("#surface").innerHTML, /冲刺撞击才掉电池/);
+});

@@ -426,8 +426,8 @@ function connect(automatic = false) {
             }
           }
         }
-        if (current.hitSeq > (previous.hitSeq ?? 0))
-          notice("被撞！眩晕1秒", 1000);
+        if (current.hitSeq > (previous.hitSeq ?? 0) && current.stun > 0)
+          notice("碰撞！短暂眩晕", current.stun * 1000);
       }
       const collected = pickupCount(state, data, id);
       if (!document.hidden && collected > 0) world.pickupFeedback(collected);
@@ -507,7 +507,7 @@ function showWaiting(availableIn: unknown) {
 }
 function showJoin(disconnected = false) {
   app.className = "";
-  surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">COLLECT · BOOST · BANK</div><h1>小车大电量。<br>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>100 秒抢运赛，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><span class="field-label">挑一辆喜欢的小车</span><div class="colors">${COLORS.map((c) => `<button class="color ${c === color ? "selected" : ""}" data-color="${c}" style="background:${c}" aria-label="选择${c}小车" aria-pressed="${c === color}"></button>`).join("")}</div><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button>${disconnected && retryAllowed ? '<button class="secondary" id="cancel-connect">取消自动重连</button>' : ""}<div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>碰撞也会掉落电池</div><div><b>03</b>进站存入得分</div></div></section></div>`;
+  surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">COLLECT · BOOST · BANK</div><h1>小车大电量。<br>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>100 秒抢运赛，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><span class="field-label">挑一辆喜欢的小车</span><div class="colors">${COLORS.map((c) => `<button class="color ${c === color ? "selected" : ""}" data-color="${c}" style="background:${c}" aria-label="选择${c}小车" aria-pressed="${c === color}"></button>`).join("")}</div><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button>${disconnected && retryAllowed ? '<button class="secondary" id="cancel-connect">取消自动重连</button>' : ""}<div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>冲刺撞击才掉电池</div><div><b>03</b>进站存入得分</div></div></section></div>`;
   const cancel = document.querySelector<HTMLButtonElement>("#cancel-connect");
   if (cancel) cancel.onclick = cancelConnection;
   document.querySelector("#join")!.addEventListener("click", () => connect());

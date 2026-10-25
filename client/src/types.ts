@@ -11,6 +11,9 @@ export interface Player {
   boost: number;
   stun: number;
   hitSeq: number;
+  impactSeq?: number;
+  kx?: number;
+  ky?: number;
   pickupSeq: number;
   connected: boolean;
   ready?: boolean;
@@ -35,11 +38,27 @@ export interface State {
   remaining: number;
   returnIn?: number;
   players: Player[];
-  batteries: { id: string; x: number; y: number }[];
+  batteries: {
+    id: string;
+    x: number;
+    y: number;
+    z?: number;
+    vx?: number;
+    vy?: number;
+    source?: string;
+    unlock?: number;
+  }[];
   stations: { x: number; y: number; r: number }[];
   radius: number;
   pickupRadius?: number;
-  supply?: { stage: number; outerRadius: number; nextOuterRadius?: number; secondsToShrink?: number; banking: boolean };
+  collisionRadius?: number;
+  supply?: {
+    stage: number;
+    outerRadius: number;
+    nextOuterRadius?: number;
+    secondsToShrink?: number;
+    banking: boolean;
+  };
   results?: { id: string; name: string; color: string; score: number }[];
 }
 export const COLORS = [

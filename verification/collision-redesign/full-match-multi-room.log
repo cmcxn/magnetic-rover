@@ -1,0 +1,32 @@
+PASS join opens directory without player seat
+PASS create produces two distinct rooms
+PASS one player cannot start even when ready
+PASS room players isolated
+PASS malformed and unknown room identifiers rejected
+PASS repeated room commands cannot duplicate membership or rooms
+PASS eight player cap enforced server-side
+PASS sixteen spectators independent from eight player seats
+PASS explicit leave frees lobby seats and spectators
+PASS stable guest token across rooms and repeated leave
+PASS one of two ready cannot start
+PASS ready can be cancelled
+PASS all players ready autostarts; start aliases ready
+PASS other room remains pristine lobby
+PASS live spectator receives state but all mutations rejected
+PASS active token cannot take over connection
+PASS real movement collects batteries and scores in room A {'score': 4}
+PASS room A batteries and scores never appear in lobby B
+PASS disconnect/reconnect restores same room identity and score
+PASS rooms have independent match clocks and batteries
+PASS directory reflects authoritative room counts and admission
+PASS full match lasts real 100 seconds {'wall_seconds': 99.96}
+PASS only room participants appear in identical player/spectator results
+PASS room B continues while room A is finished
+PASS finished match movement and results frozen
+PASS automatic results settle lasts real ten seconds {'wall_seconds': 10.014}
+PASS next round clears scores batteries and all ready flags
+PASS next round cannot start from stale ready flag
+PASS next round starts only after fresh readiness from both players
+PASS all observed states restricted to joined or spectated rooms
+PASS leave returns active and finished participants to directory
+PASS no unexpected protocol errors or receive failures

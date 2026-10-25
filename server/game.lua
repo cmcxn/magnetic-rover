@@ -1,6 +1,7 @@
 local G={}; G.__index=G
 local config=require 'game_config'
 local vehicleCollision=require 'vehicle_collision'
+local batteryMotion=require 'battery_motion'
 local resources=config.resources
 local colors={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=true,['#34d399']=true,['#fb923c']=true}
 local function dist(a,b) return (a.x-b.x)^2+(a.y-b.y)^2 end
@@ -15,6 +16,7 @@ local function circleInterval(a,b,p,r)
  if leave<0 or enter>1 then return end
  return math.max(0,enter),math.min(1,leave)
 end
+local function pickupRadius(b) return b.source=='drop' and config.collisionRadius+10.001 or config.pickupRadius end
 local function along(a,b,t) return {x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t} end
 local function clamp(p) local d=math.sqrt(p.x*p.x+p.y*p.y);if d>500 then p.x=p.x*500/d;p.y=p.y*500/d end end
 function G.new(tokenfn)
@@ -37,7 +39,14 @@ function G:join(fd,name,color,token,deferNew)
  if #self.players>=8 then return nil,'Lobby full','full' end
  if deferNew then return nil,'Earlier guests are waiting','queued' end
  self.nextid=self.nextid+1;local n=self.nextid
- local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos(n*2.4)*100,y=math.sin(n*2.4)*100,angle=0,cargo=0,score=0,cooldown=0,boost=0,stun=0,hitSeq=0,pickupSeq=0,protect=0,connected=true,ix=0,iy=0,last=self.time,lastInputSeq=0,pendingSeq=0,inputSeq=0,inputElapsed=0}
+ local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos((n-1)*math.pi/4)*220,y=math.sin((n-1)*math.pi/4)*220,angle=0,cargo=0,score=0,cooldown=0,boost=0,stun=0,hitSeq=0,impactSeq=0,kx=0,ky=0,pickupSeq=0,protect=0,connected=true,ix=0,iy=0,last=self.time,lastInputSeq=0,pendingSeq=0,inputSeq=0,inputElapsed=0}
+ -- Reuse an actually free lobby slot, not nextid modulo eight after churn.
+ for offset=0,7 do
+  local angle=((n-1+offset)%8)*math.pi/4
+  local x,y=math.cos(angle)*220,math.sin(angle)*220;local free=true
+  for _,q in ipairs(self.players) do if not q.removed and (q.x-x)^2+(q.y-y)^2<(2*config.collisionRadius)^2 then free=false;break end end
+  if free then p.x=x;p.y=y;break end
+ end
  table.insert(self.players,p);return p
 end
 function G:disconnect(fd) for _,p in ipairs(self.players) do if p.fd==fd and p.connected then p.connected=false;p.disconnected=self.time;p.ix=0;p.iy=0;p.boost=0 end end end
@@ -110,12 +119,21 @@ function G:start()
 end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
- local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.stun=0;p.hitSeq=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*2.4)*100;p.y=math.sin(#keep*2.4)*100;keep[#keep+1]=p end end
+ local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.stun=0;p.hitSeq=0;p.impactSeq=0;p.kx=0;p.ky=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*math.pi/4)*220;p.y=math.sin(#keep*math.pi/4)*220;keep[#keep+1]=p end end
  self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=config.matchDuration;self.finishedAt=nil;self.nextrefill=nil;self.supplyStage=nil;return true
 end
-function G:drop(p,n)
+function G:drop(p,n,nx,ny)
+ n=math.min(p.cargo,math.max(0,math.floor(n)))
+ nx=nx or math.cos(p.angle);ny=ny or math.sin(p.angle)
+ local heading=math.atan(ny,nx)
+ for _=1,n do
+  local angle=heading+(math.random()-.5)*2.4;local speed=150+math.random()*90
+  local b={x=p.x+math.cos(angle)*(78+math.random()*20),y=p.y+math.sin(angle)*(78+math.random()*20),
+   source='drop',unlock=self.time+.65,vx=math.cos(angle)*speed,vy=math.sin(angle)*speed,z=0,vz=150+math.random()*55}
+  batteryMotion.place(self,b)
+  self.nextbat=self.nextbat+1;b.id=tostring(self.nextbat);self.batteries[#self.batteries+1]=b
+ end
  p.cargo=p.cargo-n
- for i=1,n do local a=i*2.4;self:addbattery(p.x+math.cos(a)*28,p.y+math.sin(a)*28,self.time+.5,'drop') end
 end
 function G:step(dt,elapsed,remaining)
  elapsed=elapsed or dt
@@ -136,103 +154,133 @@ function G:step(dt,elapsed,remaining)
  if self.remaining<=0 then self.phase='finished';self.finishedAt=self.time;return end
  self:contractSupply()
  if self.time>=self.nextrefill and self.remaining>resources.stopRemaining then self:replenish();self.nextrefill=self.time+resources.refillInterval end
- local motion={}
+ local active={}
  for _,p in ipairs(self.players) do
-  motion[p]={x=p.x,y=p.y}
   if dt>0 and p.connected then
    if p.inputSeq~=p.pendingSeq then p.inputSeq=p.pendingSeq;p.inputElapsed=0 end
    p.inputElapsed=p.inputElapsed+dt
   end
-  p.stun=math.max(0,p.stun-elapsed);p.cooldown=math.max(0,p.cooldown-elapsed);if p.cooldown<1e-9 then p.cooldown=0 end;p.protect=math.max(0,p.protect-elapsed)
+  p.stun=math.max(0,p.stun-elapsed);p.cooldown=math.max(0,p.cooldown-elapsed);if p.cooldown<1e-9 then p.cooldown=0 end
+  p.protect=math.max(0,p.protect-elapsed)
   if dt==0 then p.boost=math.max(0,p.boost-elapsed) end
-  if p.connected then
-   if self.time-p.last>.3 or p.stun>0 then p.ix=0;p.iy=0;p.boost=0 end
-   local ix,iy=p.ix,p.iy
-   if p.boost>0 and p.bx then ix=p.bx;iy=p.by end
-   local speed=240*(1-.2*p.cargo/20)
-   local dash=math.min(dt,p.boost)
-   p.x=p.x+speed*(ix*3*dash+p.ix*(dt-dash));p.y=p.y+speed*(iy*3*dash+p.iy*(dt-dash));clamp(p)
-   if ix~=0 or iy~=0 then p.angle=math.atan(iy,ix) end
-  end
+  if self.time-p.last>.3 or p.stun>0 or not p.connected then p.ix=0;p.iy=0;p.boost=0 end
+  local ix,iy=p.ix,p.iy
+  if p.boost>0 and p.bx then ix=p.bx;iy=p.by end
+  if ix~=0 or iy~=0 then p.angle=math.atan(iy,ix) end
+  if not p.removed then active[#active+1]=p end
  end
- for _,p in ipairs(self.players) do motion[p].finish={x=p.x,y=p.y} end
  if dt==0 then return end
- -- Resolve new contacts from pre-step positions and actual server displacement.
- -- Hysteresis prevents a touching pair from farming drops after immunity expires.
- local hit={};local contacts={}
- for i,p in ipairs(self.players) do if p.connected then
-  for j=i+1,#self.players do local q=self.players[j]
-   if q.connected then
-    local key=tonumber(p.id)<tonumber(q.id) and p.id..':'..q.id or q.id..':'..p.id
-    local a,b=motion[p],motion[q]
-    -- Same 98x68 oriented body as every client's artwork. A small release gap
-    -- consumes continuous contact even after the 24-unit non-solid knockback.
-    if self.contacts[key] and vehicleCollision.sweep(p,p,p.angle,q,q,q.angle,config.vehicleBody.releasePadding) then contacts[key]=true end
-    local contactTime=vehicleCollision.sweep(a,p,p.angle,b,q,q.angle)
-    if contactTime then
-     contacts[key]=true
-     local contactSafe=self:station(along(a,p,contactTime)) or self:station(along(b,q,contactTime))
-     if not self.contacts[key] and not contactSafe and not self:station(p) and not self:station(q) and not self:station(a) and not self:station(b) then
-      local a,b=motion[p],motion[q];local nx,ny=b.x-a.x,b.y-a.y
-      local length=math.sqrt(nx*nx+ny*ny)
-      if length>.001 then
-       nx=nx/length;ny=ny/length
-       local pv=((p.x-a.x)*nx+(p.y-a.y)*ny)/dt
-       local qv=-((q.x-b.x)*nx+(q.y-b.y)*ny)/dt
-       if pv+qv>=40 then
-        local function impact(attacker,victim,forward)
-         if forward>=30 and victim.protect<=0 then
-          local n=attacker.boost>0 and math.min(5,math.ceil(victim.cargo*.25)) or math.min(2,math.ceil(victim.cargo*.1))
-          local h=hit[victim] or {n=0,x=0,y=0};hit[victim]=h
-          h.n=math.max(h.n,n)
-          local sign=attacker==p and 1 or -1
-          h.x=h.x+nx*sign;h.y=h.y+ny*sign
-         end
-        end
-        impact(p,q,pv);impact(q,p,qv)
-       end
-      end
+ -- A contact episode is consumed even while protected; it rearms only after a gap.
+ for key in pairs(self.contacts) do
+  local ids={key:match('([^:]+):([^:]+)')};local a,b
+  for _,p in ipairs(active) do if p.id==ids[1] then a=p elseif p.id==ids[2] then b=p end end
+  if not a or not b or dist(a,b)>(2*config.collisionRadius+config.collision.releaseGap)^2 then self.contacts[key]=nil end
+ end
+ local hitThisTick={}
+ local sliceStart=0
+ local function resolveContacts(events)
+  local hits={}
+  for _,e in ipairs(events) do
+   e.a.collisionAt=e.time
+   if e.b then e.b.collisionAt=e.time end
+  end
+  local function hit(p,stun,n,nx,ny,push)
+   local h=hits[p] or {stun=0,n=0,x=0,y=0};hits[p]=h
+   h.stun=math.max(h.stun,stun);h.n=math.max(h.n,n);h.x=h.x+nx*push;h.y=h.y+ny*push
+  end
+  for _,e in ipairs(events) do if e.b then
+   local a,b=e.a,e.b;local key=a.id..':'..b.id
+   if not self.contacts[key] then
+    self.contacts[key]=true
+    a.impactSeq=(a.impactSeq or 0)+1;b.impactSeq=(b.impactSeq or 0)+1
+    local nx,ny=e.nx,e.ny
+    local closing=(e.avx-e.bvx)*nx+(e.avy-e.bvy)*ny
+    local af=a.driveX*nx+a.driveY*ny;local bf=-b.driveX*nx-b.driveY*ny
+    local frontA=math.cos(a.angle)*nx+math.sin(a.angle)*ny>=config.collision.frontDot and af>=30
+    local frontB=-math.cos(b.angle)*nx-math.sin(b.angle)*ny>=config.collision.frontDot and bf>=30
+    local boostA=closing>=config.collision.minClosing and a.boost>0 and sliceStart+(e.time or 0)<=a.boost+1e-9 and frontA
+    local boostB=closing>=config.collision.minClosing and b.boost>0 and sliceStart+(e.time or 0)<=b.boost+1e-9 and frontB
+    local safe=self:station(a) or self:station(b)
+    if closing>1e-7 then
+     local function damage(p,amount) return not safe and p.protect<=0 and not hitThisTick[p] and amount or 0 end
+     if boostA or boostB then
+      local push=math.min(560,math.max(340,closing*.8))
+      hit(a,boostA and not boostB and 0 or config.collision.boostStun,boostB and damage(a,math.min(5,math.ceil(a.cargo*.25))) or 0,-nx,-ny,boostB and push or 90)
+      hit(b,boostB and not boostA and 0 or config.collision.boostStun,boostA and damage(b,math.min(5,math.ceil(b.cargo*.25))) or 0,nx,ny,boostA and push or 90)
+     else
+      local push=math.min(220,70+closing*.45)
+      hit(a,config.collision.normalStun,0,-nx,-ny,frontA and not frontB and 45 or push)
+      hit(b,config.collision.normalStun,0,nx,ny,frontB and not frontA and 45 or push)
      end
     end
    end
-  end
- end end
- self.contacts=contacts
- for p,h in pairs(hit) do
-  self:drop(p,h.n);p.protect=1.6;p.stun=1;p.hitSeq=p.hitSeq+1;p.boost=0;p.ix=0;p.iy=0
-  local length=math.sqrt(h.x*h.x+h.y*h.y)
-  if length>.001 then
-   -- Stop at the first safe-zone boundary; knockback is never attack motion.
-   local startx,starty=p.x,p.y
-   for step=1,24 do
-    local nextpos={x=startx+h.x/length*step,y=starty+h.y/length*step}
-    clamp(nextpos)
-    if self:station(nextpos) then break end
-    p.x=nextpos.x;p.y=nextpos.y
-   end
+  end end
+  for p,h in pairs(hits) do
+   if h.n>0 then self:drop(p,h.n,h.x,h.y) end
+   if p.protect<=0 and h.stun>0 then p.stun=h.stun;p.hitSeq=p.hitSeq+1 end
+   if h.stun>0 or h.n>0 then p.protect=math.max(p.protect,config.collision.protection) end
+   hitThisTick[p]=true;p.boost=0;p.ix=0;p.iy=0;p.driveX=0;p.driveY=0
+   p.vx=h.x;p.vy=h.y
   end
  end
- for _,p in ipairs(self.players) do if p.connected then
-  -- Keep the existing collision-loss-before-collection contract, then process
-  -- pickups and station deposits in travel order within this 50ms tick.
-  local start,finish=motion[p],motion[p].finish
-  local events,exits={},{}
-  for _,station in ipairs(self.stations) do
-   local enter,leave=circleInterval(start,finish,station,station.r)
-   if enter then
-    events[#events+1]={t=enter,deposit=true}
-    if leave<1 then exits[#exits+1]=math.min(1,leave+1e-7) end
+ -- Slice at every dash expiry: averaging boosted and normal speeds changes TOI
+ -- and can incorrectly turn a real last-millisecond boost into an ordinary hit.
+ local boundaries={dt};local paths={}
+ for _,p in ipairs(active) do
+  paths[p]={}
+  if p.boost>1e-8 and p.boost<dt-1e-8 then boundaries[#boundaries+1]=p.boost end
+ end
+ table.sort(boundaries)
+ for _,sliceEnd in ipairs(boundaries) do
+  local slice=sliceEnd-sliceStart
+  if slice>1e-8 then
+   local decay=math.exp(-config.knockbackDecay*slice)
+   local average=(1-decay)/(config.knockbackDecay*slice)
+   local initialK={}
+   for _,p in ipairs(active) do
+    local boosting=p.boost>sliceStart+1e-8
+    local speed=240*(1-.2*p.cargo/20)
+    p.driveX=speed*(boosting and (p.bx or math.cos(p.angle))*3 or p.ix)
+    p.driveY=speed*(boosting and (p.by or math.sin(p.angle))*3 or p.iy)
+    initialK[p]={x=p.kx or 0,y=p.ky or 0}
+    p.vx=p.driveX+initialK[p].x*average;p.vy=p.driveY+initialK[p].y*average;p.collisionAt=nil
+   end
+   local segments=vehicleCollision.resolve(active,slice,resolveContacts)
+   for _,p in ipairs(active) do
+    if p.collisionAt then
+     local damping=math.exp(-config.knockbackDecay*(slice-p.collisionAt))
+     p.kx=(p.vx-p.driveX)*damping;p.ky=(p.vy-p.driveY)*damping
+    else
+     p.kx=initialK[p].x*decay;p.ky=initialK[p].y*decay
+    end
+    for _,path in ipairs(segments[p]) do
+     path.t0=(sliceStart+path.t0*slice)/dt;path.t1=(sliceStart+path.t1*slice)/dt
+     paths[p][#paths[p]+1]=path
+    end
    end
   end
-  for _,battery in ipairs(self.batteries) do if battery.unlock<=self.time then
-   local enter,leave=circleInterval(start,finish,battery,config.pickupRadius)
-   if enter then
-    events[#events+1]={t=enter,battery=battery}
-    -- A battery's pickup circle may overlap the station: try again just outside.
-    for _,t in ipairs(exits) do if t>=enter and t<=leave then events[#events+1]={t=t,battery=battery} end end
+  sliceStart=sliceEnd
+ end
+ batteryMotion.advance(self,dt)
+ for _,p in ipairs(self.players) do if p.connected then
+  -- Only actual resolved travel counts; the pre-collision intended endpoint cannot collect through a car.
+  local events={}
+  for _,path in ipairs(paths[p] or {}) do
+   local start,finish=path.a,path.b;local exits={}
+   local function add(t,event) event.t=path.t0+(path.t1-path.t0)*t;event.position=along(start,finish,t);events[#events+1]=event end
+   for _,station in ipairs(self.stations) do
+    local enter,leave=circleInterval(start,finish,station,station.r)
+    if enter then add(enter,{deposit=true});if leave<1 then exits[#exits+1]=math.min(1,leave+1e-7) end end
    end
-   if dist(p,battery)<=config.pickupRadius^2 then events[#events+1]={t=1,battery=battery,position=p} end
-  end end
+   for _,battery in ipairs(self.batteries) do if battery.unlock<=self.time and (battery.z or 0)<=1 then
+    local enter,leave=circleInterval(start,finish,battery,pickupRadius(battery))
+    if enter then
+     add(enter,{battery=battery})
+     for _,t in ipairs(exits) do if t>=enter and t<=leave then add(t,{battery=battery}) end end
+    end
+   end end
+  end
+  for _,battery in ipairs(self.batteries) do if battery.unlock<=self.time and (battery.z or 0)<=1 and dist(p,battery)<=pickupRadius(battery)^2 then events[#events+1]={t=1,battery=battery,position=p} end end
   if self:station(p) then events[#events+1]={t=1,deposit=true} end
   table.sort(events,function(a,b)
    if a.t~=b.t then return a.t<b.t end
@@ -242,7 +290,7 @@ function G:step(dt,elapsed,remaining)
   local collected={}
   for _,event in ipairs(events) do
    if event.deposit then p.score=p.score+p.cargo;p.cargo=0
-   elseif p.cargo<20 and not collected[event.battery] and not self:station(event.position or along(start,finish,event.t)) then
+   elseif p.cargo<20 and not collected[event.battery] and not self:station(event.position) then
     collected[event.battery]=true;p.cargo=p.cargo+1;p.pickupSeq=p.pickupSeq+1
    end
   end
@@ -251,10 +299,10 @@ function G:step(dt,elapsed,remaining)
 end
 function G:snapshot(array)
  array=array or function(t)return t or {} end
- local s={type='state',serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=500,pickupRadius=config.pickupRadius,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
+ local s={type='state',serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=500,collisionRadius=config.collisionRadius,pickupRadius=config.pickupRadius,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
  if self.phase~='lobby' then s.supply=self:supply() end
- for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,pickupSeq=p.pickupSeq,connected=p.connected,inputSeq=p.inputSeq,inputElapsed=p.inputElapsed,ix=p.ix,iy=p.iy,bx=p.bx,by=p.by} end end
- for _,b in ipairs(self.batteries) do s.batteries[#s.batteries+1]={id=b.id,x=b.x,y=b.y} end
+ for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,impactSeq=p.impactSeq,kx=p.kx,ky=p.ky,pickupSeq=p.pickupSeq,connected=p.connected,inputSeq=p.inputSeq,inputElapsed=p.inputElapsed,ix=p.ix,iy=p.iy,bx=p.bx,by=p.by} end end
+ for _,b in ipairs(self.batteries) do s.batteries[#s.batteries+1]={id=b.id,x=b.x,y=b.y,z=b.z,vx=b.vx,vy=b.vy,source=b.source,unlock=b.unlock} end
  if self.phase=='finished' then s.results=array();for _,p in ipairs(self.players) do s.results[#s.results+1]={id=p.id,name=p.name,color=p.color,score=p.score} end;table.sort(s.results,function(a,b)return a.score>b.score or (a.score==b.score and tonumber(a.id)<tonumber(b.id)) end) end
  return s
 end

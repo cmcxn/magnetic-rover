@@ -289,9 +289,12 @@ test("all devices render the same enlarged98x68body without changing camera poli
     const rack = calls.find(
       (c) =>
         c.key === "fillPoints" &&
-        Math.abs(c.args[0][0].x + 53.5 * multiplier) < 0.01,
+        Math.abs(c.args[0][0].x + 23.5 * multiplier) < 0.01,
     );
-    assert.ok(rack, "rack scales around rover center with the body");
+    assert.ok(
+      rack,
+      "contained rear-deck rack scales around rover center with the body",
+    );
     assert.equal(w.worldScale, cameraPolicy(width, height).scale);
     assert.ok(
       calls.some(
@@ -440,4 +443,63 @@ test("missing rover sprite fallback has the same98x68body footprint", () => {
   assert.equal(Math.min(...vertices.map((p) => p.x)), -49);
   assert.equal(Math.max(...vertices.map((p) => p.y)), 34);
   assert.equal(Math.min(...vertices.map((p) => p.y)), -34);
+});
+
+test("solid boundary uses authority radius, not the independent pickup radius", () => {
+  const { w, calls } = renderCar(20);
+  w.state.collisionRadius = 60;
+  w.state.pickupRadius = 56;
+  calls.length = 0;
+  w.update(116, 16);
+  assert.ok(calls.some((c) => c.key === "strokeCircle" && c.args[2] === 60));
+  assert.ok(
+    !calls.some((c) => c.key === "strokeCircle" && c.args[2] === 56),
+    "no misleading second solid-looking magnet ring",
+  );
+});
+test("loaded vehicle body and all twenty cargo cells fit in hard circle at every heading", () => {
+  for (const angle of [0, 0.4, Math.PI / 2, Math.PI]) {
+    const { calls } = renderCar(20, 0, angle);
+    const vertices = calls
+      .filter((c) => c.key === "fillPoints")
+      .flatMap((c) => c.args[0]);
+    assert.ok(vertices.length >= 24 * 4);
+    for (const p of vertices)
+      assert.ok(
+        Math.hypot(p.x, p.y) <= 60,
+        "body/rack vertex must fit radius60",
+      );
+  }
+});
+test("airborne dropped battery renders at server height with its ground shadow", () => {
+  const { w, calls } = harness();
+  w.state = {
+    phase: "playing",
+    players: [],
+    stations: [],
+    batteries: [{ id: "drop", x: 100, y: 80, z: 24, source: "drop" }],
+  };
+  const sprites = [];
+  w.sprite = (...args) => {
+    sprites.push(args);
+    return true;
+  };
+  calls.length = 0;
+  w.update(0, 16);
+  const battery = sprites.find((a) => a[0] === "battery-drop");
+  assert.equal(battery[2], 100);
+  assert.equal(battery[3], 56);
+  assert.ok(
+    calls.some(
+      (c) => c.key === "fillEllipse" && c.args[0] === 100 && c.args[1] === 86,
+    ),
+  );
+});
+test("contained cargo has a graphics layer above the car sprite, not hidden beneath it", () => {
+  const { calls } = harness();
+  assert.ok(
+    calls.some(
+      (c) => c.kind === "graphics" && c.key === "setDepth" && c.args[0] === 5,
+    ),
+  );
 });

@@ -1,7 +1,10 @@
 -- Shared server-owned round and natural-resource pacing.
 return {
  matchDuration=100,
- vehicleBody={halfLength=49,halfWidth=34,releasePadding=4},
+ collisionRadius=60,
+ vehicleBody={halfLength=49,halfWidth=34,releasePadding=2},
+ knockbackDecay=5,
+ collision={frontDot=.65,minClosing=40,normalStun=.65,boostStun=1,protection=1.6,releaseGap=4},
  pickupRadius=56, -- Magnet range, independent of vehicle collision radius.
  resources={initial=36,refillInterval=10,refillBatch=6,groundCap=42,stopRemaining=10,
   stages={{at=0,inner=260,outer=470},{at=25,inner=160,outer=340},

@@ -1,3 +1,19 @@
+# 2026-10-24 hard-circle collision branch (local, not deployed)
+
+`feat/hard-circle-collision-redesign` is based on verified remote
+`fix/mobile-collision-supply` @ `58100e7`, not the default branch or old local copy.
+
+- Hard radius60 car boundaries; normal both-stun/no-loss, frontal boost recoil
+  and target drops, simultaneous double boost, safe-zone no-drop exception.
+- Server-owned swept constraints, persistent knockback and conserved moving drops;
+  client prediction/presentation cannot assign collision outcomes.
+- Detailed test results and screenshot limitations are recorded in
+  `verification/collision-redesign/` when validation completes. Historical notes
+  below describe earlier versions and are not the current collision contract;
+  the top section of `PROTOCOL.md` is authoritative for this branch.
+
+---
+
 # 2026-10-20：流畅性与 FPS 候选版本
 
 分支 `feat/smooth-motion-fps`，基于已上线 adecdeb。此检查点仅完成云端

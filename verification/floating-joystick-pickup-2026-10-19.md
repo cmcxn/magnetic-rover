@@ -11,7 +11,7 @@
 ## Checks
 - `cd client && npm test`: 55 tests passed, including pointer ownership, second-finger boost, all cancellation paths, no ghost motion, queued-dash cancellation versus ordinary release, pickup authority/baselines, hidden/reconnect handling, aggregation, reduced motion, cargo rack, boost flame and stun regressions.
 - `cd client && npm run build`: passed TypeScript and Vite. Existing large-bundle warning remains (~1.51 MB uncompressed); npm environment warning remains.
-- `SKYNET_ROOT=/workspace/scratch/0811cde7f1f9/pluto-aoi-integration/vendor/skynet ./server/test.sh`: all eight Lua suites and real WebSocket integration passed. New real WebSocket checks drive to an actual battery, reject forged pickup credit, verify another player's sequence stays unchanged, and reconnect the collector with sequence/cargo retained.
+- `SKYNET_ROOT=/absolute/path/to/skynet ./server/test.sh`: all eight Lua suites and real WebSocket integration passed. New real WebSocket checks drive to an actual battery, reject forged pickup credit, verify another player's sequence stays unchanged, and reconnect the collector with sequence/cargo retained.
 - Tests were added first and observed failing for missing joystick/authority/reward behavior and queued-boost cancellation, then implemented to green.
 - Logs: `verification/floating-pickup/`.
 
