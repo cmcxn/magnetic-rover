@@ -1,5 +1,5 @@
 package.path='./?.lua;'..package.path
-local expected=tonumber(arg[1]) or 240
+local expected=tonumber(arg[1]) or 480
 local G=require 'game'
 local function near(a,b) assert(type(a)=='number' and math.abs(a-b)<1e-7,tostring(a)..' ~= '..tostring(b)) end
 for _,cargo in ipairs({0,20}) do

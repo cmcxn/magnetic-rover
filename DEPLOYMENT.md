@@ -1,5 +1,7 @@
 # Docker 部署与运维
 
+> 以下为 2026-10-19 已部署版本的历史记录。当前分支已迁移至发布的 Skynet runtime，最新构建方式见 [Docker Runtime](docs/docker-runtime.md)；尚未更新远端服务。
+
 部署日期：2026-10-19。已部署并保持运行。
 
 - 访问地址：http://ai.chenmin.org:18082

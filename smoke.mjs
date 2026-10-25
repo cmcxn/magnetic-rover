@@ -21,9 +21,14 @@ try {
  }
  const until=async(fn)=>{while(!fn())await new Promise(r=>setTimeout(r,40))};
  await until(()=>clients.every(c=>c.messages.some(m=>m.type==='welcome')));
- const ids=clients.map(c=>c.messages.find(m=>m.type==='welcome').id);assert.notEqual(...ids);
+ clients[0].ws.send(JSON.stringify({type:'create_room'}));
+ await until(()=>clients[0].messages.some(m=>m.type==='welcome'&&m.roomId));
+ const roomId=clients[0].messages.find(m=>m.type==='welcome'&&m.roomId).roomId;
+ clients[1].ws.send(JSON.stringify({type:'join_room',roomId}));
+ await until(()=>clients.every(c=>c.messages.some(m=>m.type==='welcome'&&m.roomId===roomId)));
+ const ids=clients.map(c=>c.messages.find(m=>m.type==='welcome'&&m.roomId===roomId).id);assert.notEqual(...ids);
  await until(()=>clients.every(c=>c.messages.some(m=>m.type==='state'&&ids.every(id=>m.players.some(p=>p.id===id)))));
- clients[0].ws.send(JSON.stringify({type:'start'}));
+ for(const c of clients)c.ws.send(JSON.stringify({type:'ready',ready:true}));
  await until(()=>clients.every(c=>c.messages.some(m=>m.phase==='playing')));
  const before=clients[0].messages.filter(m=>m.type==='state').at(-1).players.find(p=>p.id===ids[0]);
  for(let i=0;i<8;i++){clients[0].ws.send(JSON.stringify({type:'input',x:1,y:0,boost:false}));await new Promise(r=>setTimeout(r,50))}

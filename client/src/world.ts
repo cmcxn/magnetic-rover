@@ -36,6 +36,10 @@ export class World extends Phaser.Scene {
   liveEffects = true;
   private effectSnapshot: State | null = null;
   private effectAge = 0;
+  private boostIndicators = new Map<
+    string,
+    { cooling: boolean; flashUntil: number }
+  >();
   fps: number | null = null;
   private frameCount = 0;
   private frameElapsed = 0;
@@ -199,7 +203,10 @@ export class World extends Phaser.Scene {
       this.liveEffects &&
       this.effectAge <= 500 &&
       this.state?.phase === "playing";
-    if (!effectsActive) this.cameras?.main.shakeEffect?.reset();
+    if (!effectsActive) {
+      this.cameras?.main.shakeEffect?.reset();
+      this.boostIndicators.clear();
+    }
     this.pickupRemaining = effectsActive
       ? Math.max(0, this.pickupRemaining - delta)
       : 0;
@@ -439,11 +446,64 @@ export class World extends Phaser.Scene {
           box(x + 0.8, y - 1, 1, 2.5, 0xfff8d4, this.cargoG);
         }
       }
-      if (effectsActive && p.boost > 0) {
+      // Permanent driver-color badge on the hood, independent of boost state.
+      // Above the sprite and ahead of the rear-deck cargo.
+      box(15, 0, 11, 16, 0x274f49, this.cargoG);
+      box(15, 0, 8, 13, c, this.cargoG);
+      // Interpolate only fresh server timers. Readiness still requires server zero.
+      const boostVisible = effectsActive && p.connected;
+      const boostLeft = Math.max(0, p.boost - this.effectAge / 1000);
+      const cooldownLeft = Math.max(
+        0.1,
+        (p.cooldown ?? 0) - this.effectAge / 1000,
+      );
+      const boosting = boostLeft > 0;
+      const cooling = (p.cooldown ?? 0) > 0;
+      const ready = !boosting && !cooling && !(p.stun > 0);
+      let indicator = this.boostIndicators.get(p.id);
+      if (boostVisible) {
+        if (!indicator) {
+          indicator = { cooling, flashUntil: 0 };
+          this.boostIndicators.set(p.id, indicator);
+        }
+        if (indicator.cooling && ready) indicator.flashUntil = _time + 280;
+        indicator.cooling = cooling;
+        const flashing =
+          !this.reducedEffects && ready && _time < indicator.flashUntil;
+        const progress = boosting
+          ? Math.min(1, boostLeft / 0.32)
+          : cooling
+            ? Math.min(1, Math.max(0, 1 - cooldownLeft / 4))
+            : 1;
+        const tint = flashing ? 0xfff8dc : boosting ? 0xffbd59 : c;
+        for (const y of [-15, 15]) {
+          box(0, y, 32, 4, 0x274f49, this.cargoG);
+          if (progress > 0)
+            box(-14 + 14 * progress, y, 28 * progress, 2, tint, this.cargoG);
+        }
+        if (ready) {
+          // Small rear lightning lamp, drawn above the sprite.
+          const points = [
+            [-22, -4],
+            [-24, 1],
+            [-22, 1],
+            [-24, 5],
+            [-19, -1],
+            [-22, -1],
+          ];
+          this.cargoG.fillStyle(tint);
+          this.cargoG.fillPoints(
+            points.map(([x, y]) => rot(x, y)),
+            true,
+          );
+        }
+      } else this.boostIndicators.delete(p.id);
+      if (boostVisible && boosting) {
         const tail = -24;
-        const length = this.reducedEffects
-          ? 20
-          : 24 + Math.sin(_time * 0.045) * 4;
+        const length =
+          8 +
+          20 * Math.min(1, boostLeft / 0.32) +
+          (this.reducedEffects ? 0 : Math.sin(_time * 0.045) * 2);
         const flame = (width: number, len: number, col: number) => {
           const a = rot(tail, -width),
             b = rot(tail - len, 0),
@@ -455,6 +515,16 @@ export class World extends Phaser.Scene {
         flame(5, length * 0.7, 0xffdb69);
         flame(2.5, length * 0.35, 0xfff8dc);
       }
+      const boostText =
+        p.id === this.self && !this.spectating && boostVisible
+          ? boosting
+            ? " · 冲刺中"
+            : cooling
+              ? ` · 冲刺 ${cooldownLeft.toFixed(1)}s`
+              : ready
+                ? " · 冲刺就绪"
+                : ""
+          : "";
       let label = this.labels.get(p.id);
       if (!label) {
         label = this.add
@@ -474,9 +544,12 @@ export class World extends Phaser.Scene {
       label
         .setPosition(this.ox + v.x * s, this.oy + (v.y - labelOffset) * s)
         .setText(
-          `${p.name}${p.id === this.self ? ` · 你\n${cargo >= 20 ? "满载" : "⚡ "}${cargo}/20` : ""}${p.stun > 0 ? " · 眩晕" : ""}`,
+          `${p.name}${p.id === this.self ? ` · 你\n${cargo >= 20 ? "满载" : "⚡ "}${cargo}/20` : ""}${p.stun > 0 ? " · 眩晕" : ""}${boostText}`,
         );
       label.setVisible(this.state?.phase === "playing");
+    }
+    for (const id of this.boostIndicators.keys()) {
+      if (!present.has(id)) this.boostIndicators.delete(id);
     }
     if (me?.connected && this.pickupRemaining > 0) {
       const v = this.smooth.get(me.id) ?? me;

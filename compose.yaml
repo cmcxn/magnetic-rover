@@ -1,12 +1,12 @@
 name: magnetic-rover
 services:
   game:
-    image: magnetic-rover:20261019
+    image: magnetic-rover:skynet-runtime-f1baee5
     build: .
     ports:
       - "${ROVER_PORT:-18080}:18080"
     environment:
-      ROVER_BASE_SPEED: "${ROVER_BASE_SPEED:-240}"
+      ROVER_BASE_SPEED: "${ROVER_BASE_SPEED:-480}"
     runtime: runc
     restart: unless-stopped
     read_only: true

@@ -10,6 +10,6 @@
 !client/index.html
 !server/
 !server/*.lua
+!server/test_base_speed.sh
 !server/config
 !licenses/**
-!skynet-source.tar

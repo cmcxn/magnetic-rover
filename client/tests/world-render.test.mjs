@@ -503,3 +503,35 @@ test("contained cargo has a graphics layer above the car sprite, not hidden bene
     ),
   );
 });
+
+test("boost cooldown label follows authoritative state and only appears on local rover", () => {
+  const { w, calls } = renderCar(20);
+  w.self = "p";
+  w.state.players[0].cooldown = 2.8;
+  calls.length = 0;
+  w.update(116, 16);
+  assert.ok(
+    calls.some((c) => c.key === "setText" && c.args[0].includes("冲刺 2.8s")),
+  );
+  w.state.players[0].cooldown = 0;
+  calls.length = 0;
+  w.update(132, 16);
+  assert.ok(
+    calls.some((c) => c.key === "setText" && c.args[0].includes("冲刺就绪")),
+  );
+  w.state.players[0].connected = false;
+  calls.length = 0;
+  w.update(148, 16);
+  assert.ok(
+    !calls.some((c) => c.key === "setText" && c.args[0].includes("冲刺")),
+  );
+});
+
+test("boost flame expires between snapshots even before stale timeout", () => {
+  const { w, calls } = renderCar(0, 0.1);
+  calls.length = 0;
+  w.update(250, 150);
+  assert.ok(
+    !calls.some((c) => c.key === "fillStyle" && c.args[0] === 0xff7a32),
+  );
+});

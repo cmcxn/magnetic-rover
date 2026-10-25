@@ -1,0 +1,4 @@
+# Published Skynet runtime
+Use the user-specified chenmins/skynet-demo sha-f1baee5051108fce40588738f4a5960f12edea97 image as the application base, pinned additionally to its multi-platform manifest digest. Keep frontend compilation in a Node stage. Game Lua, assets, configuration and non-root isolation remain application-owned. No host Skynet checkout or source tar is required for Docker builds.
+Build and run in a separate Compose project/port while validating; preserve the current native LAN server. Native scripts remain an optional development fallback. Do not deploy to the remote server or publish an image as part of this task.
+Directly inheriting the runtime preserves its native libraries and module layout. Copying only its binaries into the old Debian base risks incompatible shared libraries, so it is not used.

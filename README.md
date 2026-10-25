@@ -15,6 +15,22 @@
 - `PROTOCOL.md`：客户端/服务端约定。
 - `STATUS.md`：最近检查点与未完成项。
 
+## Docker Runtime（推荐）
+
+无需本机编译 Skynet，直接使用固定版本的 `chenmins/skynet-demo` 作为基础运行时：
+
+```sh
+docker compose up -d --build --wait
+```
+
+打开 http://127.0.0.1:18080 。如果本机原服务占用该端口，可使用独立项目和端口：
+
+```sh
+ROVER_PORT=18083 docker compose -p magnetic-rover-runtime up -d --build --wait
+```
+
+基础镜像固定到 `sha-f1baee5051108fce40588738f4a5960f12edea97` 及多架构 manifest digest；Docker 自动匹配宿主架构。前端和 Lua 游戏代码在构建时验证。默认速度 480，可通过 `ROVER_BASE_SPEED` 覆盖。详细版本及验证记录见 [Docker Runtime](docs/docker-runtime.md)。下面的原生脚本保留为可选开发方式。
+
 ## 本机运行
 1. 准备 Node.js 22+（前端测试需要），以及已编译的 skynet-demo `feat/pluto-aoi-submodule` 分支；验证版本见 `verification/skynet-aoi-runtime.md`。
 2. `cd client && npm ci && npm run build`。
