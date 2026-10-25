@@ -50,6 +50,7 @@ export interface State {
   }[];
   stations: { x: number; y: number; r: number }[];
   radius: number;
+  baseSpeed?: number;
   pickupRadius?: number;
   collisionRadius?: number;
   supply?: {

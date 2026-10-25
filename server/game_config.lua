@@ -1,5 +1,9 @@
 -- Shared server-owned round and natural-resource pacing.
+-- Read once at service startup; reject non-finite and unsupported values.
+local baseSpeed=tonumber(os.getenv('ROVER_BASE_SPEED'))
+if not baseSpeed or baseSpeed~=baseSpeed or baseSpeed<1 or baseSpeed>480 then baseSpeed=240 end
 return {
+ baseSpeed=baseSpeed,
  matchDuration=100,
  collisionRadius=60,
  vehicleBody={halfLength=49,halfWidth=34,releasePadding=2},

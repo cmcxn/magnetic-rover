@@ -355,3 +355,18 @@ test("large authoritative correction without long delivery silence also converge
   }
   assert.ok(Math.abs(m.sample(1400).get("1").x - 150) < 1e-5);
 });
+
+test("snapshot baseSpeed drives prediction, loaded movement and boost", () => {
+  for (const cargo of [0, 20])
+    for (const boost of [false, true]) {
+      const m = new motion.Motion();
+      m.receive(state(0, player({ cargo }), { baseSpeed: 180 }), "1", false, 0);
+      m.input({ x: 1, y: 0, boost }, 0);
+      assert.ok(
+        Math.abs(
+          m.sample(50).get("1").x -
+            180 * (1 - (0.2 * cargo) / 20) * (boost ? 3 : 1) * 0.05,
+        ) < 1e-7,
+      );
+    }
+});

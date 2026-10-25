@@ -188,3 +188,5 @@ cargo, score, or camera geometry changed in this iteration.
   and pickup rewards remain server-confirmed, avoiding duplicate feedback when
   prediction is acknowledged. Older servers without motion metadata retain
   the previous authoritative-position smoothing fallback.
+
+`state.baseSpeed`: 服务端启动配置的普通行驶速度（世界单位/秒，默认 240，支持 1–480）。客户端预测与重放使用此值；旧服务端缺失时回退 240。冲刺与负载倍率不变。

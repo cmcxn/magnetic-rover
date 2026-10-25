@@ -239,7 +239,7 @@ function G:step(dt,elapsed,remaining)
    local initialK={}
    for _,p in ipairs(active) do
     local boosting=p.boost>sliceStart+1e-8
-    local speed=240*(1-.2*p.cargo/20)
+    local speed=config.baseSpeed*(1-.2*p.cargo/20)
     p.driveX=speed*(boosting and (p.bx or math.cos(p.angle))*3 or p.ix)
     p.driveY=speed*(boosting and (p.by or math.sin(p.angle))*3 or p.iy)
     initialK[p]={x=p.kx or 0,y=p.ky or 0}
@@ -299,7 +299,7 @@ function G:step(dt,elapsed,remaining)
 end
 function G:snapshot(array)
  array=array or function(t)return t or {} end
- local s={type='state',serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=500,collisionRadius=config.collisionRadius,pickupRadius=config.pickupRadius,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
+ local s={type='state',baseSpeed=config.baseSpeed,serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=500,collisionRadius=config.collisionRadius,pickupRadius=config.pickupRadius,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
  if self.phase~='lobby' then s.supply=self:supply() end
  for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,impactSeq=p.impactSeq,kx=p.kx,ky=p.ky,pickupSeq=p.pickupSeq,connected=p.connected,inputSeq=p.inputSeq,inputElapsed=p.inputElapsed,ix=p.ix,iy=p.iy,bx=p.bx,by=p.by} end end
  for _,b in ipairs(self.batteries) do s.batteries[#s.batteries+1]={id=b.id,x=b.x,y=b.y,z=b.z,vx=b.vx,vy=b.vy,source=b.source,unlock=b.unlock} end

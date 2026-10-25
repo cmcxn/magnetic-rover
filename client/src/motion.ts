@@ -129,6 +129,7 @@ export function integrate(
   dt: number,
   radius: number,
   collisionRadius = 0,
+  baseSpeed = 240,
 ) {
   const stunned = p.stun > 0;
   p.stun = Math.max(0, p.stun - dt);
@@ -142,7 +143,7 @@ export function integrate(
   const bx = p.boost > 0 ? (p.bx ?? Math.cos(p.angle)) : ix;
   const by = p.boost > 0 ? (p.by ?? Math.sin(p.angle)) : iy;
   const dash = Math.min(dt, p.boost),
-    speed = 240 * (1 - (0.2 * p.cargo) / 20);
+    speed = baseSpeed * (1 - (0.2 * p.cargo) / 20);
   const decay = Math.exp(-5 * dt),
     travel = (1 - decay) / 5;
   p.x += speed * (bx * 3 * dash + ix * (dt - dash)) + (p.kx ?? 0) * travel;
@@ -293,6 +294,7 @@ export class Motion {
         Math.min(0.25, Math.max(0, (now - latest.at) / 1000)),
         s.radius,
         s.collisionRadius ?? 0,
+        s.baseSpeed ?? 240,
       );
       return result;
     }
@@ -307,7 +309,13 @@ export class Motion {
       while (cursor < end - 1e-6) {
         const dt = Math.min(50, end - cursor);
         const start = { ...result };
-        integrate(result, dt / 1000, s.radius, s.collisionRadius ?? 0);
+        integrate(
+          result,
+          dt / 1000,
+          s.radius,
+          s.collisionRadius ?? 0,
+          s.baseSpeed ?? 240,
+        );
         if (s.collisionRadius) {
           const velocity = {
             x: result.x - start.x,

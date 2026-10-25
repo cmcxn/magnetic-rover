@@ -5,6 +5,8 @@ services:
     build: .
     ports:
       - "${ROVER_PORT:-18080}:18080"
+    environment:
+      ROVER_BASE_SPEED: "${ROVER_BASE_SPEED:-240}"
     runtime: runc
     restart: unless-stopped
     read_only: true
