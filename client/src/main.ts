@@ -2,6 +2,13 @@ import { Sounds } from "./audio";
 const sounds = new Sounds();
 import Phaser from "phaser";
 import "./style.css";
+import "./cartoon.css";
+import {
+  controlLayout,
+  joystickPose,
+  skillView,
+  orbLiquid,
+} from "./presentation";
 import { World } from "./world";
 import { FrameMetrics, type FrameSample } from "./performance";
 import {
@@ -37,7 +44,7 @@ motionPreference?.addEventListener?.("change", (e) => {
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: "game",
-  backgroundColor: "#c3d8b9",
+  backgroundColor: "#86bed6",
   antialias: true,
   scale: { mode: Phaser.Scale.RESIZE, width: innerWidth, height: innerHeight },
   scene: [world],
@@ -405,8 +412,17 @@ function connect(automatic = false) {
             data.serverTime < state.serverTime))
       )
         return;
-      if (state?.phase === "playing" && data.phase === "playing" && state.supply && data.supply && data.supply.stage > state.supply.stage) {
-        notice(`补给区收缩至第 ${data.supply.stage}/4 阶段，外围补给已向中心集中`, 2500);
+      if (
+        state?.phase === "playing" &&
+        data.phase === "playing" &&
+        state.supply &&
+        data.supply &&
+        data.supply.stage > state.supply.stage
+      ) {
+        notice(
+          `补给区收缩至第 ${data.supply.stage}/4 阶段，外围补给已向中心集中`,
+          2500,
+        );
       }
       const previous = state?.players.find((p) => p.id === id);
       const current = (data as State).players.find((p) => p.id === id);
@@ -507,7 +523,7 @@ function showWaiting(availableIn: unknown) {
 }
 function showJoin(disconnected = false) {
   app.className = "";
-  surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">COLLECT · BOOST · BANK</div><h1>小车大电量。<br>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>100 秒抢运赛，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><span class="field-label">挑一辆喜欢的小车</span><div class="colors">${COLORS.map((c) => `<button class="color ${c === color ? "selected" : ""}" data-color="${c}" style="background:${c}" aria-label="选择${c}小车" aria-pressed="${c === color}"></button>`).join("")}</div><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button>${disconnected && retryAllowed ? '<button class="secondary" id="cancel-connect">取消自动重连</button>' : ""}<div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>冲刺撞击才掉电池</div><div><b>03</b>进站存入得分</div></div></section></div>`;
+  surface.innerHTML = `<div class="center"><section class="card driver-card"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h2>100秒抢运赛</h2></header><h1>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>100 秒抢运赛，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><span class="field-label">挑一辆喜欢的小车</span><div class="colors">${COLORS.map((c) => `<button class="color ${c === color ? "selected" : ""}" data-color="${c}" style="background:${c}" aria-label="选择${c}小车" aria-pressed="${c === color}"></button>`).join("")}</div><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button>${disconnected && retryAllowed ? '<button class="secondary" id="cancel-connect">取消自动重连</button>' : ""}<div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>冲刺撞击才掉电池</div><div><b>03</b>进站存入得分</div></div></section></div>`;
   const cancel = document.querySelector<HTMLButtonElement>("#cancel-connect");
   if (cancel) cancel.onclick = cancelConnection;
   document.querySelector("#join")!.addEventListener("click", () => connect());
@@ -607,7 +623,7 @@ function render() {
     if (phase === "lobby")
       surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><button id="start" class="primary race-start">❯❯ 开始比赛</button><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
     if (phase === "playing") {
-      surface.innerHTML = `<div class="hud"><div class="stat"><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat"><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="match-actions"><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-controls="settings" aria-expanded="false">设置</button>${role !== "spectator" ? '<button class="secondary leave-room">返回大厅</button>' : ""}</div><aside class="leaderboard"><h3>实时排行榜</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
+      surface.innerHTML = `<div class="hud"><div class="stat"><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat"><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="match-actions"><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-controls="settings" aria-expanded="false">设置</button>${role !== "spectator" ? '<button class="secondary leave-room">返回大厅</button>' : ""}</div><aside class="leaderboard"><h3>已存排行</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
       surface.insertAdjacentHTML(
         "beforeend",
         role === "spectator"
@@ -615,6 +631,7 @@ function render() {
           : "",
       );
       wireControls();
+      drawJoystick();
       if (role === "spectator") {
         app.classList.add("spectating");
         document.querySelector<HTMLSelectElement>("#follow-player")!.onchange =
@@ -624,7 +641,7 @@ function render() {
       } else notice("出发！把电池送到绿色回收站。");
     }
     if (phase === "finished") {
-      surface.innerHTML = `<div class="center"><section class="card"><div class="eyebrow">FINISH LINE / 本局结束</div><h1>好电量，好成绩。</h1><p class="subtitle" id="resultsubtitle"></p><div id="results"></div><p id="return-countdown" class="footer-note"></p>${role === "player" ? '<button id="again" class="primary">再来一局 →</button>' : ""}<button class="secondary leave-room">返回房间大厅</button><div class="error" id="error" role="alert"></div><p class="footer-note">同分共享名次 · 只有存入回收站的电池计分</p></section></div>`;
+      surface.innerHTML = `<div class="center"><section class="card results-card"><div class="trophy" aria-hidden="true">🏆</div><header class="race-logo"><strong>本局<span>结算</span></strong></header><p class="subtitle" id="resultsubtitle"></p><div id="results"></div><p id="return-countdown" class="footer-note"></p>${role === "player" ? '<button id="again" class="primary">再来一局 →</button>' : ""}<button class="secondary leave-room">返回房间大厅</button><div class="error" id="error" role="alert"></div><p class="footer-note">同分共享名次 · 只有存入回收站的电池计分</p></section></div>`;
       document
         .querySelector("#again")
         ?.addEventListener("click", () => send({ type: "again" }));
@@ -681,12 +698,17 @@ function render() {
       `${(me?.cargo ?? 0) >= 20 ? "满载 " : ""}${me?.cargo ?? 0} / 20`;
     const supply = state.supply;
     const supplyStatus = document.querySelector<HTMLElement>("#supply-status")!;
-    supplyStatus.textContent = !supply ? "剩余时间" : supply.banking
-      ? "停补给 · 快回收"
-      : supply.secondsToShrink !== undefined
-        ? `${supply.stage}/4区 · ${Math.ceil(supply.secondsToShrink)}秒缩`
-        : "4/4区 · 中心争夺";
-    supplyStatus.classList.toggle("supply-warning", !!supply && (supply.banking || (supply.secondsToShrink ?? 99) <= 5));
+    supplyStatus.textContent = !supply
+      ? "剩余时间"
+      : supply.banking
+        ? "停补给 · 快回收"
+        : supply.secondsToShrink !== undefined
+          ? `${supply.stage}/4区 · ${Math.ceil(supply.secondsToShrink)}秒缩`
+          : "4/4区 · 中心争夺";
+    supplyStatus.classList.toggle(
+      "supply-warning",
+      !!supply && (supply.banking || (supply.secondsToShrink ?? 99) <= 5),
+    );
     const sec = Math.max(0, Math.ceil(state.remaining));
     document.querySelector("#timer")!.textContent =
       `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
@@ -717,18 +739,7 @@ function render() {
         select.dataset.players = signature;
       }
     }
-    const cooldown = me?.cooldown ?? 0;
-    const b = document.querySelector<HTMLButtonElement>("#boost")!;
-    const stun = me?.stun ?? 0;
-    document.querySelector("#stun-status")!.textContent =
-      stun > 0 ? `被撞！眩晕${stun >= 0.95 ? "1" : stun.toFixed(1)}秒` : "";
-    b.innerHTML =
-      stun > 0
-        ? `${stun.toFixed(1)} 秒<span>眩晕中</span>`
-        : cooldown > 0
-          ? `${cooldown.toFixed(1)} 秒<span>充能中</span>`
-          : '冲 刺<span class="keyboard-hint">SPACE</span>';
-    b.disabled = cooldown > 0 || stun > 0;
+    updateSkillButton();
     drawMap();
   }
   if (phase === "finished") {
@@ -766,7 +777,10 @@ function drawMap() {
     ctx.beginPath();
     ctx.arc(100, 100, state.supply.outerRadius * 0.18, 0, Math.PI * 2);
     ctx.stroke();
-    if (state.supply.nextOuterRadius !== undefined && (state.supply.secondsToShrink ?? 99) <= 5) {
+    if (
+      state.supply.nextOuterRadius !== undefined &&
+      (state.supply.secondsToShrink ?? 99) <= 5
+    ) {
       ctx.strokeStyle = "#d89427";
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
@@ -920,16 +934,60 @@ window.addEventListener("pointerup", () => (mouseDown = false));
 window.addEventListener("pointercancel", (e) => {
   if (e.pointerType === "mouse") mouseDown = false;
 });
+function updateSkillButton() {
+  const b = document.querySelector<HTMLButtonElement>("#boost");
+  if (!b) return;
+  const me = state?.players.find((p) => p.id === id);
+  const view = skillView(me, performance.now() - lastState);
+  const stun = me?.stun ?? 0;
+  const label = view.boosting
+    ? "冲刺中"
+    : view.ready
+      ? "冲刺"
+      : `${view.seconds.toFixed(1)}秒`;
+  const signature = label + view.label + view.seconds.toFixed(1);
+  if (b.dataset.label !== signature) {
+    b.dataset.label = signature;
+    b.innerHTML = `<svg class="boost-orb" viewBox="-60 -60 120 120" aria-hidden="true"><circle cx="0" cy="0" r="56"/><polygon id="boost-liquid"/></svg><i aria-hidden="true">❯❯</i><strong>${label}</strong><span class="skill-caption">${view.boosting ? `能量释放 · ${view.seconds.toFixed(1)}秒` : view.ready ? "" : view.label}</span><span class="keyboard-hint">SPACE</span>`;
+  }
+  b.style.setProperty("--charge", `${view.progress * 360}deg`);
+  b.classList.toggle("boosting", view.boosting);
+  document.querySelector("#boost-liquid")?.setAttribute(
+    "points",
+    orbLiquid(0, 0, 56, view.energy, reducedEffects ? 0 : performance.now())
+      .map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`)
+      .join(" "),
+  );
+  b.disabled = !view.ready;
+  const status = document.querySelector("#stun-status");
+  if (status)
+    status.textContent =
+      stun > 0
+        ? `被撞！眩晕${view.seconds >= 0.95 ? "1" : view.seconds.toFixed(1)}秒`
+        : "";
+}
+setInterval(() => {
+  if (phase === "playing") updateSkillButton();
+}, 50);
 function drawJoystick() {
   joy = joystick.value;
   const visual = document.querySelector<HTMLElement>("#joystick");
   if (!visual) return;
-  visual.classList.toggle("active", joystick.owner !== null);
-  visual.style.left = `${joystick.origin.x}px`;
-  visual.style.top = `${joystick.origin.y}px`;
+  const insets = window.getComputedStyle?.(document.documentElement);
+  const layout = controlLayout(
+    innerWidth,
+    innerHeight,
+    parseFloat(insets?.getPropertyValue("--safe-left") || "") || 12,
+    parseFloat(insets?.getPropertyValue("--safe-right") || "") || 12,
+  );
+  const pose = joystickPose(joystick, layout);
+  visual.classList.toggle("active", pose.active);
+  visual.style.left = `${pose.x}px`;
+  visual.style.top = `${pose.y}px`;
+  visual.style.width = visual.style.height = `${pose.r * 2}px`;
   if (visual.firstElementChild)
     (visual.firstElementChild as HTMLElement).style.transform =
-      `translate(${joy.x * 32}px,${joy.y * 32}px)`;
+      `translate(calc(-50% + ${pose.dx}px),calc(-50% + ${pose.dy}px))`;
 }
 function resetJoystick(clearTouches = true) {
   const owner = joystick.owner;

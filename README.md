@@ -74,3 +74,9 @@ ROVER_PORT=18083 docker compose -p magnetic-rover-runtime up -d --build --wait
 ## Docker 部署
 
 已部署地址：http://ai.chenmin.org:18082 。镜像构建、隔离配置、访问验证边界以及启停和更新命令见 [DEPLOYMENT.md](DEPLOYMENT.md)。
+
+## 微信小游戏本地验证
+
+保留 Phaser 的独立小游戏验证工程位于 `minigame/`，复用网页端场景和 Skynet 联机协议。执行 `./scripts/build-wechat.sh` 构建，再用微信开发者工具导入 `minigame/`（测试号、不使用云服务）。原网页端仍可与小游戏端加入同一房间。
+
+运行步骤、构建方式、资源与后端分工、验证记录和正式发布边界见 [小游戏验证说明](minigame/README.md)。当前仅供本地验证，未上传/发布微信。

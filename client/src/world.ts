@@ -36,6 +36,12 @@ export class World extends Phaser.Scene {
   liveEffects = true;
   private effectSnapshot: State | null = null;
   private effectAge = 0;
+  private pickupTrails: { id: string; x: number; y: number; start: number }[] =
+    [];
+  private impactState = new Map<
+    string,
+    { seq: number; cargo: number; until: number; lost: number }
+  >();
   private boostIndicators = new Map<
     string,
     { cooling: boolean; flashUntil: number }
@@ -73,27 +79,64 @@ export class World extends Phaser.Scene {
     if (!this.reducedEffects) this.cameras?.main.shake(100, 0.002);
   }
   preload() {
-    this.load.image("rover", "/assets/sprites/rover.png");
-    this.load.image("battery", "/assets/sprites/battery.png");
-    this.load.image("station", "/assets/sprites/recycle-station.png");
+    this.load.image("rover", "/assets/cartoon/rover.png");
+    this.load.image("battery", "/assets/cartoon/battery.png");
+    this.load.image("station", "/assets/cartoon/station.png");
+    this.load.image("island", "/assets/cartoon/island.png");
   }
   create() {
-    // Frames crop transparent padding without altering the generated source artwork.
-    for (const [key, x, y, w, h] of [
-      ["rover", 101, 271, 1093, 763],
-      ["battery", 401, 175, 451, 906],
-      ["station", 50, 42, 1154, 1154],
-    ] as const) {
-      if (this.textures.exists(key))
-        this.textures.get(key).add("trim", 0, x, y, w, h);
+    // Production PNGs are alpha-trimmed at export, retaining their original sources.
+    for (const key of ["rover", "battery", "station"]) {
+      if (this.textures.exists(key)) {
+        const source = this.textures
+          .get(key)
+          .getSourceImage() as HTMLImageElement;
+        this.textures
+          .get(key)
+          .add("trim", 0, 0, 0, source.width, source.height);
+      }
     }
+    this.createRoverColors();
     this.createBackground();
     this.g = this.add.graphics();
     this.cargoG = this.add.graphics().setDepth(5);
     this.scale.on("resize", () => this.layout());
     this.layout();
   }
+  private createRoverColors() {
+    if (!this.textures.exists("rover")) return;
+    const source = this.textures
+      .get("rover")
+      .getSourceImage() as HTMLImageElement;
+    for (const color of [
+      "38bdf8",
+      "fb7185",
+      "a78bfa",
+      "facc15",
+      "34d399",
+      "fb923c",
+    ]) {
+      const key = "rover-" + color;
+      if (this.textures.exists(key)) continue;
+      const texture = this.textures.createCanvas(key, 192, 134);
+      if (!texture) continue;
+      const ctx = texture.context;
+      ctx.drawImage(source, 0, 0, 192, 134);
+      ctx.globalCompositeOperation = "multiply";
+      ctx.fillStyle = "#" + color;
+      ctx.fillRect(0, 0, 192, 134);
+      ctx.globalCompositeOperation = "destination-in";
+      ctx.drawImage(source, 0, 0, 192, 134);
+      ctx.globalCompositeOperation = "source-over";
+      texture.add("trim", 0, 0, 0, 192, 134);
+      texture.refresh();
+    }
+  }
   createBackground() {
+    if (this.textures.exists("island")) {
+      this.background = this.add.image(0, 0, "island").setDepth(-1);
+      return;
+    }
     const key = "garden-background";
     if (!this.textures.exists(key)) {
       const g = this.add.graphics();
@@ -196,6 +239,46 @@ export class World extends Phaser.Scene {
       }
     }
     if (this.effectSnapshot !== this.state) {
+      const prev = this.effectSnapshot,
+        next = this.state;
+      if (
+        prev?.phase !== "playing" ||
+        next?.phase !== "playing" ||
+        prev.roundId !== next.roundId
+      )
+        this.impactState.clear();
+      if (
+        prev?.phase === "playing" &&
+        next?.phase === "playing" &&
+        prev.roundId === next.roundId &&
+        !this.spectating
+      ) {
+        const before = prev.players.find((p) => p.id === this.self),
+          after = next.players.find((p) => p.id === this.self);
+        const gained = Math.min(
+          6,
+          Math.max(0, (after?.pickupSeq ?? 0) - (before?.pickupSeq ?? 0)),
+        );
+        if (gained && after && !this.reducedEffects) {
+          const remaining = new Set(next.batteries.map((b) => b.id));
+          const removed = prev.batteries
+            .filter((b) => !remaining.has(b.id))
+            .sort(
+              (a, b) =>
+                Math.hypot(a.x - after.x, a.y - after.y) -
+                Math.hypot(b.x - after.x, b.y - after.y),
+            );
+          this.pickupTrails.push(
+            ...removed.slice(0, gained).map((b) => ({
+              id: b.id,
+              x: b.x,
+              y: b.y - (b.z ?? 0),
+              start: _time,
+            })),
+          );
+          this.pickupTrails = this.pickupTrails.slice(-12);
+        }
+      } else this.pickupTrails = [];
       this.effectSnapshot = this.state;
       this.effectAge = 0;
     } else this.effectAge += delta;
@@ -267,7 +350,11 @@ export class World extends Phaser.Scene {
       this.oy = h / 2 + 22;
     }
     const s = this.worldScale;
-    this.background.setPosition(this.ox, this.oy).setScale(s);
+    if (this.textures.exists("island"))
+      this.background
+        .setPosition(this.ox, this.oy + 54 * s)
+        .setDisplaySize(1390 * s, 1390 * s);
+    else this.background.setPosition(this.ox, this.oy).setScale(s);
     g.setPosition(this.ox, this.oy);
     g.setScale(s);
     this.cargoG.setPosition(this.ox, this.oy).setScale(s);
@@ -362,6 +449,30 @@ export class World extends Phaser.Scene {
       g.lineTo(b.x - 1, y + 7);
       g.strokePath();
     }
+    this.pickupTrails = this.pickupTrails.filter(
+      (t) => effectsActive && _time - t.start < 240,
+    );
+    const collector = this.smooth.get(this.self);
+    if (collector)
+      for (const trail of this.pickupTrails) {
+        const t = Math.max(0, Math.min(1, (_time - trail.start) / 240)),
+          ease = t * t;
+        const x = trail.x + (collector.x - trail.x) * ease,
+          y =
+            trail.y +
+            (collector.y - trail.y) * ease -
+            Math.sin(t * Math.PI) * 18;
+        this.sprite(
+          "pickup-fly-" + trail.id,
+          "battery",
+          x,
+          y,
+          14 * (1 - t * 0.5),
+          28 * (1 - t * 0.5),
+          6,
+          t * 0.5,
+        );
+      }
     // All devices show the server body dimensions: 98x68, local +X forward.
     const roverScale = 2;
     // Modern servers advertise a solid boundary. Pickup range remains independent
@@ -374,13 +485,46 @@ export class World extends Phaser.Scene {
       present.add(p.id);
       const v = this.smooth.get(p.id)!;
       const c = Phaser.Display.Color.HexStringToColor(p.color).color;
+      let impact = this.impactState.get(p.id);
+      const seq = p.impactSeq ?? p.hitSeq ?? 0;
+      if (!impact) {
+        impact = { seq, cargo: p.cargo, until: 0, lost: 0 };
+        this.impactState.set(p.id, impact);
+      }
+      if (impact.seq !== seq) {
+        impact.lost = Math.max(0, impact.cargo - p.cargo);
+        impact.until = _time + 400;
+        impact.seq = seq;
+      }
+      impact.cargo = p.cargo;
+      if (effectsActive && !this.reducedEffects && _time < impact.until) {
+        const t = 1 - (impact.until - _time) / 400;
+        for (let k = 0; k < 8; k++) {
+          const a = (k * Math.PI) / 4,
+            inner = 22 + t * 25,
+            outer = inner + 18 * (1 - t);
+          g.lineStyle(4, 0xffe76b, 1 - t).lineBetween(
+            v.x + Math.cos(a) * inner,
+            v.y + Math.sin(a) * inner,
+            v.x + Math.cos(a) * outer,
+            v.y + Math.sin(a) * outer,
+          );
+        }
+        circle(v.x, v.y, 24, 0xfff5b8, (1 - t) * 0.45);
+      }
       circle(v.x, v.y + 7 * roverScale, 21 * roverScale, 0x51694b, 0.16);
       circle(v.x, v.y, boundaryRadius, c, 0.1);
-      g.lineStyle(3, this.state?.collisionRadius ? 0x269ad8 : c, 0.9);
+      g.lineStyle(
+        2,
+        p.id === this.self ? 0x46e5f3 : c,
+        p.id === this.self ? 0.65 : 0.15,
+      );
       g.strokeCircle(v.x, v.y, boundaryRadius);
       const hasSprite = this.sprite(
         `car-${p.id}`,
-        "rover",
+        this.textures.exists("rover-" + p.color.slice(1))
+          ? "rover-" + p.color.slice(1)
+          : "rover",
         v.x,
         v.y,
         49 * roverScale,
@@ -414,7 +558,10 @@ export class World extends Phaser.Scene {
           rot(x + w / 2, y + h / 2),
           rot(x - w / 2, y + h / 2),
         ];
-        layer.fillStyle(col);
+        layer.fillStyle(
+          col,
+          layer === this.cargoG && col === 0x476355 ? 0.18 : 1,
+        );
         layer.fillPoints(pts, true);
       };
       if (!hasSprite) {
@@ -448,8 +595,10 @@ export class World extends Phaser.Scene {
       }
       // Permanent driver-color badge on the hood, independent of boost state.
       // Above the sprite and ahead of the rear-deck cargo.
-      box(15, 0, 11, 16, 0x274f49, this.cargoG);
-      box(15, 0, 8, 13, c, this.cargoG);
+      if (!hasSprite) {
+        box(15, 0, 11, 16, 0x274f49, this.cargoG);
+        box(15, 0, 8, 13, c, this.cargoG);
+      }
       // Interpolate only fresh server timers. Readiness still requires server zero.
       const boostVisible = effectsActive && p.connected;
       const boostLeft = Math.max(0, p.boost - this.effectAge / 1000);
@@ -476,7 +625,7 @@ export class World extends Phaser.Scene {
             ? Math.min(1, Math.max(0, 1 - cooldownLeft / 4))
             : 1;
         const tint = flashing ? 0xfff8dc : boosting ? 0xffbd59 : c;
-        for (const y of [-15, 15]) {
+        for (const y of hasSprite ? [] : [-15, 15]) {
           box(0, y, 32, 4, 0x274f49, this.cargoG);
           if (progress > 0)
             box(-14 + 14 * progress, y, 28 * progress, 2, tint, this.cargoG);
@@ -499,6 +648,17 @@ export class World extends Phaser.Scene {
         }
       } else this.boostIndicators.delete(p.id);
       if (boostVisible && boosting) {
+        if (!this.reducedEffects) {
+          for (const side of [-11, 0, 11]) {
+            const a = rot(-18, side),
+              b = rot(-70 - boostLeft * 80, side);
+            g.lineStyle(
+              side === 0 ? 9 : 4,
+              0x53edfa,
+              side === 0 ? 0.38 : 0.75,
+            ).lineBetween(a.x, a.y, b.x, b.y);
+          }
+        }
         const tail = -24;
         const length =
           8 +
@@ -546,8 +706,12 @@ export class World extends Phaser.Scene {
         .setText(
           `${p.name}${p.id === this.self ? ` · 你\n${cargo >= 20 ? "满载" : "⚡ "}${cargo}/20` : ""}${p.stun > 0 ? " · 眩晕" : ""}${boostText}`,
         );
+      if (effectsActive && impact && impact.lost > 0 && _time < impact.until)
+        label.setText(`掉落 ${impact.lost} · ${p.name}`);
       label.setVisible(this.state?.phase === "playing");
     }
+    for (const id of this.impactState.keys())
+      if (!present.has(id)) this.impactState.delete(id);
     for (const id of this.boostIndicators.keys()) {
       if (!present.has(id)) this.boostIndicators.delete(id);
     }

@@ -535,3 +535,19 @@ test("boost flame expires between snapshots even before stale timeout", () => {
     !calls.some((c) => c.key === "fillStyle" && c.args[0] === 0xff7a32),
   );
 });
+test("round reset silently baselines impact sequence instead of showing a false collision", () => {
+  const { w } = renderCar(4);
+  w.state = {
+    ...w.state,
+    roundId: 1,
+    players: w.state.players.map((p) => ({ ...p, impactSeq: 5 })),
+  };
+  w.update(100, 16);
+  w.state = {
+    ...w.state,
+    roundId: 2,
+    players: w.state.players.map((p) => ({ ...p, impactSeq: 0, cargo: 0 })),
+  };
+  w.update(116, 16);
+  assert.equal(w.impactState.get("p").until, 0);
+});

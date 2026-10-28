@@ -8,3 +8,6 @@ __pycache__/
 *.pyc
 server/.control-lock/
 /.idea/
+
+minigame/dist/
+minigame/project.private.config.json

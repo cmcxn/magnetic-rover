@@ -1,0 +1,713 @@
+/* Shared reference direction: cream enamel, navy trim, electric cyan. */
+:root {
+  --ink: #203a55;
+  --cream: #fff2d9;
+  --line: #e4d2b3;
+  --safe-left: env(safe-area-inset-left, 12px);
+  --safe-right: env(safe-area-inset-right, 12px);
+  color: var(--ink);
+  background: #90cfe4;
+}
+.center {
+  background: #16384d66;
+  backdrop-filter: blur(2px);
+}
+.card {
+  background:
+    radial-gradient(circle at 20% 30%, #ead3ac33 0 7px, transparent 8px) 0
+      0/64px 58px,
+    var(--cream);
+  border: 4px solid #fff9eb;
+  border-radius: 32px;
+  box-shadow:
+    0 7px 0 #a5a88b,
+    0 22px 60px #16334b66;
+  color: var(--ink);
+}
+.driver-card {
+  width: 460px;
+  padding: 28px 32px;
+  text-align: center;
+}
+.driver-card h1 {
+  font-size: 28px;
+  margin: 22px 0 8px;
+}
+.driver-card .race-logo {
+  margin-bottom: 14px;
+}
+.driver-card .race-logo > strong {
+  font-size: 34px;
+}
+.driver-card .race-logo h2 {
+  display: table;
+  background: #203b56;
+  color: #ffd751;
+  font-size: 16px;
+  border-radius: 24px;
+  padding: 5px 20px;
+  margin: 0 auto;
+}
+.driver-card .field-label,
+.driver-card details {
+  text-align: left;
+}
+.driver-card .colors {
+  justify-content: center;
+}
+.subtitle,
+.footer-note {
+  color: #687887;
+}
+.primary {
+  background: linear-gradient(#2ceaf7, #00b4e5);
+  border: 3px solid #155475;
+  border-radius: 24px;
+  box-shadow:
+    inset 0 3px #a3ffff,
+    0 4px #14516e;
+  color: #fff;
+  font-size: 17px;
+  text-shadow: 0 2px #079bc4;
+}
+.primary:hover {
+  background: linear-gradient(#62f4fa, #05c8ed);
+}
+.secondary {
+  background: linear-gradient(#f1f7ff, #d5e3f4);
+  border: 2px solid #bdccdf;
+  color: #203a55;
+  box-shadow: 0 2px #a8bbd0;
+  border-radius: 16px;
+}
+input {
+  background: #fffaf0;
+  border: 2px solid #e3d2b5;
+  color: #203a55;
+}
+.color.selected {
+  outline: 3px solid #087b9f;
+}
+.brand {
+  gap: 7px;
+  background: linear-gradient(#284d66, #17314a);
+  color: #fff7e6;
+  padding: 9px 15px;
+  border: 2px solid #52738a;
+  border-radius: 20px;
+  box-shadow: 0 4px #0f2b42;
+}
+.brand strong {
+  font-size: 23px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.brand-icon {
+  background: none;
+  color: #ffd342;
+  width: 25px;
+  height: 30px;
+}
+.brand small {
+  display: none;
+}
+.connection {
+  background: #16364cdd;
+  color: #def7ff;
+  border: 1px solid #59798d;
+}
+.hud {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  gap: 10px;
+}
+.stat {
+  background: linear-gradient(#2d4b63ed, #17334de8);
+  color: #fff7e6;
+  border: 2px solid #8297a8;
+  border-radius: 19px;
+  padding: 8px 20px;
+  min-width: 116px;
+  box-shadow: 0 3px #18394c44;
+}
+.stat small {
+  color: #d5e3ed;
+  letter-spacing: 0;
+}
+.stat b,
+.stat.timer b {
+  color: #fff6df;
+}
+.stat:not(.timer) b {
+  color: #ffdb58;
+}
+.stat.timer {
+  order: -1;
+}
+.leaderboard {
+  background: #16364de8;
+  color: #fff8e7;
+  border: 2px solid #4f859a;
+  border-radius: 20px;
+}
+.leaderboard h3 {
+  color: #ffdc58;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.rankrow {
+  border-radius: 9px;
+  padding: 4px;
+  margin: 3px 0;
+}
+.rankrow.me {
+  background: #0bbbd233;
+  outline: 1px solid #20cce9;
+}
+.ranknum {
+  color: #ffdb58;
+}
+.minimap {
+  background: #19374acb;
+  border-color: #6198ac;
+}
+.resultrow {
+  padding: 9px 12px;
+  margin: 7px 0;
+  border: 0;
+  border-radius: 24px;
+  background: #e9e3d9;
+  color: #203a55;
+}
+.resultrow:first-child {
+  background: linear-gradient(90deg, #ffce43, #ffe995);
+  font-weight: 800;
+}
+.results-card {
+  width: 520px;
+  text-align: center;
+}
+.results-card .race-logo {
+  margin-bottom: 10px;
+}
+.results-card .race-logo > strong {
+  font-size: 38px;
+}
+.trophy {
+  font-size: 50px;
+  line-height: 1;
+  margin-top: -10px;
+}
+.results-card .secondary {
+  margin-top: 16px;
+  min-height: 46px;
+}
+.results-card .footer-note {
+  margin: 12px 0 0;
+}
+.joystick {
+  display: block;
+  position: fixed;
+  bottom: auto;
+  border: 3px solid #8bb9d8a8;
+  background: radial-gradient(circle, #274b6580, #183b5670);
+  box-shadow: inset 0 0 0 7px #82b8d51f;
+  z-index: 0;
+  opacity: 0.75;
+  pointer-events: none;
+}
+.joystick.active {
+  opacity: 1;
+}
+.joystick .stick {
+  left: 50%;
+  top: 50%;
+  width: 54px;
+  height: 54px;
+  border: 3px solid #e6f6ff;
+  border-radius: 50%;
+  background: linear-gradient(#e1edff, #9ebee4);
+  box-shadow:
+    0 4px #416987,
+    inset 0 3px #fff;
+  transform: translate(-50%, -50%);
+}
+.boost,
+.playing .boost {
+  --charge: 360deg;
+  width: 136px;
+  height: 136px;
+  right: max(26px, calc(env(safe-area-inset-right) + 12px));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  padding: 12px 4px;
+  border: 5px solid #214d69;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 25%, #3de9fa, #00b8e9 72%);
+  box-shadow:
+    inset 0 0 0 4px #a3f7ff,
+    0 6px #104e6c,
+    0 10px 20px #193c4c44;
+  color: white;
+  text-shadow: 0 2px #009ac4;
+  isolation: isolate;
+}
+.boost:before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  background: conic-gradient(#8bfcff var(--charge), #204860 0);
+  z-index: -1;
+  mask: radial-gradient(transparent 64%, #000 66%);
+}
+.boost:disabled {
+  opacity: 1;
+  filter: saturate(0.65);
+}
+.boost i {
+  display: block;
+  font-size: 37px;
+  line-height: 1;
+  font-style: normal;
+  letter-spacing: -8px;
+  margin-left: -7px;
+}
+.boost strong {
+  display: block;
+  font-size: 22px;
+  line-height: 1.2;
+  margin-top: 7px;
+}
+.boost .skill-caption {
+  font-size: 11px;
+  margin-top: 2px;
+  opacity: 0.9;
+}
+.boost .skill-caption:empty {
+  display: none;
+}
+.boost .keyboard-hint {
+  font-size: 9px;
+  margin-top: 2px;
+}
+@media (max-width: 700px),
+  (pointer: coarse),
+  (max-height: 520px) and (orientation: landscape) {
+  .playing .hud {
+    height: 58px;
+    padding: 0;
+    gap: 5px;
+  }
+  .playing .stat {
+    min-width: 0;
+    padding: 5px 7px;
+    border-radius: 14px;
+  }
+  .playing .stat b {
+    font-size: 22px;
+  }
+  .playing .boost {
+    width: 114px;
+    height: 114px;
+    right: max(20px, env(safe-area-inset-right));
+    bottom: 20px;
+  }
+  .playing .boost i {
+    font-size: 31px;
+  }
+  .playing .boost strong {
+    font-size: 19px;
+  }
+  .playing .leaderboard.expanded,
+  .playing .controls.expanded {
+    background: #17364df2;
+    color: #fff5e0;
+  }
+  .playing .leaderboard {
+    color: #fff5e0;
+  }
+  .playing .minimap {
+    bottom: 150px;
+  }
+  .driver-card {
+    width: min(440px, 100%);
+    padding: 18px 22px;
+  }
+  .driver-card .race-logo > strong {
+    font-size: 29px;
+  }
+  .driver-card .subtitle {
+    margin-bottom: 12px;
+  }
+  .driver-card .field-label {
+    margin-top: 12px;
+  }
+  .results-card .race-logo > strong {
+    font-size: 30px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .center {
+    padding: 58px 12px 12px;
+  }
+  .driver-card {
+    width: min(660px, 100%);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 22px;
+    text-align: left;
+  }
+  .driver-card .race-logo,
+  .driver-card h1,
+  .driver-card > .subtitle,
+  .driver-card .instructions {
+    grid-column: 1;
+  }
+  .driver-card .race-logo {
+    grid-row: 1/3;
+    text-align: center;
+    margin: 0;
+  }
+  .driver-card h1 {
+    grid-row: 3;
+    font-size: 23px;
+    margin: 0;
+  }
+  .driver-card > .subtitle {
+    grid-row: 4;
+    margin: 0;
+    font-size: 11px;
+  }
+  .driver-card .field-label,
+  .driver-card input,
+  .driver-card .colors,
+  .driver-card #join,
+  .driver-card details,
+  .driver-card .error {
+    grid-column: 2;
+  }
+  .driver-card .field-label[for="nickname"] {
+    grid-row: 1;
+    margin: 0;
+  }
+  .driver-card #nickname {
+    grid-row: 2;
+    padding: 8px 12px;
+  }
+  .driver-card .field-label:not([for]) {
+    grid-row: 3;
+    margin: 0;
+  }
+  .driver-card .colors {
+    grid-row: 4;
+    gap: 9px;
+  }
+  .driver-card .color {
+    width: 32px;
+    height: 32px;
+  }
+  .driver-card #join {
+    grid-row: 5;
+    margin: 2px 0;
+    padding: 9px;
+  }
+  .driver-card details {
+    grid-row: 6;
+    margin: 0;
+  }
+  .driver-card .error {
+    grid-row: 7;
+    margin: 0;
+  }
+  .driver-card .instructions {
+    grid-row: 5/8;
+    margin: 0;
+    padding: 10px 0 0;
+  }
+  .playing .hud {
+    left: 27%;
+    right: 27%;
+    max-width: none;
+  }
+  .playing .connection {
+    max-width: 24%;
+    top: 12px;
+  }
+  .playing .match-actions {
+    top: 14px;
+  }
+  .playing .boost {
+    width: 100px;
+    height: 100px;
+  }
+  .playing .boost i {
+    font-size: 29px;
+  }
+  .playing .boost strong {
+    font-size: 17px;
+    margin-top: 3px;
+  }
+  .results-card {
+    width: min(580px, 100%);
+    padding: 12px 26px;
+  }
+  .results-card .trophy {
+    display: none;
+  }
+  .results-card .race-logo {
+    margin: 0;
+  }
+  .results-card .race-logo > strong {
+    font-size: 26px;
+    padding: 1px 24px;
+  }
+  .results-card .subtitle {
+    margin: 7px 0;
+  }
+  .results-card .resultrow {
+    padding: 6px 10px;
+    margin: 4px 0;
+    font-size: 12px;
+  }
+  .results-card .primary,
+  .results-card .secondary {
+    display: inline-block;
+    width: 47%;
+    padding: 8px;
+    min-height: 40px;
+    margin: 8px 1% 0;
+  }
+}
+/* Actual shared rover artwork replaces the earlier CSS placeholder car. */
+.toy-car {
+  width: 94px;
+  height: 70px;
+  border: 0;
+  border-radius: 0;
+  background: transparent url("/assets/cartoon/rover.png") center/contain
+    no-repeat;
+  box-shadow: none;
+  transform: rotate(-24deg);
+  filter: drop-shadow(0 3px 1px #16334b44);
+}
+.toy-car:before,
+.toy-car:after,
+.toy-car i {
+  display: none;
+}
+.car-art {
+  position: relative;
+}
+.car-art:after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 4px);
+  top: 55%;
+  width: 9px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--car-color);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.lobby .toy-car {
+  width: 82px;
+  height: 58px;
+  transform: rotate(-24deg);
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .directory .garage-center {
+    padding: 50px 14px 10px;
+  }
+  .directory .directory-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto auto minmax(60px, 1fr) auto;
+    gap: 6px 12px;
+    max-height: 100%;
+    width: min(740px, 100%);
+    padding: 10px 18px;
+    overflow-y: auto;
+  }
+  .directory .race-logo {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0;
+    text-align: left;
+  }
+  .directory .race-logo > strong {
+    font-size: 23px;
+    padding: 1px 20px;
+  }
+  .directory .race-logo h1 {
+    display: none;
+  }
+  .directory .directory-heading {
+    display: contents;
+  }
+  .directory .directory-heading > div {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .directory .directory-heading h2 {
+    font-size: 17px;
+    margin: 0;
+  }
+  .directory .directory-heading p {
+    font-size: 11px;
+    margin: 0;
+  }
+  .directory .directory-heading > .primary {
+    grid-column: 2;
+    grid-row: 1/3;
+    margin: 0;
+    min-height: 44px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  .directory .join-code {
+    grid-column: 1/3;
+    margin: 0;
+    gap: 8px;
+  }
+  .directory .join-code input {
+    padding: 8px 12px;
+  }
+  .directory .room-list {
+    grid-column: 1/3;
+    overflow-y: auto;
+    min-height: 60px;
+    max-height: 140px;
+  }
+  .directory .room-tile {
+    padding: 7px 12px;
+    margin: 0 0 6px;
+  }
+  .directory .room-tile strong {
+    font-size: 13px;
+  }
+  .directory .room-tile span {
+    font-size: 11px;
+    margin: 2px 0;
+  }
+  .directory .room-tile small {
+    font-size: 10px;
+  }
+  .directory .room-actions button {
+    min-height: 40px;
+    padding: 7px 14px;
+  }
+  .directory .race-guide {
+    grid-column: 1/3;
+    padding: 6px;
+    margin: 0;
+  }
+  .directory .race-guide b {
+    font-size: 20px;
+  }
+  .directory .race-guide strong {
+    font-size: 12px;
+  }
+  .directory .error:empty {
+    display: none;
+  }
+  .directory .empty-rooms {
+    padding: 12px;
+    margin: 0;
+  }
+  .lobby .toy-car {
+    width: 68px;
+    height: 44px;
+    transform: rotate(-24deg);
+  }
+}
+.toy-car {
+  background-color: var(--car-color);
+  background-blend-mode: multiply;
+  mask: url("/assets/cartoon/rover.png") center/contain no-repeat;
+}
+/* Reserve rotated wheel clearance above player names on short phones. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .lobby .car-art {
+    height: 56px;
+    min-height: 56px;
+  }
+  .lobby .toy-car {
+    width: 72px;
+    height: 48px;
+    transform: rotate(-16deg);
+  }
+}
+/* A persistent translucent overview, including 375px-high landscape devices. */
+.playing .minimap {
+  display: block;
+  left: max(16px, env(safe-area-inset-left));
+  right: auto;
+  top: 102px;
+  bottom: auto;
+  width: 92px;
+  height: 92px;
+  opacity: 0.66;
+  background: #17394b88;
+  border: 2px solid #98d5e6;
+  pointer-events: auto;
+}
+.boost,
+.playing .boost {
+  background: #17394b55;
+  opacity: 0.78;
+  box-shadow:
+    inset 0 0 0 2px #9befff77,
+    0 4px 14px #14384b44;
+}
+.boost:disabled {
+  opacity: 0.72;
+  filter: none;
+}
+.boost:active,
+.boost.boosting {
+  opacity: 0.94;
+}
+.boost .boost-orb {
+  position: absolute;
+  inset: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  z-index: -1;
+  pointer-events: none;
+}
+.boost-orb circle {
+  fill: #163c5d55;
+}
+.boost-orb polygon {
+  fill: #08d2ed;
+  fill-opacity: 0.68;
+  stroke: #9cfcff;
+  stroke-width: 1;
+  stroke-opacity: 0.5;
+}
+.boost.boosting .boost-orb polygon {
+  fill: #8af8ff;
+  fill-opacity: 0.8;
+}
+@media (max-width: 700px),
+  (pointer: coarse),
+  (max-height: 520px) and (orientation: landscape) {
+  .playing .minimap {
+    display: block;
+    top: 70px;
+    bottom: auto;
+    width: 80px;
+    height: 80px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boost-orb polygon {
+    stroke-width: 0;
+  }
+}

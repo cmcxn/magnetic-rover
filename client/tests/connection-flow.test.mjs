@@ -4,6 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 import * as helpers from "../src/types.ts";
+import * as presentation from "../src/presentation.ts";
 import { FrameMetrics } from "../src/performance.ts";
 
 // Execute the real connection handlers with fake browser dependencies. Removing
@@ -61,7 +62,11 @@ function harness(search = "", options = {}) {
         className: "",
         innerHTML: "",
         textContent: "",
-        style: {},
+        style: {
+          setProperty(name, value) {
+            this[name] = value;
+          },
+        },
         dataset: {},
         insertAdjacentHTML(_, value) {
           this.innerHTML += value;
@@ -127,6 +132,7 @@ function harness(search = "", options = {}) {
   }
   const context = {
     ...helpers,
+    ...presentation,
     FrameMetrics,
     Sounds: class {
       update() {}
@@ -1373,20 +1379,48 @@ test("out-of-order snapshots cannot rewind authoritative HUD or effects, equal t
 });
 
 test("compact supply HUD follows server stage, warns before shrinking and signals final banking", () => {
-  const h = harness(); h.connect(); const socket = welcome(h);
-  const snapshot = (supply) => socket.onmessage({ data: JSON.stringify({type:"state",phase:"playing",remaining:50,players:[],stations:[],batteries:[],supply}) });
-  snapshot({stage:2,outerRadius:340,nextOuterRadius:230,secondsToShrink:12,banking:false});
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  const snapshot = (supply) =>
+    socket.onmessage({
+      data: JSON.stringify({
+        type: "state",
+        phase: "playing",
+        remaining: 50,
+        players: [],
+        stations: [],
+        batteries: [],
+        supply,
+      }),
+    });
+  snapshot({
+    stage: 2,
+    outerRadius: 340,
+    nextOuterRadius: 230,
+    secondsToShrink: 12,
+    banking: false,
+  });
   assert.equal(h.node("#supply-status").textContent, "2/4区 · 12秒缩");
-  snapshot({stage:3,outerRadius:230,nextOuterRadius:140,secondsToShrink:5,banking:false});
+  snapshot({
+    stage: 3,
+    outerRadius: 230,
+    nextOuterRadius: 140,
+    secondsToShrink: 5,
+    banking: false,
+  });
   assert.equal(h.node("#supply-status").textContent, "3/4区 · 5秒缩");
-  snapshot({stage:4,outerRadius:140,banking:false});
+  snapshot({ stage: 4, outerRadius: 140, banking: false });
   assert.equal(h.node("#supply-status").textContent, "4/4区 · 中心争夺");
-  snapshot({stage:4,outerRadius:140,banking:true});
+  snapshot({ stage: 4, outerRadius: 140, banking: true });
   assert.equal(h.node("#supply-status").textContent, "停补给 · 快回收");
 });
 
 test("normal collision notice ends with server stun instead of claiming one second", () => {
-  const h = harness(); h.connect(); welcome(h); playing(h, {});
+  const h = harness();
+  h.connect();
+  welcome(h);
+  playing(h, {});
   playing(h, { hitSeq: 1, stun: 0.65 });
   assert.doesNotMatch(h.node("#notice").textContent, /眩晕1秒/);
   h.tick(650);
