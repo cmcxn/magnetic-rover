@@ -274,7 +274,16 @@ export class CartoonPanel extends Phaser.Scene {
       this.text(172, 354, "小车大电量\n出发，抢点电！", 27).setOrigin(0.5);
       this.guide(428, W);
     } else if (!m.roomId) {
-      this.text(28, 108, "选择你的赛场", 25);
+      this.button(
+        28,
+        101,
+        520,
+        `昵称：${m.name} · 修改`,
+        this.actions.rename,
+        true,
+        true,
+        42,
+      );
       this.button(620, 101, 212, "＋ 创建房间", () =>
         this.actions.send({ type: "create_room" }),
       );
@@ -401,7 +410,7 @@ export class CartoonPanel extends Phaser.Scene {
         this.text(
           x + 123,
           y + 23,
-          (p.id === m.self ? "我 · " : "") + p.name.slice(0, 10),
+          (p.id === m.self ? "改名 · " : "") + p.name.slice(0, 10),
           18,
         ).setOrigin(0, 0.5);
         this.text(x + w - 20, y + 23, String(p.score), 25).setOrigin(1, 0.5);
@@ -505,7 +514,7 @@ export class CartoonPanel extends Phaser.Scene {
         const limit = p.id === m.self ? 7 : 10;
         const nickname = [...p.name];
         const caption =
-          (p.id === m.self ? "我 · " : "") +
+          (p.id === m.self ? "改名 · " : "") +
           nickname.slice(0, limit).join("") +
           (nickname.length > limit ? "…" : "");
         this.text(
@@ -515,6 +524,16 @@ export class CartoonPanel extends Phaser.Scene {
           lobby.nameFont,
           "#fff8e7",
         ).setOrigin(0.5);
+        if (p.id === m.self) {
+          const s = this.menu.scaleX;
+          this.hits.push({
+            x: this.menu.x + x * s,
+            y: this.menu.y + (y + lobby.nameTop) * s,
+            w: lobby.width * s,
+            h: lobby.nameHeight * s,
+            action: this.actions.rename,
+          });
+        }
         this.text(
           x + lobby.width / 2,
           y + lobby.readyY,

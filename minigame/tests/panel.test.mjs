@@ -229,3 +229,21 @@ test("room palette disables occupied colors and sends free color selection", () 
     { type: "set_color", color: types.COLORS[6] },
   ]);
 });
+test("local lobby nickname opens rename action", () => {
+  const { p, model, calls } = harness();
+  model.connected = true;
+  model.roomId = "000001";
+  model.state = {
+    phase: "lobby",
+    players: [
+      { id: "me", name: "Me", color: types.COLORS[0], connected: true },
+    ],
+    batteries: [],
+    stations: [],
+  };
+  p.update();
+  const layout = lobbyCardLayout(1),
+    s = p.menu.scaleX;
+  p.press(p.menu.x + 422 * s, p.menu.y + (layout.top + layout.nameY) * s);
+  assert.equal(calls.at(-1)[0], "rename");
+});

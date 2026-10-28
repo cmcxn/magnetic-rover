@@ -1431,3 +1431,27 @@ test("login instructions distinguish boosted drops from ordinary contact", () =>
   assert.doesNotMatch(h.node("#surface").innerHTML, /碰撞也会掉落电池/);
   assert.match(h.node("#surface").innerHTML, /冲刺撞击才掉电池/);
 });
+test("confirmed profile persists name and preferred color for reconnect", () => {
+  const h = harness();
+  h.connect();
+  const socket = h.sockets[0];
+  socket.onopen();
+  socket.onmessage({
+    data: JSON.stringify({
+      type: "welcome",
+      id: "p1",
+      token: "t",
+      role: "directory",
+      roomId: null,
+    }),
+  });
+  socket.onmessage({
+    data: JSON.stringify({
+      type: "profile",
+      name: "薄荷车手",
+      color: helpers.COLORS[6],
+    }),
+  });
+  assert.equal(h.storage.get("rover.name"), "薄荷车手");
+  assert.equal(h.storage.get("rover.color"), helpers.COLORS[6]);
+});

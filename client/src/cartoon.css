@@ -764,3 +764,22 @@ input {
     font-size: 19px;
   }
 }
+
+.driver-name {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.driver-name:focus-visible {
+  outline: 2px solid #fff;
+}
+.profile-edit {
+  margin: 4px 0 10px;
+}

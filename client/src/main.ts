@@ -217,6 +217,32 @@ function showError(s: string) {
   if (el) el.textContent = s;
   else notice(s);
 }
+function rememberProfile(profile: { name?: string; color?: string }) {
+  if (profile.name) {
+    localStorage.setItem("rover.name", profile.name);
+    if (session) session.name = profile.name;
+    const button = document.querySelector("#edit-name");
+    if (button) button.textContent = `昵称：${profile.name} · 修改`;
+  }
+  if (profile.color && COLORS.includes(profile.color)) {
+    color = profile.color;
+    localStorage.setItem("rover.color", color);
+    if (session) session.color = color;
+  }
+}
+function renameDriver() {
+  const value = window.prompt(
+    "修改车手昵称（最多16字）",
+    localStorage.getItem("rover.name") || "",
+  );
+  if (value === null) return;
+  const name = [...value.trim()].slice(0, 16).join("");
+  if (!name) {
+    showError("先给你的小车起个昵称吧。");
+    return;
+  }
+  send({ type: "set_name", name });
+}
 function connect(automatic = false) {
   void sounds.unlock().catch(() => {});
   const name =
@@ -343,7 +369,12 @@ function connect(automatic = false) {
       showWaiting(data.availableIn);
       return;
     }
+    if (data.type === "profile") {
+      rememberProfile(data);
+      return;
+    }
     if (data.type === "welcome") {
+      rememberProfile(data);
       clearTimeout(leaveTimer);
       leaveTimer = undefined;
       waiting = false;
@@ -534,6 +565,7 @@ function showJoin(disconnected = false) {
     (b) =>
       (b.onclick = () => {
         color = b.dataset.color!;
+        localStorage.setItem("rover.color", color);
         document.querySelectorAll("[data-color]").forEach((x) => {
           x.classList.toggle(
             "selected",
@@ -556,7 +588,9 @@ function showDirectory() {
     directorySignature = "";
     renderKey = "";
     app.className = "directory";
-    surface.innerHTML = `<div class="center garage-center"><section class="card garage directory-card"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="directory-heading"><div><h2>选择你的赛场</h2><p>2–8 人同场 · 全员准备即发车</p></div><button id="create-room" class="primary">＋ 创建房间</button></div><form id="join-code" class="join-code"><input id="room-input" maxlength="16" placeholder="输入朋友的房间码" aria-label="房间码"><button class="secondary" type="submit">加入</button></form><div id="room-list" class="room-list"></div><div class="error" id="error" role="alert"></div>${raceGuide()}</section></div>`;
+    surface.innerHTML = `<div class="center garage-center"><section class="card garage directory-card"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="directory-heading"><div><h2>选择你的赛场</h2><p>2–8 人同场 · 全员准备即发车</p></div><button id="create-room" class="primary">＋ 创建房间</button></div><button id="edit-name" class="secondary profile-edit">昵称：${escape(localStorage.getItem("rover.name") || "车手")} · 修改</button><form id="join-code" class="join-code"><input id="room-input" maxlength="16" placeholder="输入朋友的房间码" aria-label="房间码"><button class="secondary" type="submit">加入</button></form><div id="room-list" class="room-list"></div><div class="error" id="error" role="alert"></div>${raceGuide()}</section></div>`;
+    document.querySelector<HTMLButtonElement>("#edit-name")!.onclick =
+      renameDriver;
     document.querySelector<HTMLButtonElement>("#create-room")!.onclick = () =>
       send({ type: "create_room" });
     document.querySelector<HTMLFormElement>("#join-code")!.onsubmit = (
@@ -674,9 +708,11 @@ function render() {
     document.querySelector("#roster")!.innerHTML = state.players
       .map(
         (p) =>
-          `<article class="car-card ${p.ready ? "is-ready" : ""}" style="--car-color:${COLORS.includes(p.color) ? p.color : COLORS[0]}"><div class="car-art" aria-hidden="true"><span class="toy-car"><i></i></span></div><strong>${escape(p.name)}${p.id === id ? " · 你" : ""}</strong><span class="ready-chip">${!p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备"}</span></article>`,
+          `<article class="car-card ${p.ready ? "is-ready" : ""}" style="--car-color:${COLORS.includes(p.color) ? p.color : COLORS[0]}"><div class="car-art" aria-hidden="true"><span class="toy-car"><i></i></span></div><strong>${p.id === id ? `<button class="driver-name" aria-label="修改车手昵称">${escape(p.name)} · 你 ✎</button>` : escape(p.name)}</strong><span class="ready-chip">${!p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备"}</span></article>`,
       )
       .join("");
+    const rename = document.querySelector<HTMLButtonElement>(".driver-name");
+    if (rename) rename.onclick = renameDriver;
     const palette = document.querySelector<HTMLDivElement>("#room-palette")!;
     palette.innerHTML = COLORS.map((c) => {
       const taken = state!.players.some((p) => p.id !== id && p.color === c);

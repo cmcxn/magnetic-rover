@@ -30,7 +30,10 @@ const safeRight = () =>
 const endpoint =
   wx.getStorageSync("rover.spike.endpoint") || "wss://cb.chenmin.org/ws";
 const tokenKey = "rover.spike.token:" + endpoint;
-let name = wx.getStorageSync("rover.spike.name") || "微信车手";
+let name =
+  wx.getStorageSync("rover.name") ||
+  wx.getStorageSync("rover.spike.name") ||
+  "微信车手";
 let color = COLORS.includes(wx.getStorageSync("rover.color"))
   ? wx.getStorageSync("rover.color")
   : COLORS[0];
@@ -135,7 +138,10 @@ function connect() {
     } catch {
       return;
     }
-    if (data.type === "welcome") {
+    if (data.type === "profile") {
+      rememberProfile(data);
+    } else if (data.type === "welcome") {
+      rememberProfile(data);
       wx.setStorageSync(tokenKey, data.token);
       self = data.id;
       roomId = data.roomId;
@@ -195,6 +201,17 @@ function connect() {
   });
 }
 
+function rememberProfile(profile: { name?: string; color?: string }) {
+  if (profile.name) {
+    name = profile.name;
+    wx.setStorageSync("rover.name", name);
+    wx.setStorageSync("rover.spike.name", name);
+  }
+  if (profile.color && COLORS.includes(profile.color)) {
+    color = profile.color;
+    wx.setStorageSync("rover.color", color);
+  }
+}
 function editable(
   title: string,
   placeholderText: string,
@@ -232,8 +249,9 @@ panel = new CartoonPanel(
     toggleSound: () => sounds.toggle(),
     rename: () =>
       editable("车手昵称", name, (value) => {
-        name = value.slice(0, 16);
-        wx.setStorageSync("rover.spike.name", name);
+        const nextName = [...value].slice(0, 16).join("");
+        if (connected) send({ type: "set_name", name: nextName });
+        else rememberProfile({ name: nextName });
       }),
     color: (value) => {
       color = value;
