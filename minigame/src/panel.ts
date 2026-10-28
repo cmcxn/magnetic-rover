@@ -174,20 +174,29 @@ export class CartoonPanel extends Phaser.Scene {
       });
     }
   }
-  private car(x: number, y: number, color: string, size = 100, angle = -0.35) {
+  private car(
+    x: number,
+    y: number,
+    color: string,
+    size = 100,
+    angle = -0.35,
+    alpha = 1,
+  ) {
     const texture = "rover-" + color.slice(1);
     if (this.textures.exists(texture)) {
       const car = this.add
         .image(x, y, texture, "trim")
         .setDisplaySize(size, size * 0.7)
-        .setRotation(angle);
+        .setRotation(angle)
+        .setAlpha(alpha);
       this.menu.add(car);
     } else if (this.textures.exists("rover")) {
       this.menu.add(
         this.add
           .image(x, y, "rover", "trim")
           .setDisplaySize(size, size * 0.7)
-          .setRotation(angle),
+          .setRotation(angle)
+          .setAlpha(alpha),
       );
     }
   }
@@ -237,7 +246,7 @@ export class CartoonPanel extends Phaser.Scene {
       this.button(400, 143, 400, m.name, this.actions.rename, true);
       this.text(400, 207, "挑一辆喜欢的小车", 18);
       COLORS.forEach((c, i) => {
-        const x = 429 + i * 66;
+        const x = 420 + i * 51;
         this.paint.fillStyle(parseInt(c.slice(1), 16)).fillCircle(x, 255, 22);
         this.paint
           .lineStyle(c === m.color ? 4 : 2, c === m.color ? UI.navy : 0xffffff)
@@ -435,6 +444,31 @@ export class CartoonPanel extends Phaser.Scene {
         true,
         42,
       );
+      const occupied = new Set(
+        m.state.players.filter((p) => p.id !== m.self).map((p) => p.color),
+      );
+      const selfColor = m.state.players.find((p) => p.id === m.self)?.color;
+      COLORS.forEach((c, i) => {
+        const x = 665 + (i % 4) * 31,
+          y = 104 + Math.floor(i / 4) * 25;
+        const taken = occupied.has(c);
+        this.paint
+          .fillStyle(parseInt(c.slice(1), 16), taken ? 0.25 : 1)
+          .fillCircle(x, y, 10);
+        if (c === selfColor)
+          this.paint.lineStyle(2, UI.navy).strokeCircle(x, y, 12);
+        if (taken) this.text(x, y, "×", 15).setOrigin(0.5);
+        if (!taken && !m.spectator) {
+          const s = this.menu.scaleX;
+          this.hits.push({
+            x: this.menu.x + (x - 12) * s,
+            y: this.menu.y + (y - 12) * s,
+            w: 24 * s,
+            h: 24 * s,
+            action: () => this.actions.send({ type: "set_color", color: c }),
+          });
+        }
+      });
       const players = m.state.players,
         lobby = lobbyCardLayout(players.length);
       players.forEach((p, i) => {
@@ -448,7 +482,7 @@ export class CartoonPanel extends Phaser.Scene {
           y,
           lobby.width,
           lobby.height,
-          parseInt(p.color.slice(1), 16),
+          p.ready && p.connected ? parseInt(p.color.slice(1), 16) : 0xe3e9e5,
           20,
         );
         this.car(
@@ -457,6 +491,7 @@ export class CartoonPanel extends Phaser.Scene {
           p.color,
           lobby.carWidth,
           lobby.angle,
+          p.ready && p.connected ? 1 : 0.35,
         );
         this.paint
           .fillStyle(UI.navy)
@@ -687,10 +722,10 @@ export class CartoonPanel extends Phaser.Scene {
         g.fillStyle(UI.navy, 0.36).fillCircle(b.x, b.y, b.r);
         const liquid = orbLiquid(b.x, b.y, b.r - 5, skill.energy, Date.now());
         if (liquid.length)
-          g.fillStyle(skill.boosting ? 0x83faff : UI.cyan, 0.65).fillPoints(
-            liquid,
-            true,
-          );
+          g.fillStyle(
+            parseInt((me?.color ?? m.color).slice(1), 16),
+            0.65,
+          ).fillPoints(liquid, true);
         if (skill.energy > 0.25) {
           for (let i = 0; i < 3; i++) {
             const dx = (i - 1) * b.r * 0.29,
@@ -706,9 +741,13 @@ export class CartoonPanel extends Phaser.Scene {
               );
           }
         }
-        g.lineStyle(3, 0x9ff8ff, 0.65).strokeCircle(b.x, b.y, b.r - 4);
+        g.lineStyle(
+          3,
+          parseInt((me?.color ?? m.color).slice(1), 16),
+          0.65,
+        ).strokeCircle(b.x, b.y, b.r - 4);
         g.lineStyle(4, 0x244c66, 0.6).strokeCircle(b.x, b.y, b.r + 1);
-        g.lineStyle(3, 0x93f7ff, 0.8);
+        g.lineStyle(3, parseInt((me?.color ?? m.color).slice(1), 16), 0.8);
         g.beginPath();
         g.arc(
           b.x,

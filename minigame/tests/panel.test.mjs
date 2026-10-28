@@ -201,3 +201,31 @@ test("room code uses plain digits and a readable copy label instead of a square 
   p.press(copy.x + copy.w / 2, copy.y + copy.h / 2);
   assert.equal(calls.at(-1)[0], "copy");
 });
+test("room palette disables occupied colors and sends free color selection", () => {
+  const { p, model, calls } = harness();
+  model.connected = true;
+  model.roomId = "000001";
+  model.state = {
+    phase: "lobby",
+    players: [
+      { id: "me", name: "Me", color: types.COLORS[0], connected: true },
+      { id: "other", name: "Other", color: types.COLORS[1], connected: true },
+    ],
+    batteries: [],
+    stations: [],
+  };
+  p.update();
+  // Palette is at fixed logical coordinates; occupied cell must have no hit.
+  const scale = p.menu.scaleX;
+  const at = (i) =>
+    p.press(
+      p.menu.x + (665 + (i % 4) * 31) * scale,
+      p.menu.y + (104 + Math.floor(i / 4) * 25) * scale,
+    );
+  assert.equal(at(1), false);
+  assert.equal(at(6), true);
+  assert.deepEqual(JSON.parse(JSON.stringify(calls.at(-1))), [
+    "send",
+    { type: "set_color", color: types.COLORS[6] },
+  ]);
+});

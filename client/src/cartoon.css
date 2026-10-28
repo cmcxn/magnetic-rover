@@ -258,7 +258,10 @@ input {
   position: absolute;
   inset: -7px;
   border-radius: 50%;
-  background: conic-gradient(#8bfcff var(--charge), #204860 0);
+  background: conic-gradient(
+    var(--player-color, #8bfcff) var(--charge),
+    #204860 0
+  );
   z-index: -1;
   mask: radial-gradient(transparent 64%, #000 66%);
 }
@@ -685,14 +688,14 @@ input {
   fill: #163c5d55;
 }
 .boost-orb polygon {
-  fill: #08d2ed;
+  fill: var(--player-color, #08d2ed);
   fill-opacity: 0.68;
   stroke: #9cfcff;
   stroke-width: 1;
   stroke-opacity: 0.5;
 }
 .boost.boosting .boost-orb polygon {
-  fill: #8af8ff;
+  fill: var(--player-color, #8af8ff);
   fill-opacity: 0.8;
 }
 @media (max-width: 700px),
@@ -709,5 +712,55 @@ input {
 @media (prefers-reduced-motion: reduce) {
   .boost-orb polygon {
     stroke-width: 0;
+  }
+}
+
+/* Waiting cars stay pale; ready cars regain their full team color. */
+.lobby .car-card:not(.is-ready) .car-art {
+  opacity: 0.38;
+  filter: saturate(0.45);
+}
+.lobby .car-card.is-ready {
+  outline: 3px solid var(--car-color);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--car-color) 60%, transparent);
+}
+.room-palette {
+  grid-area: palette;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px 0 10px;
+}
+.room-palette button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  color: #17394b;
+  font-weight: bold;
+}
+.room-palette button[aria-pressed="true"] {
+  outline: 2px solid #17394b;
+}
+.room-palette button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .lobby .room-palette {
+    display: grid;
+    grid-template-columns: repeat(4, 26px);
+    gap: 3px;
+    margin: 0;
+    justify-self: end;
+  }
+  .lobby .room-code {
+    gap: 5px;
+    padding: 0;
+  }
+  .lobby .room-code strong {
+    font-size: 19px;
   }
 }

@@ -621,7 +621,7 @@ function render() {
     mouseDown = false;
     boost = false;
     if (phase === "lobby")
-      surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><button id="start" class="primary race-start">❯❯ 开始比赛</button><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
+      surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="room-palette" class="room-palette" aria-label="房间车身颜色"></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><button id="start" class="primary race-start">❯❯ 开始比赛</button><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
     if (phase === "playing") {
       surface.innerHTML = `<div class="hud"><div class="stat"><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat"><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="match-actions"><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-controls="settings" aria-expanded="false">设置</button>${role !== "spectator" ? '<button class="secondary leave-room">返回大厅</button>' : ""}</div><aside class="leaderboard"><h3>已存排行</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
       surface.insertAdjacentHTML(
@@ -677,6 +677,19 @@ function render() {
           `<article class="car-card ${p.ready ? "is-ready" : ""}" style="--car-color:${COLORS.includes(p.color) ? p.color : COLORS[0]}"><div class="car-art" aria-hidden="true"><span class="toy-car"><i></i></span></div><strong>${escape(p.name)}${p.id === id ? " · 你" : ""}</strong><span class="ready-chip">${!p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备"}</span></article>`,
       )
       .join("");
+    const palette = document.querySelector<HTMLDivElement>("#room-palette")!;
+    palette.innerHTML = COLORS.map((c) => {
+      const taken = state!.players.some((p) => p.id !== id && p.color === c);
+      return `<button data-room-color="${c}" style="background:${c}" ${taken || role !== "player" ? "disabled" : ""} aria-label="${taken ? "已占用" : "选择颜色"} ${c}" aria-pressed="${me?.color === c}" title="${taken ? "已占用" : "选择颜色"}">${taken ? "×" : me?.color === c ? "✓" : ""}</button>`;
+    }).join("");
+
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-room-color]:not(:disabled)")
+      .forEach(
+        (b) =>
+          (b.onclick = () =>
+            send({ type: "set_color", color: b.dataset.roomColor })),
+      );
     const n = state.players.length;
     document.querySelector("#slots")!.innerHTML =
       `<strong>${n}</strong> / 8 人`;
@@ -938,6 +951,7 @@ function updateSkillButton() {
   const b = document.querySelector<HTMLButtonElement>("#boost");
   if (!b) return;
   const me = state?.players.find((p) => p.id === id);
+  b.style.setProperty("--player-color", me?.color ?? color);
   const view = skillView(me, performance.now() - lastState);
   const stun = me?.stun ?? 0;
   const label = view.boosting

@@ -54,9 +54,9 @@ test("waiting room reflows to fit available height without clipping scroll fallb
   );
   assert.match(
     lobby,
-    /grid-template-areas: "logo logo" "code code" "roster roster" "slots start"/,
+    /grid-template-areas: "logo logo" "code code" "palette palette" "roster roster" "slots start"/,
   );
-  assert.match(lobby, /grid-template-areas: "logo logo code code code code"/);
+  assert.match(lobby, /grid-template-areas: "logo logo code code palette palette"/);
   assert.match(lobby, /\.lobby \.error:empty \{[^}]*display: none/);
   assert.match(lobby, /\.lobby \.leave-room[^}]*min-height: 44px/);
   assert.doesNotMatch(lobby, /overflow(?:-y)?: (?:hidden|clip)/);

@@ -69,6 +69,8 @@ export const COLORS = [
   "#facc15",
   "#34d399",
   "#fb923c",
+  "#e879f9",
+  "#cbd5e1",
 ];
 export function escape(s: string) {
   return s.replace(

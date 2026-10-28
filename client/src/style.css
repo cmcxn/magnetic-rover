@@ -1373,6 +1373,7 @@ details input {
   grid-template-areas:
     "logo logo"
     "code code"
+    "palette palette"
     "roster roster"
     "slots start"
     "hint hint"
@@ -1523,7 +1524,7 @@ details input {
     grid-template-columns: repeat(6, minmax(0, 1fr));
     grid-template-rows: repeat(6, max-content);
     grid-template-areas:
-      "logo logo code code code code"
+      "logo logo code code palette palette"
       "roster roster roster roster roster roster"
       "slots start start start leave leave"
       "hint hint hint hint hint hint"
