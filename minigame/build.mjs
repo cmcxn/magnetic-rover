@@ -3,6 +3,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
 import { checkPackage } from "./package-size.mjs";
+import { buildAudio } from "./audio-assets.mjs";
 process.chdir(resolve(dirname(fileURLToPath(import.meta.url)), ".."));
 execFileSync(process.execPath, ["--test", "minigame/tests/clock.test.mjs"], {
   stdio: "inherit",
@@ -22,6 +23,7 @@ for (const name of ["weapp-adapter.LICENSE", "Phaser.LICENSE"])
 await cp("client/public/assets/cartoon", "minigame/dist/art/cartoon", {
   recursive: true,
 });
+await buildAudio("client/public/assets/audio", "minigame/dist/art/audio");
 await build({
   entryPoints: ["minigame/src/platform.js"],
   outfile: "minigame/dist/platform.js",

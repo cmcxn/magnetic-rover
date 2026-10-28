@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { WeChatSounds } from "./audio";
 import { CartoonPanel } from "./panel";
 import { skillView } from "../../client/src/presentation";
 import { World } from "../../client/src/world";
@@ -52,6 +53,10 @@ let boost = false,
   lastInput = 0,
   uiKey = "",
   notice = "";
+const sounds = new WeChatSounds(wx);
+console.info(
+  "[rover] audio backend: wx.createInnerAudioContext (first touch unlocks)",
+);
 const frames = new FrameMetrics();
 let frameSample: FrameSample | null = null;
 let scenePeakMs = 0,
@@ -148,6 +153,7 @@ function connect() {
       uiKey = "";
     } else if (data.type === "state") {
       if (state?.phase !== data.phase) resetInput();
+      if (active) sounds.update(state, data, self);
       const gained = pickupCount(state, data, self);
       if (gained) world.pickupFeedback(gained);
       state = data;
@@ -207,6 +213,7 @@ panel = new CartoonPanel(
   () => ({
     connected,
     status,
+    soundEnabled: sounds.enabled,
     name,
     color,
     endpoint,
@@ -222,6 +229,7 @@ panel = new CartoonPanel(
   }),
   {
     connect,
+    toggleSound: () => sounds.toggle(),
     rename: () =>
       editable("车手昵称", name, (value) => {
         name = value.slice(0, 16);
@@ -312,6 +320,7 @@ function networkTick() {
 let lastTouch: { x: number; y: number; hit: boolean } | null = null;
 const fieldTouches = new Set<number>();
 wx.onTouchStart((event: any) => {
+  sounds.unlock();
   for (const t of event.changedTouches) {
     const x = t.clientX,
       y = t.clientY;
@@ -358,6 +367,7 @@ wx.onTouchCancel((event: any) => {
 wx.onHide(() => {
   resetInput();
   active = false;
+  sounds.setActive(false);
   rtt = null;
   ping = null;
   frames.reset();
@@ -365,6 +375,7 @@ wx.onHide(() => {
 });
 wx.onShow(() => {
   active = true;
+  sounds.setActive(true);
   world.resetMotion();
   if (connected) send({ type: "rooms" });
 });
@@ -378,6 +389,7 @@ const game = new Phaser.Game({
   width: info.windowWidth,
   height: info.windowHeight,
   backgroundColor: "#86bed6",
+  // Audio uses wx.createInnerAudioContext; keep the browser audio manager off.
   audio: { noAudio: true },
   input: { keyboard: false, mouse: false, touch: false, gamepad: false },
   loader: { imageLoadType: "HTMLImageElement" },
@@ -409,6 +421,7 @@ Object.defineProperty(GameGlobal, "roverSpike", {
   get: () => ({
     endpoint,
     connected,
+    audio: sounds.diagnostics,
     status,
     lastTouch,
     hitAreas: panel?.hits.map(({ action, ...hit }) => hit),
