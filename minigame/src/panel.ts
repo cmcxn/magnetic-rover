@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { lobbyCardLayout } from "./lobby-layout";
 import {
   COLORS,
   sharedRank,
@@ -173,20 +174,20 @@ export class CartoonPanel extends Phaser.Scene {
       });
     }
   }
-  private car(x: number, y: number, color: string, size = 100) {
+  private car(x: number, y: number, color: string, size = 100, angle = -0.35) {
     const texture = "rover-" + color.slice(1);
     if (this.textures.exists(texture)) {
       const car = this.add
         .image(x, y, texture, "trim")
         .setDisplaySize(size, size * 0.7)
-        .setRotation(-0.35);
+        .setRotation(angle);
       this.menu.add(car);
     } else if (this.textures.exists("rover")) {
       this.menu.add(
         this.add
           .image(x, y, "rover", "trim")
           .setDisplaySize(size, size * 0.7)
-          .setRotation(-0.35),
+          .setRotation(angle),
       );
     }
   }
@@ -428,50 +429,62 @@ export class CartoonPanel extends Phaser.Scene {
         277,
         96,
         306,
-        `房间码 ${m.state.roomCode ?? m.roomId}  ▣`,
+        `房间码 ${m.state.roomCode ?? m.roomId}  复制`,
         this.actions.copy,
         true,
         true,
         42,
       );
       const players = m.state.players,
-        rows = players.length > 4 ? 2 : 1;
+        lobby = lobbyCardLayout(players.length);
       players.forEach((p, i) => {
-        const cols = Math.min(4, players.length),
-          cw = 176,
-          x = (W - cols * (cw + 18) + 18) / 2 + (i % 4) * (cw + 18),
-          y = 153 + Math.floor(i / 4) * 103;
+        const x =
+          (W - lobby.columns * (lobby.width + lobby.gap) + lobby.gap) / 2 +
+          (i % 4) * (lobby.width + lobby.gap);
+        const y = lobby.top + Math.floor(i / 4) * lobby.rowStep;
         this.rounded(
           this.paint,
           x,
           y,
-          cw,
-          rows === 2 ? 94 : 148,
+          lobby.width,
+          lobby.height,
           parseInt(p.color.slice(1), 16),
           20,
         );
         this.car(
-          x + cw / 2,
-          y + (rows === 2 ? 32 : 58),
+          x + lobby.width / 2,
+          y + lobby.carY,
           p.color,
-          rows === 2 ? 76 : 108,
+          lobby.carWidth,
+          lobby.angle,
         );
-        const nameY = y + (rows === 2 ? 62 : 111);
         this.paint
           .fillStyle(UI.navy)
-          .fillRoundedRect(x, nameY - 12, cw, 26, 10);
+          .fillRoundedRect(
+            x,
+            y + lobby.nameTop,
+            lobby.width,
+            lobby.nameHeight,
+            10,
+          );
+        const limit = p.id === m.self ? 7 : 10;
+        const nickname = [...p.name];
+        const caption =
+          (p.id === m.self ? "我 · " : "") +
+          nickname.slice(0, limit).join("") +
+          (nickname.length > limit ? "…" : "");
         this.text(
-          x + cw / 2,
-          nameY,
-          (p.id === m.self ? "我 · " : "") + p.name.slice(0, 9),
-          16,
+          x + lobby.width / 2,
+          y + lobby.nameY,
+          caption,
+          lobby.nameFont,
           "#fff8e7",
         ).setOrigin(0.5);
         this.text(
-          x + cw / 2,
-          y + (rows === 2 ? 87 : 142),
+          x + lobby.width / 2,
+          y + lobby.readyY,
           !p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备",
-          15,
+          lobby.readyFont,
           p.ready ? "#173e37" : "#203a55",
         ).setOrigin(0.5);
       });

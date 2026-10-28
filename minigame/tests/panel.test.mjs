@@ -5,6 +5,7 @@ import vm from "node:vm";
 import ts from "../../client/node_modules/typescript/lib/typescript.js";
 import * as presentation from "../../client/src/presentation.ts";
 import * as types from "../../client/src/types.ts";
+import { lobbyCardLayout } from "../src/lobby-layout.ts";
 const source = fs.readFileSync(
   new URL("../src/panel.ts", import.meta.url),
   "utf8",
@@ -38,6 +39,7 @@ function harness() {
   const context = {
     exports: {},
     ...presentation,
+    lobbyCardLayout,
     ...types,
     Phaser: { Scene: class {} },
   };
@@ -170,4 +172,32 @@ test("playing boost uses circular hit target and remains separate from joystick"
   );
   assert.equal(p.press(boost.x, boost.y), true);
   assert.equal(calls.at(-1)[0], "boost");
+});
+test("room code uses plain digits and a readable copy label instead of a square glyph", () => {
+  const { p, model, calls } = harness(),
+    labels = [],
+    original = p.text.bind(p);
+  p.text = (x, y, text, ...rest) => {
+    labels.push(text);
+    return original(x, y, text, ...rest);
+  };
+  model.connected = true;
+  model.roomId = "000013";
+  model.state = {
+    phase: "lobby",
+    roomCode: "000013",
+    players: [
+      { id: "me", name: "测试", color: types.COLORS[0], connected: true },
+    ],
+    batteries: [],
+    stations: [],
+  };
+  p.invalidate();
+  p.update();
+  const label = labels.find((t) => t.startsWith("房间码"));
+  assert.match(label, /000013.*复制/);
+  assert.doesNotMatch(label, /[▣■□]/);
+  const copy = p.hits[0];
+  p.press(copy.x + copy.w / 2, copy.y + copy.h / 2);
+  assert.equal(calls.at(-1)[0], "copy");
 });
