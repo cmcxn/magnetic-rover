@@ -3,7 +3,8 @@ local config=require 'game_config'
 local vehicleCollision=require 'vehicle_collision'
 local batteryMotion=require 'battery_motion'
 local resources=config.resources
-local colors={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=true,['#34d399']=true,['#fb923c']=true}
+local palette={'#38bdf8','#fb7185','#a78bfa','#facc15','#34d399','#fb923c','#e879f9','#cbd5e1'}
+local colors={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=true,['#34d399']=true,['#fb923c']=true,['#e879f9']=true,['#cbd5e1']=true}
 local function dist(a,b) return (a.x-b.x)^2+(a.y-b.y)^2 end
 -- Entry/exit times along the frozen, clamped tick movement; nil means no contact.
 local function circleInterval(a,b,p,r)
@@ -38,6 +39,8 @@ function G:join(fd,name,color,token,deferNew)
  if self.phase~='lobby' then return nil,'Match in progress; wait for the next lobby',self.phase end
  if #self.players>=8 then return nil,'Lobby full','full' end
  if deferNew then return nil,'Earlier guests are waiting','queued' end
+ local used={};for _,q in ipairs(self.players) do if not q.removed then used[q.color]=true end end
+ if not colors[color] or used[color] then for _,c in ipairs(palette) do if not used[c] then color=c;break end end end
  self.nextid=self.nextid+1;local n=self.nextid
  local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos((n-1)*math.pi/4)*220,y=math.sin((n-1)*math.pi/4)*220,angle=0,cargo=0,score=0,cooldown=0,boost=0,stun=0,hitSeq=0,impactSeq=0,kx=0,ky=0,pickupSeq=0,protect=0,connected=true,ix=0,iy=0,last=self.time,lastInputSeq=0,pendingSeq=0,inputSeq=0,inputElapsed=0}
  -- Reuse an actually free lobby slot, not nextid modulo eight after churn.

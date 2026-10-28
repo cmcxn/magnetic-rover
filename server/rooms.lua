@@ -54,7 +54,7 @@ function R:enter(s,room,role)
  else
   local p,e=room.game:join(s.fd,s.name,s.color)
   if not p then return self:error(s.fd,e) end
-  p.token=s.token;s.player=p;s.room=room;s.role='player';room.ready[p.id]=false
+  p.token=s.token;s.color=p.color;s.player=p;s.room=room;s.role='player';room.ready[p.id]=false
  end
  room.emptySince=nil;self:welcome(s);self:sendState(s)
 end
@@ -106,7 +106,13 @@ function R:handle(fd,m,now)
  end
  if not s.room or s.role~='player' or not s.player then return self:error(fd,'Only room players can perform this action') end
  local room=s.room;local g=room.game
- if m.type=='ready' or m.type=='start' then
+ if m.type=='set_color' then
+  if g.phase~='lobby' then return self:error(fd,'Not in lobby') end
+  local allowed={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=true,['#34d399']=true,['#fb923c']=true,['#e879f9']=true,['#cbd5e1']=true}
+  if not allowed[m.color] then return self:error(fd,'Invalid color') end
+  for _,p in ipairs(g.players) do if p.id~=s.player.id and not p.removed and p.color==m.color then return self:error(fd,'Color already taken') end end
+  s.player.color=m.color;s.color=m.color
+ elseif m.type=='ready' or m.type=='start' then
   if g.phase~='lobby' then return self:error(fd,'Not in lobby') end
   local ready=m.type=='start' or m.ready
   if type(ready)~='boolean' then return self:error(fd,'Ready must be a boolean') end

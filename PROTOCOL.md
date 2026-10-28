@@ -190,3 +190,17 @@ cargo, score, or camera geometry changed in this iteration.
   the previous authoritative-position smoothing fallback.
 
 `state.baseSpeed`: 服务端启动配置的普通行驶速度（世界单位/秒，默认 240，支持 1–480）。客户端预测与重放使用此值；旧服务端缺失时回退 240。冲刺与负载倍率不变。
+
+### Lobby vehicle colors
+
+The palette supports eight colors: `#38bdf8`, `#fb7185`, `#a78bfa`,
+`#facc15`, `#34d399`, `#fb923c`, `#e879f9`, `#cbd5e1`.
+Colors are unique within each room. On room entry, an occupied preferred color
+is replaced with the first free color. A disconnected player's color remains
+reserved while their seat exists; leaving/removing the seat releases it.
+
+A room player may send `{"type":"set_color","color":"#e879f9"}` in the lobby.
+The server rejects invalid or occupied colors, spectators, and changes after
+start. The authoritative `players[].color` in the next snapshot drives both
+clients' vehicle colors and dash orb. This requires updating Skynet and clients
+together; older servers do not implement `set_color`.
