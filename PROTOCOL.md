@@ -204,3 +204,19 @@ The server rejects invalid or occupied colors, spectators, and changes after
 start. The authoritative `players[].color` in the next snapshot drives both
 clients' vehicle colors and dash orb. This requires updating Skynet and clients
 together; older servers do not implement `set_color`.
+
+### Locally remembered driver profile
+
+`welcome` includes session `name` and preferred `color`. Automatic room color
+allocation does not replace this preference. Successful `set_color` replies
+with `{"type":"profile","name":"Driver","color":"#e879f9"}`.
+A connected guest may send `{"type":"set_name","name":"New driver"}` in
+the directory or lobby; the server validates/truncates the nickname, updates
+the session and room player, and returns the same `profile` acknowledgment.
+Renaming during a match is rejected. Resuming a directory/lobby session accepts
+the locally saved name and preferred color from the `join` message.
+
+Both clients persist confirmed names and preferred colors as `rover.name` and
+`rover.color`: H5 uses browser localStorage; WeChat uses device wx storage and
+continues reading the legacy `rover.spike.name` key. These are independent local
+profiles; there is no account-based cross-device or H5/WeChat synchronization.

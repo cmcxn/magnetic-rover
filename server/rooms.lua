@@ -25,7 +25,7 @@ function R:directory(fd)
  self:emit(fd,{type='rooms',rooms=list})
 end
 function R:welcome(s)
- self:emit(s.fd,{type='welcome',id=s.player and s.player.id or '',token=s.token,roomId=s.room and s.room.id or json.null,role=s.role})
+ self:emit(s.fd,{type='welcome',id=s.player and s.player.id or '',token=s.token,roomId=s.room and s.room.id or json.null,role=s.role,name=s.name,color=s.color})
 end
 function R:snapshot(room)
  local out=room.game:snapshot(self.array);local summary=self:summary(room)
@@ -54,7 +54,7 @@ function R:enter(s,room,role)
  else
   local p,e=room.game:join(s.fd,s.name,s.color)
   if not p then return self:error(s.fd,e) end
-  p.token=s.token;s.color=p.color;s.player=p;s.room=room;s.role='player';room.ready[p.id]=false
+  p.token=s.token;s.player=p;s.room=room;s.role='player';room.ready[p.id]=false
  end
  room.emptySince=nil;self:welcome(s);self:sendState(s)
 end
@@ -68,6 +68,11 @@ function R:join(fd,m)
  local s=type(m.token)=='string' and self.sessions[m.token] or nil
  if s then
   if s.fd then return self:error(fd,'Guest already connected; close the other tab first') end
+  if not s.room or s.room.game.phase=='lobby' then
+   local validation=Game.new();local p,e=validation:join(fd,m.name or s.name,m.color or s.color)
+   if not p then return self:error(fd,e) end
+   s.name=p.name;s.color=p.color;if s.player then s.player.name=p.name end
+  end
   s.fd=fd;s.last=self.now;self.connections[fd]=s
   if s.room and s.player then
    local p=s.room.game:join(fd,s.name,s.color,s.token)
@@ -104,6 +109,13 @@ function R:handle(fd,m,now)
   if not room then return self:error(fd,'Room not found') end
   return self:enter(s,room,m.type=='spectate' and 'spectator' or 'player')
  end
+ if m.type=='set_name' then
+  if s.room and s.room.game.phase~='lobby' then return self:error(fd,'Not in lobby') end
+  local validation=Game.new();local p,e=validation:join(fd,m.name,s.color)
+  if not p then return self:error(fd,e) end
+  s.name=p.name;if s.player then s.player.name=p.name end
+  self:emit(fd,{type='profile',name=s.name,color=s.color});return
+ end
  if not s.room or s.role~='player' or not s.player then return self:error(fd,'Only room players can perform this action') end
  local room=s.room;local g=room.game
  if m.type=='set_color' then
@@ -112,6 +124,7 @@ function R:handle(fd,m,now)
   if not allowed[m.color] then return self:error(fd,'Invalid color') end
   for _,p in ipairs(g.players) do if p.id~=s.player.id and not p.removed and p.color==m.color then return self:error(fd,'Color already taken') end end
   s.player.color=m.color;s.color=m.color
+  self:emit(fd,{type='profile',name=s.name,color=s.color})
  elseif m.type=='ready' or m.type=='start' then
   if g.phase~='lobby' then return self:error(fd,'Not in lobby') end
   local ready=m.type=='start' or m.ready
