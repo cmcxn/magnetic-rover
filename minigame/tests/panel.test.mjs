@@ -303,3 +303,46 @@ test("reused HUD text updates its latency color", () => {
   p.label("net", 0, 0, "328 ms", 12, "#ff3f4f");
   assert.equal(color, "#ff3f4f");
 });
+
+test("solo AI entry and removal use real menu hit targets and keep start explicit", () => {
+  const { p, model, calls } = harness();
+  model.connected = true;
+  model.roomId = "000001";
+  model.state = {
+    phase: "lobby",
+    canAddBot: true,
+    canRemoveBot: false,
+    botCount: 0,
+    players: [
+      {
+        id: "me",
+        name: "车手",
+        color: types.COLORS[0],
+        connected: true,
+        ready: false,
+      },
+    ],
+    batteries: [],
+    stations: [],
+  };
+  p.update();
+  for (const h of p.hits) p.press(h.x + h.w / 2, h.y + h.h / 2);
+  assert.ok(calls.some((c) => c[0] === "send" && c[1].type === "add_bot"));
+  assert.ok(!calls.some((c) => c[0] === "send" && c[1].type === "ready"));
+  calls.length = 0;
+  model.state.canAddBot = false;
+  model.state.canRemoveBot = true;
+  model.state.botCount = 1;
+  model.state.players.push({
+    id: "2",
+    name: "竞技小车",
+    color: types.COLORS[5],
+    connected: true,
+    ready: true,
+    isBot: true,
+  });
+  p.update();
+  for (const h of p.hits) p.press(h.x + h.w / 2, h.y + h.h / 2);
+  assert.ok(calls.some((c) => c[0] === "send" && c[1].type === "remove_bot"));
+  assert.ok(calls.some((c) => c[0] === "send" && c[1].type === "ready"));
+});

@@ -16,6 +16,10 @@ q.protect=2;Bot.input(p.bot,g,p,.4);assert(p.bot.mode~='attack','respect protect
 p.stun=1;m=Bot.input(p.bot,g,p,.6);assert(m.x==0 and m.y==0 and not m.boost)
 g,p,q=fixture();g:addbattery(200,0);for i=0,10 do Bot.input(p.bot,g,p,i*.15) end;assert(p.bot.unstuckUntil and p.bot.unstuckUntil>1.2,'unstuck')
 g,p,q=fixture();g:addbattery(200,0);g.batteries[1].unlock=g.time+10;g.batteries[1].z=5;m=Bot.input(p.bot,g,p,0);assert(p.bot.mode~='collect','ignore unavailable battery')
+-- An attack must cause actual authoritative collision damage, not a cosmetic dash.
+g,p,q=fixture();q.x=180;q.y=0;q.cargo=8;p.angle=0
+for i=1,6 do g:step(.05,.05) end
+assert(q.hitSeq>0 and q.cargo<8,'competitive dash must hit the loaded rival')
 -- An actual full round must bank real pickups using normal game physics.
 g,p,q=fixture();g:replenish(36);local maxPickup=0
 for i=1,2000 do g:step(.05,.05,100-i*.05);maxPickup=math.max(maxPickup,p.pickupSeq) end

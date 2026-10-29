@@ -82,7 +82,16 @@ const world = new (class extends World {
   }
 })();
 
+let lastBotRequest = -Infinity;
 function send(message: object) {
+  if (
+    ["add_bot", "remove_bot"].includes(
+      (message as { type?: string }).type ?? "",
+    )
+  ) {
+    if (Date.now() - lastBotRequest < 1000) return;
+    lastBotRequest = Date.now();
+  }
   if (connected)
     socket.send({
       data: JSON.stringify(message),

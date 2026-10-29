@@ -22,6 +22,7 @@ export interface Player {
   pickupSeq: number;
   connected: boolean;
   ready?: boolean;
+  isBot?: boolean;
   inputSeq?: number;
   inputElapsed?: number;
   ix?: number;
@@ -36,6 +37,10 @@ export interface State {
   roomId?: string;
   roomCode?: string;
   canStart?: boolean;
+  canAddBot?: boolean;
+  canRemoveBot?: boolean;
+  humanCount?: number;
+  botCount?: number;
   readyCount?: number;
   playerCount?: number;
   spectatorCount?: number;
@@ -69,7 +74,13 @@ export interface State {
     secondsToShrink?: number;
     banking: boolean;
   };
-  results?: { id: string; name: string; color: string; score: number }[];
+  results?: {
+    id: string;
+    name: string;
+    color: string;
+    score: number;
+    isBot?: boolean;
+  }[];
 }
 export const COLORS = [
   "#38bdf8",

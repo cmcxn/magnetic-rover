@@ -129,3 +129,28 @@ test("compact HUD keeps timer centered, map left and capsule clear", async () =>
     assert.ok(layout.panel.x + layout.panel.w <= w - 24 + 0.01);
   }
 });
+
+test("AI lobby entry requires capability and a connected player; old servers and spectators hide it", async () => {
+  const { botLobbyView } = await import("../src/presentation.ts");
+  const state = {
+    phase: "lobby",
+    canAddBot: true,
+    players: [{ id: "me", connected: true }],
+  };
+  assert.equal(botLobbyView(state, "me", false).action, "add_bot");
+  assert.equal(botLobbyView(state, "me", false).startDisabled, true);
+  assert.equal(botLobbyView(state, "me", true).action, null);
+  assert.equal(
+    botLobbyView({ ...state, canAddBot: undefined }, "me", false).action,
+    null,
+  );
+  assert.equal(botLobbyView(state, "other", false).action, null);
+  assert.equal(
+    botLobbyView(
+      { ...state, canAddBot: false, canRemoveBot: true, botCount: 1 },
+      "me",
+      false,
+    ).action,
+    "remove_bot",
+  );
+});

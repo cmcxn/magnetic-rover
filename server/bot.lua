@@ -58,7 +58,7 @@ function B.input(c,g,p,now)
  if now<(c.unstuckUntil or -1) then x=math.cos(c.escapeAngle);y=math.sin(c.escapeAngle) end
  local aligned=x*math.cos(p.angle)+y*math.sin(p.angle)>.94
  local dashTime=.08+c.random()*.08
- local speed=config.baseSpeed*(1-.3*math.min(p.cargo,20)/20)
+ local speed=config.baseSpeed*(1-.2*math.min(p.cargo,20)/20)
  local reach=speed*config.boostMultiplier*math.min(dashTime,p.energy*config.boostDuration)+2*config.collisionRadius
  if now>=c.nextDash and now>=c.holdUntil and aligned and d>2*config.collisionRadius*.8 and (c.mode=='attack' and d<=reach or c.mode~='attack' and d>300 and p.energy>.85) and now>=(c.unstuckUntil or -1) then
   c.holdUntil=now+math.min(dashTime,p.energy*config.boostDuration);c.nextDash=c.holdUntil+.55

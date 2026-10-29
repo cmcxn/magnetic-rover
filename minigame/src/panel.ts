@@ -11,6 +11,7 @@ import {
 import {
   UI,
   latencyView,
+  botLobbyView,
   compactHudLayout,
   controlLayout,
   joystickPose,
@@ -168,7 +169,10 @@ export class CartoonPanel extends Phaser.Scene {
     enabled = true,
     h = 46,
   ) {
-    const start = enabled && !secondary && label.includes("开始比赛");
+    const start =
+      enabled &&
+      !secondary &&
+      (label.includes("开始比赛") || label.includes("和 AI 一起玩"));
     const ready = enabled && label.includes("已准备");
     this.rounded(
       this.paint,
@@ -176,7 +180,7 @@ export class CartoonPanel extends Phaser.Scene {
       y,
       w,
       h,
-      start ? 0xce2b70 : ready ? 0x12836c : secondary ? 0xdce8f5 : UI.cyan,
+      start ? 0xffb51b : ready ? 0x12836c : secondary ? 0xdce8f5 : UI.cyan,
       h / 2,
     );
     if (start)
@@ -189,7 +193,7 @@ export class CartoonPanel extends Phaser.Scene {
       y + h / 2,
       label,
       19,
-      secondary ? "#203a55" : "#ffffff",
+      secondary || start ? "#203a55" : "#ffffff",
     )
       .setOrigin(0.5)
       .setAlpha(enabled ? 1 : 0.45);
@@ -446,7 +450,8 @@ export class CartoonPanel extends Phaser.Scene {
         this.text(
           x + 123,
           y + 23,
-          (p.id === m.self ? "改名 · " : "") + p.name.slice(0, 10),
+          (p.isBot ? "AI · " : p.id === m.self ? "改名 · " : "") +
+            p.name.slice(0, 10),
           18,
         ).setOrigin(0, 0.5);
         this.text(x + w - 20, y + 23, String(p.score), 25).setOrigin(1, 0.5);
@@ -515,7 +520,9 @@ export class CartoonPanel extends Phaser.Scene {
         }
       });
       const players = m.state.players,
-        lobby = lobbyCardLayout(players.length);
+        lobby = lobbyCardLayout(
+          m.state.canAddBot !== undefined ? 8 : players.length,
+        );
       players.forEach((p, i) => {
         const x =
           (W - lobby.columns * (lobby.width + lobby.gap) + lobby.gap) / 2 +
@@ -550,6 +557,7 @@ export class CartoonPanel extends Phaser.Scene {
         const limit = p.id === m.self ? 7 : 10;
         const nickname = [...p.name];
         const caption =
+          (p.isBot ? "AI · " : "") +
           (p.id === m.self ? "改名 · " : "") +
           nickname.slice(0, limit).join("") +
           (nickname.length > limit ? "…" : "");
@@ -578,27 +586,86 @@ export class CartoonPanel extends Phaser.Scene {
           p.ready ? "#173e37" : "#203a55",
         ).setOrigin(0.5);
       });
+      if (m.state.canAddBot !== undefined)
+        for (let i = players.length; i < 8; i++) {
+          const x =
+            (W - 4 * (lobby.width + lobby.gap) + lobby.gap) / 2 +
+            (i % 4) * (lobby.width + lobby.gap);
+          const y = lobby.top + Math.floor(i / 4) * lobby.rowStep;
+          this.rounded(
+            this.paint,
+            x,
+            y,
+            lobby.width,
+            lobby.height,
+            0xe4e9eb,
+            18,
+          );
+          this.paint
+            .lineStyle(1, 0x9eafbb, 0.65)
+            .strokeCircle(x + lobby.width / 2, y + 28, 16);
+          this.text(x + lobby.width / 2, y + 28, "+", 25, "#879ba7").setOrigin(
+            0.5,
+          );
+          this.text(
+            x + lobby.width / 2,
+            y + 73,
+            "等待加入",
+            14,
+            "#667d88",
+          ).setOrigin(0.5);
+        }
       const me = players.find((p) => p.id === m.self);
-      this.text(156, 376, `${players.length} / 8 人`, 26).setOrigin(0.5);
-      this.button(
-        280,
-        348,
-        344,
-        m.spectator
-          ? "观战中 · 等待发车"
-          : me?.ready
-            ? "✓ 已准备 · 点击取消"
-            : "❯❯ 开始比赛",
-        () => this.actions.send({ type: "ready", ready: !me?.ready }),
-        false,
-        !m.spectator,
-        58,
-      );
+      const ai = botLobbyView(m.state, m.self, m.spectator);
+      this.text(136, 376, `${players.length} / 8 人`, 26).setOrigin(0.5);
+      if (ai.action === "add_bot") {
+        this.button(
+          245,
+          348,
+          280,
+          "和 AI 一起玩",
+          () => this.actions.send({ type: "add_bot" }),
+          false,
+          true,
+          58,
+        );
+        this.button(545, 355, 110, "开始比赛", () => {}, true, false, 46);
+      } else {
+        this.button(
+          ai.action === "remove_bot" ? 245 : 280,
+          348,
+          ai.action === "remove_bot" ? 280 : 344,
+          m.spectator
+            ? "观战中 · 等待发车"
+            : me?.ready
+              ? "✓ 已准备 · 点击取消"
+              : "❯❯ 开始比赛",
+          () => this.actions.send({ type: "ready", ready: !me?.ready }),
+          false,
+          !m.spectator && !ai.startDisabled,
+          58,
+        );
+        if (ai.action === "remove_bot")
+          this.button(
+            545,
+            355,
+            110,
+            "移除 AI",
+            () => this.actions.send({ type: "remove_bot" }),
+            true,
+            true,
+            46,
+          );
+      }
       this.button(670, 353, 160, "返回大厅", this.actions.leave, true);
       this.text(
         W / 2,
         425,
-        "至少 2 人，全员准备后自动发车",
+        ai.action === "add_bot"
+          ? "一个人也能开赛，加入 AI 陪练"
+          : ai.hasBot
+            ? "AI 已准备，点击开始即可出发"
+            : "至少 2 人，全员准备后自动发车",
         17,
         "#637987",
       ).setOrigin(0.5);
@@ -647,10 +714,14 @@ export class CartoonPanel extends Phaser.Scene {
         p.color,
         p.ready,
         p.connected,
+        p.isBot,
         p.score,
       ]),
       m.rooms.map(({ remaining, ...r }) => r),
       m.state?.results,
+      m.state?.canAddBot,
+      m.state?.canRemoveBot,
+      m.state?.botCount,
     ]);
     if (signature !== this.key) {
       this.key = signature;
@@ -663,9 +734,10 @@ export class CartoonPanel extends Phaser.Scene {
       this.dynamic
         .lineStyle(3, 0xffba5a, 0.4 + 0.2 * Math.sin(Date.now() / 350))
         .strokeRoundedRect(
-          this.menu.x + 277 * s,
+          this.menu.x +
+            (m.state.canAddBot || m.state.canRemoveBot ? 242 : 277) * s,
           this.menu.y + 345 * s,
-          350 * s,
+          (m.state.canAddBot || m.state.canRemoveBot ? 286 : 350) * s,
           64 * s,
           32 * s,
         );
@@ -861,7 +933,7 @@ export class CartoonPanel extends Phaser.Scene {
             "rank" + i,
             boardX + 9 + (split ? Math.floor(i / rows) * 142 : 0),
             ry + 57 + (i % rows) * rowHeight,
-            `${sharedRank(sorted, p.score)}  ${p.id === m.self ? "我" : p.name.slice(0, 5)}  ${p.score}`,
+            `${sharedRank(sorted, p.score)}  ${p.isBot ? "AI · " + p.name.slice(0, 4) : p.id === m.self ? "我" : p.name.slice(0, 5)}  ${p.score}`,
             13,
             p.id === m.self ? "#ffdb58" : "#fff6e3",
             0,

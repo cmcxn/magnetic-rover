@@ -1,0 +1,133 @@
+/* Room actions retain a single visual primary action in either AI state. */
+.lobby .ai-actions {
+  grid-area: start;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.lobby .ai-actions #start {
+  flex: 1;
+  width: auto;
+}
+.lobby .ai-actions #bot-action[hidden] {
+  display: none;
+}
+.lobby .ai-actions .ai-add,
+.lobby .ai-room.has-bot #start[aria-pressed="false"]:not(:disabled) {
+  background: linear-gradient(#ffe86b 0%, #ffc118 46%, #ff8c0b 100%);
+  border: 3px solid #fff2a0;
+  outline: 2px solid #ffb21d;
+  color: #51320c;
+  text-shadow: 0 1px #fff5bf;
+  box-shadow:
+    inset 0 2px #fffce0,
+    0 4px #d77715,
+    0 0 16px #ffc14d70;
+  font-weight: 900;
+  animation: none;
+}
+.lobby .ai-actions .ai-add {
+  flex: 2;
+  min-height: 48px;
+  font-size: 19px;
+  white-space: nowrap;
+  padding: 8px 14px;
+  border-radius: 28px;
+}
+.lobby .ai-actions #start:disabled {
+  background: #d5d2c7;
+  color: #8b887f;
+  border: 2px solid #bfbdb2;
+  box-shadow: none;
+  opacity: 0.65;
+  min-width: 88px;
+}
+.lobby .ai-actions .ai-remove {
+  order: 2;
+  min-height: 44px;
+  font-size: 13px;
+  white-space: nowrap;
+  padding: 8px 12px;
+}
+.ai-badge {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 1px 5px;
+  margin-left: 4px;
+  border: 1px solid #b9e8ff;
+  border-radius: 10px;
+  background: #24435e;
+  color: #f4fcff;
+  font-size: 10px;
+  line-height: 1.3;
+}
+.lobby .empty-car {
+  background: #e5e9eb99;
+  border-color: #f9fbff99;
+  box-shadow: none;
+  justify-content: center;
+}
+.lobby .empty-car-plus {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 40px;
+  font-size: 30px;
+  color: #879ba7;
+}
+.lobby .empty-car .ready-chip {
+  color: #85949a;
+  background: transparent;
+}
+@media (max-width: 579px) {
+  .lobby .ai-room .car-roster {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .lobby .ai-actions {
+    gap: 6px;
+  }
+  .lobby .ai-actions .ai-add {
+    font-size: 15px;
+    padding: 8px;
+  }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .lobby .ai-room .ai-actions {
+    gap: 8px;
+  }
+  .lobby .ai-actions .ai-add {
+    min-height: 44px;
+    font-size: 17px;
+    padding: 6px;
+  }
+  .lobby .ai-room .car-art {
+    height: 36px;
+    min-height: 36px;
+  }
+  .lobby .ai-room .car-card {
+    min-height: 0;
+  }
+  .lobby .empty-car-plus {
+    min-height: 36px;
+    font-size: 24px;
+  }
+  .lobby .empty-car .ready-chip {
+    display: none;
+  }
+}
+/* Keep the rotated sprite clear of the caption in two-row room grids. */
+.lobby .ai-room .car-card > strong {
+  flex: 0 0 auto;
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .lobby .ai-room .car-art {
+    height: 44px;
+    min-height: 44px;
+  }
+  .lobby .ai-room .toy-car {
+    width: 52px;
+    height: 34px;
+    transform: rotate(-12deg);
+  }
+}

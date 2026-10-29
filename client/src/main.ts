@@ -4,8 +4,10 @@ import Phaser from "phaser";
 import "./style.css";
 import "./cartoon.css";
 import "./compact-hud.css";
+import "./ai-lobby.css";
 import {
   latencyView,
+  botLobbyView,
   controlLayout,
   joystickPose,
   skillView,
@@ -201,7 +203,14 @@ function sendInput(input: { x: number; y: number; boost: boolean }) {
   if (!canSendInput()) return;
   send(world.inputCommand(input));
 }
+let lastBotRequest = -Infinity;
 function send(data: object) {
+  if (
+    ["add_bot", "remove_bot"].includes((data as { type?: string }).type ?? "")
+  ) {
+    if (Date.now() - lastBotRequest < 1000) return;
+    lastBotRequest = Date.now();
+  }
   if ((data as { type?: string }).type === "input" && !canSendInput()) return;
   if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(data));
 }
@@ -668,7 +677,7 @@ function render() {
     mouseDown = false;
     boost = false;
     if (phase === "lobby")
-      surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="room-palette" class="room-palette" aria-label="房间车身颜色"></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><button id="start" class="primary race-start">❯❯ 开始比赛</button><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
+      surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="room-palette" class="room-palette" aria-label="房间车身颜色"></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><div class="ai-actions" id="ai-actions"><button id="bot-action" class="primary ai-add" hidden>和 AI 一起玩</button><button id="start" class="primary race-start">❯❯ 开始比赛</button></div><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
     if (phase === "playing") {
       surface.innerHTML = `<div class="compact-hud-surface" aria-hidden="true"></div><div class="hud"><div class="stat compact-score"><span class="hud-icon" aria-hidden="true">♻</span><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat compact-cargo"><svg class="hud-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="3" fill="#ffd25c"/><path d="M9 1h6v3H9z" fill="#ffeaa2"/><path d="m13 7-4 7h3l-1 5 5-8h-4z" fill="#77512b"/></svg><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="match-actions"><button class="secondary compact-sound" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-label="更多设置" title="更多设置" aria-controls="settings" aria-expanded="false">⚙</button>${role !== "spectator" ? '<button class="secondary leave-room" aria-label="离开房间返回大厅">离开</button>' : ""}</div><aside class="leaderboard"><h3>已存排行</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
       surface.insertAdjacentHTML(
@@ -722,7 +731,7 @@ function render() {
     document.querySelector("#roster")!.innerHTML = state.players
       .map(
         (p) =>
-          `<article class="car-card ${p.ready ? "is-ready" : ""}" style="--car-color:${COLORS.includes(p.color) ? p.color : COLORS[0]}"><div class="car-art" aria-hidden="true"><span class="toy-car"><i></i></span></div><strong>${p.id === id ? `<button class="driver-name" aria-label="修改车手昵称">${escape(p.name)} · 你 ✎</button>` : escape(p.name)}</strong><span class="ready-chip">${!p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备"}</span></article>`,
+          `<article class="car-card ${p.ready ? "is-ready" : ""}" style="--car-color:${COLORS.includes(p.color) ? p.color : COLORS[0]}"><div class="car-art" aria-hidden="true"><span class="toy-car"><i></i></span></div><strong>${p.id === id ? `<button class="driver-name" aria-label="修改车手昵称">${escape(p.name)} · 你 ✎</button>` : escape(p.name)}${p.isBot ? '<span class="ai-badge">AI</span>' : ""}</strong><span class="ready-chip">${!p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备"}</span></article>`,
       )
       .join("");
     const rename = document.querySelector<HTMLButtonElement>(".driver-name");
@@ -748,11 +757,38 @@ function render() {
           (b.onclick = () =>
             send({ type: "set_color", color: b.dataset.roomColor })),
       );
+    const botView = botLobbyView(state, id, role === "spectator");
+    const garage = document.querySelector<HTMLElement>(".card.garage")!;
+    garage.classList.toggle("ai-room", state.canAddBot !== undefined);
+    garage.classList.toggle("has-bot", botView.hasBot);
+    const botButton = document.querySelector<HTMLButtonElement>("#bot-action")!;
+    botButton.hidden = !botView.action;
+    botButton.className =
+      botView.action === "remove_bot"
+        ? "secondary ai-remove"
+        : "primary ai-add";
+    botButton.textContent =
+      botView.action === "remove_bot" ? "移除 AI" : "和 AI 一起玩";
+    botButton.onclick = () => {
+      if (botView.action) send({ type: botView.action });
+    };
+    if (state.canAddBot !== undefined) {
+      document
+        .querySelector("#roster")!
+        .insertAdjacentHTML(
+          "beforeend",
+          Array.from(
+            { length: Math.max(0, 8 - state.players.length) },
+            () =>
+              '<article class="car-card empty-car"><div class="empty-car-plus" aria-hidden="true">＋</div><strong>等待加入</strong><span class="ready-chip">空车位</span></article>',
+          ).join(""),
+        );
+    }
     const n = state.players.length;
     document.querySelector("#slots")!.innerHTML =
       `<strong>${n}</strong> / 8 人`;
     const b = document.querySelector<HTMLButtonElement>("#start")!;
-    b.disabled = role !== "player";
+    b.disabled = role !== "player" || botView.startDisabled;
     b.textContent =
       role === "spectator"
         ? "观战中 · 等待发车"
@@ -761,7 +797,11 @@ function render() {
           : "❯❯ 开始比赛";
     b.setAttribute("aria-pressed", String(!!me?.ready));
     document.querySelector("#ready-hint")!.textContent =
-      `${state.readyCount ?? state.players.filter((p) => p.ready).length} 人已准备 · 至少 2 人，全部准备后自动发车`;
+      botView.action === "add_bot"
+        ? "一个人也能开赛，加入 AI 陪练"
+        : botView.hasBot
+          ? "AI 已准备，点击开始即可出发"
+          : `${state.readyCount ?? state.players.filter((p) => p.ready).length} 人已准备 · 至少 2 人，全部准备后自动发车`;
   }
   if (phase === "playing") {
     document.querySelector("#score")!.textContent = String(me?.score ?? 0);
@@ -787,7 +827,7 @@ function render() {
     document.querySelector("#ranking")!.innerHTML = sorted
       .map(
         (p, i) =>
-          `<div class="rankrow ${p.id === id ? "me" : ""}"><span class="ranknum">${sharedRank(sorted, p.score)}</span><span class="swatch" style="background:${COLORS.includes(p.color) ? p.color : COLORS[0]}"></span><span class="name">${escape(p.name)}</span><b>${p.score}</b></div>`,
+          `<div class="rankrow ${p.id === id ? "me" : ""}"><span class="ranknum">${sharedRank(sorted, p.score)}</span><span class="swatch" style="background:${COLORS.includes(p.color) ? p.color : COLORS[0]}"></span><span class="name">${escape(p.name)}${p.isBot ? ' <span class="ai-badge">AI</span>' : ""}</span><b>${p.score}</b></div>`,
       )
       .join("");
     if (role === "spectator") {
@@ -826,7 +866,7 @@ function render() {
     document.querySelector("#results")!.innerHTML = results
       .map(
         (p, i) =>
-          `<div class="resultrow"><span>${sharedRank(results, p.score)}</span><span class="swatch" style="background:${COLORS.includes(p.color) ? p.color : COLORS[0]}"></span><span>${escape(p.name)}${p.id === id ? " · 你" : ""}</span><strong>${p.score} ⚡</strong></div>`,
+          `<div class="resultrow"><span>${sharedRank(results, p.score)}</span><span class="swatch" style="background:${COLORS.includes(p.color) ? p.color : COLORS[0]}"></span><span>${escape(p.name)}${p.isBot ? ' <span class="ai-badge">AI</span>' : ""}${p.id === id ? " · 你" : ""}</span><strong>${p.score} ⚡</strong></div>`,
       )
       .join("");
   }

@@ -1,4 +1,4 @@
-import type { FloatingJoystick, Player } from "./types";
+import type { FloatingJoystick, Player, State } from "./types";
 /** Shared device-space controls. Safe insets are supplied by the host platform. */
 export function controlLayout(
   width: number,
@@ -200,5 +200,31 @@ export function compactHudLayout(
       w: panelW,
       h: 76,
     },
+  };
+}
+
+/** Capabilities are room-wide; never expose player actions to a spectator. */
+export function botLobbyView(
+  state: Pick<
+    State,
+    "phase" | "players" | "canAddBot" | "canRemoveBot" | "botCount"
+  >,
+  self: string,
+  spectator: boolean,
+) {
+  const eligible =
+    state.phase === "lobby" &&
+    !spectator &&
+    state.players.some((p) => p.id === self && p.connected && !p.isBot);
+  const action =
+    eligible && state.canAddBot
+      ? "add_bot"
+      : eligible && state.canRemoveBot
+        ? "remove_bot"
+        : null;
+  return {
+    action,
+    startDisabled: spectator || (state.players.length < 2 && !!state.canAddBot),
+    hasBot: (state.botCount ?? 0) > 0,
   };
 }
