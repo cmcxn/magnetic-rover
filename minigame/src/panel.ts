@@ -10,6 +10,8 @@ import {
 } from "../../client/src/types";
 import {
   UI,
+  latencyView,
+  compactHudLayout,
   controlLayout,
   joystickPose,
   skillView,
@@ -32,6 +34,7 @@ export interface PanelModel {
   notice: string;
   rtt: number | null;
   fps: number | null;
+  networkTimedOut?: boolean;
   age: number;
 }
 export interface PanelActions {
@@ -68,12 +71,22 @@ export class CartoonPanel extends Phaser.Scene {
   private getModel: () => PanelModel;
   private actions: PanelActions;
   private joystick: FloatingJoystick;
-  private insets: () => { left: number; right: number; top: number };
+  private insets: () => {
+    left: number;
+    right: number;
+    top: number;
+    capsuleBottom?: number;
+  };
   constructor(
     model: () => PanelModel,
     actions: PanelActions,
     joystick: FloatingJoystick,
-    insets: () => { left: number; right: number; top: number },
+    insets: () => {
+      left: number;
+      right: number;
+      top: number;
+      capsuleBottom?: number;
+    },
   ) {
     super("panel");
     this.getModel = model;
@@ -611,7 +624,7 @@ export class CartoonPanel extends Phaser.Scene {
       t = this.text(x, y, value, size, color, this.live).setOrigin(origin, 0.5);
       this.labels.set(key, t);
     }
-    t.setPosition(x, y).setText(value).setVisible(true);
+    t.setPosition(x, y).setText(value).setColor(color).setVisible(true);
     return t;
   }
   update() {
@@ -660,7 +673,7 @@ export class CartoonPanel extends Phaser.Scene {
     const g = this.dynamic,
       w = this.scale.width,
       h = this.scale.height,
-      { left, right, top } = this.insets();
+      { left, right, top, capsuleBottom } = this.insets();
     if (playing && m.state) {
       if (m.keyboardEnabled)
         this.label(
@@ -676,75 +689,156 @@ export class CartoonPanel extends Phaser.Scene {
           m.selfVisual ? 0 : m.age,
           m.state ?? undefined,
         );
-      // The native capsule occupies the upper right; keep HUD centered and actions below it.
-      const barW = Math.min(w * 0.43, 410),
-        bx = (w - barW) / 2,
-        by = Math.max(8, top),
-        bh = 48;
-      this.rounded(g, bx, by, barW, bh, UI.navy, 16);
+      const hud = compactHudLayout(w, h, left, right, top, capsuleBottom);
+      const net = latencyView(m.rtt, m.networkTimedOut);
+      if (net.level === "bad") {
+        g.fillStyle(0xff2638, 0.08).fillRect(0, 0, w, h);
+        g.lineStyle(12, 0xff233f, 0.13).strokeRoundedRect(
+          5,
+          5,
+          w - 10,
+          h - 10,
+          12,
+        );
+        g.lineStyle(
+          3,
+          0xff304a,
+          0.75 + 0.15 * Math.sin(Date.now() / 500),
+        ).strokeRoundedRect(3, 3, w - 6, h - 6, 10);
+      }
+      const glass = (x: number, y: number, width: number, height: number) => {
+        g.fillStyle(0x657c89, 0.28).fillRoundedRect(x, y, width, height, 15);
+        g.lineStyle(1, 0xc0e0eb, 0.65).strokeRoundedRect(
+          x,
+          y,
+          width,
+          height,
+          15,
+        );
+      };
+      const bx = hud.timer.x,
+        by = hud.timer.y,
+        bh = hud.timer.h;
+      glass(bx, by, hud.timer.w, bh);
       this.label(
         "timer",
-        bx + barW * 0.2,
-        by + 24,
+        w / 2,
+        by + bh / 2,
         clockText(m.state.remaining),
         23,
+      ).setStroke("#28404a", 2);
+      const rx = hud.panel.x,
+        ry = hud.panel.y + 34,
+        pw = hud.panel.w,
+        py = hud.panel.y;
+      glass(rx, py, pw, hud.panel.h);
+      g.lineStyle(1, 0xd5e5e8, 0.4).lineBetween(
+        rx + 8,
+        py + 33,
+        rx + pw - 8,
+        py + 33,
+      );
+      const unit = pw / 270;
+      // Recycling arrows and battery are drawn as geometry to avoid missing glyphs.
+      const iconX = rx + 14 * unit,
+        iconY = py + 17;
+      g.lineStyle(2, 0x64d9b0)
+        .beginPath()
+        .arc(iconX, iconY, 7, 0.25, 5.6)
+        .strokePath();
+      g.fillStyle(0x64d9b0).fillTriangle(
+        iconX + 7,
+        iconY - 7,
+        iconX + 9,
+        iconY,
+        iconX + 2,
+        iconY - 3,
       );
       this.label(
         "score",
-        bx + barW * 0.52,
-        by + 24,
-        `已存 ${me?.score ?? 0}`,
-        18,
-        "#ffdc58",
-      );
+        rx + 27 * unit,
+        py + 18,
+        String(me?.score ?? 0),
+        14,
+        "#ffe577",
+        0,
+      ).setStroke("#3b4850", 2);
+      g.fillStyle(0xffd25b).fillRoundedRect(rx + 58 * unit, py + 10, 10, 16, 2);
+      g.fillStyle(0xffecb4).fillRect(rx + 61 * unit, py + 7, 4, 3);
       this.label(
         "cargo",
-        bx + barW * 0.83,
-        by + 24,
+        rx + 73 * unit,
+        py + 18,
         `${me?.cargo ?? 0}/20`,
-        18,
-        "#ffdc58",
-      );
-      this.label(
-        "brand",
-        left + 8,
-        by + 15,
-        GAME_NAME + " ϟ",
-        14,
-        "#fff9e9",
+        13,
+        "#ffe577",
         0,
-      ).setStroke("#17354f", 5);
+      ).setStroke("#3b4850", 2);
+      this.label(
+        "net-fps",
+        rx + 121 * unit,
+        py + 18,
+        `${m.fps === null ? "—" : Math.round(m.fps)} FPS`,
+        11,
+        "#edf5f7",
+        0,
+      ).setStroke("#3b4850", 2);
+      const netColor = parseInt(net.color.slice(1), 16),
+        wifiX = rx + 183 * unit;
+      g.lineStyle(2, netColor)
+        .beginPath()
+        .arc(wifiX, py + 22, 8, Math.PI * 1.2, Math.PI * 1.8)
+        .strokePath();
+      g.fillStyle(netColor).fillCircle(wifiX, py + 22, 1.5);
       this.label(
         "net",
-        left + 8,
-        by + 40,
-        `${m.fps === null ? "—" : Math.round(m.fps)} FPS · ${m.rtt ?? "—"} ms`,
-        11,
-        "#173e50",
-        0,
-      );
-      const rx = w - right - 142,
-        ry = Math.max(65, top + 53);
-      this.rounded(g, rx, ry, 142, 35, UI.navy, 13);
+        rx + pw - 8,
+        py + 18,
+        m.networkTimedOut
+          ? "超时"
+          : `${m.rtt === null ? "—" : Math.round(m.rtt)} ms`,
+        12,
+        net.color,
+        1,
+      ).setStroke("#3b4850", 2);
+      const cell = pw / 3;
+      this.label(
+        "sound",
+        rx + cell * 0.5,
+        ry + 20,
+        m.soundEnabled === false ? "声音 关" : "声音 开",
+        13,
+      ).setStroke("#3b4850", 2);
       this.label(
         "boardButton",
-        rx + 43,
-        ry + 18,
-        this.board ? "收起排行" : "已存排行",
+        rx + cell * 1.5,
+        ry + 20,
+        this.board ? "收起" : "排行",
         13,
+      ).setStroke("#3b4850", 2);
+      this.label("leaveButton", rx + cell * 2.5, ry + 20, "离开", 13).setStroke(
+        "#3b4850",
+        2,
       );
-      this.label("leaveButton", rx + 111, ry + 18, "离开", 13);
+      this.soundHit = undefined;
       this.hits = [
         {
           x: rx,
           y: ry,
-          w: 86,
-          h: 35,
+          w: cell,
+          h: 42,
+          action: () => this.actions.toggleSound?.(),
+        },
+        {
+          x: rx + cell,
+          y: ry,
+          w: cell,
+          h: 42,
           action: () => {
             this.board = !this.board;
           },
         },
-        { x: rx + 86, y: ry, w: 56, h: 35, action: this.actions.leave },
+        { x: rx + cell * 2, y: ry, w: cell, h: 42, action: this.actions.leave },
       ];
       if (this.board) {
         const sorted = [...m.state.players].sort((a, b) => b.score - a.score);
@@ -871,9 +965,9 @@ export class CartoonPanel extends Phaser.Scene {
         );
       // Always visible on short landscape phones, anchored below the upper-left status.
       {
-        const r = 40,
-          x = left + r + 8,
-          y = by + 61 + r;
+        const r = hud.map.r,
+          x = hud.map.x,
+          y = hud.map.y;
         g.fillStyle(UI.navy, 0.38).fillCircle(x, y, r);
         g.lineStyle(2, 0x88b3c6).strokeCircle(x, y, r);
         for (const s of m.state.stations) {
@@ -906,7 +1000,7 @@ export class CartoonPanel extends Phaser.Scene {
         "#fff8e7",
       ).setStroke("#19374c", 3);
     }
-    if (this.actions.toggleSound) {
+    if (this.actions.toggleSound && !playing) {
       const sx = playing ? w - right - 218 : left + 4,
         sy = playing ? Math.max(65, top + 53) : Math.max(8, top);
       g.fillStyle(UI.navy, 0.65).fillRoundedRect(sx, sy, 70, 35, 13);

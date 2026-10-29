@@ -38,6 +38,7 @@ let color = COLORS.includes(wx.getStorageSync("rover.color"))
   ? wx.getStorageSync("rover.color")
   : COLORS[0];
 let spectator = false;
+let networkTimedOut = false;
 let socket: any,
   connected = false,
   status = "点击连接，进入真实联机大厅";
@@ -90,6 +91,7 @@ function send(message: object) {
 }
 function resetInput() {
   pcKeys.clear();
+  if (!connected) networkTimedOut = false;
   sounds.setBoosting?.(false);
   joystick.reset();
   fieldTouches.clear();
@@ -172,6 +174,7 @@ function connect() {
       world.self = self;
       lastSnapshot = Date.now();
     } else if (data.type === "pong" && ping && data.id === ping.id) {
+      networkTimedOut = false;
       rtt = Date.now() - ping.at;
       ping = null;
     } else if (data.type === "error") {
@@ -251,6 +254,7 @@ panel = new CartoonPanel(
     spectator,
     notice,
     rtt,
+    networkTimedOut,
     fps: frameSample?.fps ?? null,
     age: Date.now() - lastSnapshot,
   }),
@@ -300,6 +304,7 @@ panel = new CartoonPanel(
     left: safeLeft(),
     right: safeRight(),
     top: Math.max(8, windowInfo().safeArea?.top || 0),
+    capsuleBottom: wx.getMenuButtonBoundingClientRect?.().bottom || 0,
   }),
 );
 // Network cadence is independent of display cadence. UI never creates score/position state.
@@ -385,11 +390,15 @@ function networkTick() {
     now > nextPing &&
     (!ping || now - ping.at > 5000)
   ) {
+    if (ping && now - ping.at > 5000) networkTimedOut = true;
     ping = { id: ++pingSeq, at: now };
     send({ type: "ping", id: ping.id });
     nextPing = now + 2000;
   }
-  if (lastSnapshot && now - lastSnapshot > 5000) rtt = null;
+  if (lastSnapshot && now - lastSnapshot > 5000) {
+    rtt = null;
+    networkTimedOut = true;
+  }
 }
 let lastTouch: { x: number; y: number; hit: boolean } | null = null;
 const fieldTouches = new Set<number>();

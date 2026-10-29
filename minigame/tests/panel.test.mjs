@@ -279,3 +279,27 @@ test("mobile and PC minigame have no server settings entry", () => {
     );
   }
 });
+test("reused HUD text updates its latency color", () => {
+  const { p } = harness();
+  let color;
+  const label = {
+    setPosition() {
+      return this;
+    },
+    setText() {
+      return this;
+    },
+    setVisible() {
+      return this;
+    },
+    setColor(c) {
+      color = c;
+      return this;
+    },
+  };
+  p.labels.set("net", label);
+  p.label("net", 0, 0, "68 ms", 12, "#40e396");
+  assert.equal(color, "#40e396");
+  p.label("net", 0, 0, "328 ms", 12, "#ff3f4f");
+  assert.equal(color, "#ff3f4f");
+});

@@ -158,3 +158,47 @@ export function orbLiquid(
   }
   return points;
 }
+
+export function latencyView(rtt: number | null, timedOut = false) {
+  const level = timedOut
+    ? "bad"
+    : rtt === null || !Number.isFinite(rtt) || rtt < 0
+      ? "unknown"
+      : rtt <= 100
+        ? "good"
+        : rtt <= 200
+          ? "warn"
+          : "bad";
+  const color = {
+    good: "#40e396",
+    warn: "#ffd153",
+    bad: "#ff3f4f",
+    unknown: "#d1dce2",
+  }[level];
+  return { level, color };
+}
+export function compactHudLayout(
+  w: number,
+  h: number,
+  left = 12,
+  right = 12,
+  top = 8,
+  capsuleBottom = 0,
+) {
+  const panelW = Math.min(288, Math.max(228, w * 0.33)),
+    y = Math.max(8, top);
+  return {
+    timer: { x: w / 2 - 48, y, w: 96, h: 36 },
+    map: { x: left + 36, y: y + 36, r: 36 },
+    panel: {
+      x: w - right - panelW,
+      y: Math.max(
+        y,
+        w < 580 ? y + 64 : y,
+        capsuleBottom ? capsuleBottom + 6 : 0,
+      ),
+      w: panelW,
+      h: 76,
+    },
+  };
+}

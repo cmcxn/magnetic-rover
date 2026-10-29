@@ -105,3 +105,27 @@ test("partial hold energy is usable while release recharges", () => {
   assert.equal(empty.energy, 0);
   assert.equal(empty.label, "松开充能");
 });
+test("latency bands respect inclusive boundaries and missing measurements", async () => {
+  const { latencyView } = await import("../src/presentation.ts");
+  assert.equal(latencyView(100).level, "good");
+  assert.equal(latencyView(101).level, "warn");
+  assert.equal(latencyView(200).level, "warn");
+  assert.equal(latencyView(201).level, "bad");
+  assert.equal(latencyView(null).level, "unknown");
+  assert.equal(latencyView(null, true).level, "bad");
+});
+test("compact HUD keeps timer centered, map left and capsule clear", async () => {
+  const { compactHudLayout } = await import("../src/presentation.ts");
+  for (const [w, h] of [
+    [812, 375],
+    [667, 320],
+    [390, 844],
+    [1440, 900],
+  ]) {
+    const layout = compactHudLayout(w, h, 24, 24, 8, 42);
+    assert.equal(layout.timer.x + layout.timer.w / 2, w / 2);
+    assert.ok(layout.panel.y >= 48);
+    assert.equal(layout.map.x - layout.map.r, 24);
+    assert.ok(layout.panel.x + layout.panel.w <= w - 24 + 0.01);
+  }
+});

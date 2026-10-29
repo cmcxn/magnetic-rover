@@ -3,7 +3,9 @@ const sounds = new Sounds();
 import Phaser from "phaser";
 import "./style.css";
 import "./cartoon.css";
+import "./compact-hud.css";
 import {
+  latencyView,
   controlLayout,
   joystickPose,
   skillView,
@@ -92,11 +94,21 @@ let lastSnapshot: number | null = null,
 let nextPing = 0,
   lastPong = 0,
   rtt: number | null = null;
+let networkTimedOut = false;
 function latency(reason = "测量中") {
+  if (reason === "超时") networkTimedOut = true;
+  else if (rtt !== null) networkTimedOut = false;
+  const view = latencyView(rtt, networkTimedOut);
+  app.dataset.network = view.level;
   document.querySelector("#latency")!.textContent =
-    rtt === null ? `RTT：${reason}` : `RTT：${Math.round(rtt)} ms`;
+    rtt === null
+      ? `RTT：${reason}`
+      : phase === "playing"
+        ? `${Math.round(rtt)} ms`
+        : `RTT：${Math.round(rtt)} ms`;
 }
 function resetLatency(reason: string) {
+  networkTimedOut = false;
   pendingPing = null;
   lastSnapshot = snapshotInterval = null;
   rtt = null;
@@ -125,7 +137,7 @@ world.diagnostics = debug;
 const defaultUrl =
   query.get("ws") ||
   `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`;
-app.innerHTML = `<div class="brand"><div class="brand-icon">ϟ</div><div><strong>${GAME_NAME}</strong><small>100秒抢运赛</small></div></div><div class="connection pill"><strong class="registered-game-name">${GAME_NAME}</strong><span class="dot"></span><span id="status">尚未连接</span><div class="performance-line"><span id="fps" title="实际渲染循环帧率，约每秒测量一次；不是网络更新率">FPS：—</span><span id="latency" title="网络 RTT：WebSocket 应用层往返时间，不是帧率或快照间隔">RTT：未连接</span></div></div>${debug ? '<div id="diagnostics" class="diagnostics">FPS：— · 快照间隔：—</div>' : ""}<div id="surface"></div><div id="notice" class="toast hidden" role="status"></div>`;
+app.innerHTML = `<div class="brand"><div class="brand-icon">ϟ</div><div><strong>${GAME_NAME}</strong><small>100秒抢运赛</small></div></div><div class="connection pill"><strong class="registered-game-name">${GAME_NAME}</strong><span class="dot"></span><span id="status">尚未连接</span><div class="performance-line"><span id="fps" title="实际渲染循环帧率，约每秒测量一次；不是网络更新率">FPS：—</span><span id="latency" title="网络 RTT：WebSocket 应用层往返时间，不是帧率或快照间隔">RTT：未连接</span></div></div><div class="network-alert" aria-hidden="true"></div>${debug ? '<div id="diagnostics" class="diagnostics">FPS：— · 快照间隔：—</div>' : ""}<div id="surface"></div><div id="notice" class="toast hidden" role="status"></div>`;
 const surface = document.querySelector<HTMLDivElement>("#surface")!;
 const frameMetrics = new FrameMetrics();
 const fpsElement = document.querySelector<HTMLElement>("#fps")!;
@@ -658,7 +670,7 @@ function render() {
     if (phase === "lobby")
       surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="room-palette" class="room-palette" aria-label="房间车身颜色"></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><button id="start" class="primary race-start">❯❯ 开始比赛</button><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
     if (phase === "playing") {
-      surface.innerHTML = `<div class="hud"><div class="stat"><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat"><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="match-actions"><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-controls="settings" aria-expanded="false">设置</button>${role !== "spectator" ? '<button class="secondary leave-room">返回大厅</button>' : ""}</div><aside class="leaderboard"><h3>已存排行</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
+      surface.innerHTML = `<div class="compact-hud-surface" aria-hidden="true"></div><div class="hud"><div class="stat compact-score"><span class="hud-icon" aria-hidden="true">♻</span><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat compact-cargo"><svg class="hud-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="3" fill="#ffd25c"/><path d="M9 1h6v3H9z" fill="#ffeaa2"/><path d="m13 7-4 7h3l-1 5 5-8h-4z" fill="#77512b"/></svg><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="match-actions"><button class="secondary compact-sound" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-label="更多设置" title="更多设置" aria-controls="settings" aria-expanded="false">⚙</button>${role !== "spectator" ? '<button class="secondary leave-room" aria-label="离开房间返回大厅">离开</button>' : ""}</div><aside class="leaderboard"><h3>已存排行</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
       surface.insertAdjacentHTML(
         "beforeend",
         role === "spectator"
@@ -667,6 +679,7 @@ function render() {
       );
       wireControls();
       drawJoystick();
+      latency();
       if (role === "spectator") {
         app.classList.add("spectating");
         document.querySelector<HTMLSelectElement>("#follow-player")!.onchange =
@@ -752,8 +765,7 @@ function render() {
   }
   if (phase === "playing") {
     document.querySelector("#score")!.textContent = String(me?.score ?? 0);
-    document.querySelector("#cargo")!.textContent =
-      `${(me?.cargo ?? 0) >= 20 ? "满载 " : ""}${me?.cargo ?? 0} / 20`;
+    document.querySelector("#cargo")!.textContent = `${me?.cargo ?? 0}/20`;
     const supply = state.supply;
     const supplyStatus = document.querySelector<HTMLElement>("#supply-status")!;
     supplyStatus.textContent = !supply
