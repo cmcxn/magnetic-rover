@@ -53,6 +53,7 @@ let panel: CartoonPanel,
 let ping: { id: number; at: number } | null = null,
   pingSeq = 0,
   nextPing = 0;
+const pcKeys = new Set<string>();
 let boostOwner: number | null = null;
 let boost = false,
   lastInput = 0,
@@ -89,6 +90,8 @@ function send(message: object) {
     });
 }
 function resetInput() {
+  pcKeys.clear();
+  sounds.setBoosting?.(false);
   joystick.reset();
   fieldTouches.clear();
   boost = false;
@@ -232,6 +235,12 @@ function editable(
 panel = new CartoonPanel(
   () => ({
     connected,
+    selfVisual: world.predictedPlayer?.(),
+    keyboardEnabled:
+      typeof wx.onKeyDown === "function" &&
+      /windows|mac|devtools/i.test(
+        wx.getDeviceInfo?.().platform || windowInfo().platform || "",
+      ),
     status,
     soundEnabled: sounds.enabled,
     name,
@@ -281,12 +290,14 @@ panel = new CartoonPanel(
         !spectator &&
         state?.phase === "playing" &&
         skillView(
-          state.players.find((p) => p.id === self),
-          Date.now() - lastSnapshot,
+          world.predictedPlayer?.() ?? state.players.find((p) => p.id === self),
+          0,
           state,
         ).ready
-      )
+      ) {
         boost = true;
+        flushControls();
+      }
     },
     joinCode: () =>
       editable("加入朋友的房间", "输入房间码", (value) =>
@@ -305,6 +316,59 @@ panel = new CartoonPanel(
   }),
 );
 // Network cadence is independent of display cadence. UI never creates score/position state.
+function controlState() {
+  const axis = (positive: string[], negative: string[]) =>
+    Number(positive.some((k) => pcKeys.has(k))) -
+    Number(negative.some((k) => pcKeys.has(k)));
+  return normalize(
+    joystick.value.x + axis(["KeyD", "ArrowRight"], ["KeyA", "ArrowLeft"]),
+    joystick.value.y + axis(["KeyS", "ArrowDown"], ["KeyW", "ArrowUp"]),
+  );
+}
+function flushControls() {
+  if (!active || !connected || spectator || state?.phase !== "playing") return;
+  const stunned = (state.players.find((p) => p.id === self)?.stun ?? 0) > 0;
+  send(
+    world.inputCommand({
+      ...(stunned ? { x: 0, y: 0 } : controlState()),
+      boost: !stunned && (boost || pcKeys.has("Space")),
+    }),
+  );
+}
+const keyCode = (e: any) =>
+  e.code ||
+  (
+    { w: "KeyW", a: "KeyA", s: "KeyS", d: "KeyD", " ": "Space" } as Record<
+      string,
+      string
+    >
+  )[String(e.key).toLowerCase()] ||
+  e.key;
+wx.onKeyDown?.((e: any) => {
+  if (!active || spectator || state?.phase !== "playing") return;
+  const code = keyCode(e);
+  if (
+    ![
+      "KeyW",
+      "KeyA",
+      "KeyS",
+      "KeyD",
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+      "Space",
+    ].includes(code)
+  )
+    return;
+  sounds.unlock();
+  pcKeys.add(code);
+  flushControls();
+});
+wx.onKeyUp?.((e: any) => {
+  pcKeys.delete(keyCode(e));
+  flushControls();
+});
 function networkTick() {
   const now = Date.now();
   if (
@@ -319,10 +383,10 @@ function networkTick() {
     send(
       world.inputCommand({
         ...normalize(
-          stunned ? 0 : joystick.value.x,
-          stunned ? 0 : joystick.value.y,
+          stunned ? 0 : controlState().x,
+          stunned ? 0 : controlState().y,
         ),
-        boost: boost && !stunned,
+        boost: (boost || pcKeys.has("Space")) && !stunned,
       }),
     );
     if (state.players.find((p) => p.id === self)?.energy === undefined)
@@ -372,7 +436,7 @@ wx.onTouchEnd((event: any) => {
     fieldTouches.delete(t.identifier);
     if (joystick.end(t.identifier)) {
       if (connected && !spectator && state?.phase === "playing")
-        send(world.inputCommand({ x: 0, y: 0, boost }));
+        flushControls();
     }
   }
 });
@@ -434,6 +498,17 @@ const game = new Phaser.Game({
 });
 game.events.on(Phaser.Core.Events.POST_RENDER, () => {
   networkTick();
+  const visual = world.predictedPlayer?.();
+  sounds.setBoosting?.(
+    active &&
+      !spectator &&
+      state?.phase === "playing" &&
+      (boost || pcKeys.has("Space")) &&
+      !!visual &&
+      visual.boost > 0 &&
+      visual.stun <= 0 &&
+      Date.now() - lastSnapshot < 500,
+  );
   if (!active) return;
   const sample = frames.record(Date.now());
   if (sample) {

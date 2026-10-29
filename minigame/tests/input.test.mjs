@@ -56,6 +56,8 @@ function harness() {
     },
   };
   for (const event of [
+    "KeyDown",
+    "KeyUp",
     "TouchStart",
     "TouchMove",
     "TouchEnd",
@@ -219,10 +221,67 @@ test("hide and spectator role cannot keep issuing movement", () => {
   h.tick();
   assert.equal(h.context.GameGlobal.roverSpike.controls.owner, null);
 });
-test('held boost persists and its own release stops without canceling joystick',()=>{
- const h=harness();h.deliver({type:'state',phase:'playing',remaining:100,players:[{id:'me',name:'我',energy:1,boostHeld:false,cooldown:0,stun:0,boost:0}],stations:[],batteries:[]});
- h.touch('TouchStart',1,120);h.touch('TouchMove',1,158);h.touch('TouchStart',2,740);h.tick();h.tick();
- assert.equal(h.sent.filter(m=>m.type==='input').at(-1).boost,true);
- h.touch('TouchEnd',2,740);h.tick();const command=h.sent.filter(m=>m.type==='input').at(-1);
- assert.equal(command.boost,false);assert.equal(command.x,1);
+test("held boost persists and its own release stops without canceling joystick", () => {
+  const h = harness();
+  h.deliver({
+    type: "state",
+    phase: "playing",
+    remaining: 100,
+    players: [
+      {
+        id: "me",
+        name: "我",
+        energy: 1,
+        boostHeld: false,
+        cooldown: 0,
+        stun: 0,
+        boost: 0,
+      },
+    ],
+    stations: [],
+    batteries: [],
+  });
+  h.touch("TouchStart", 1, 120);
+  h.touch("TouchMove", 1, 158);
+  h.touch("TouchStart", 2, 740);
+  h.tick();
+  h.tick();
+  assert.equal(h.sent.filter((m) => m.type === "input").at(-1).boost, true);
+  h.touch("TouchEnd", 2, 740);
+  h.tick();
+  const command = h.sent.filter((m) => m.type === "input").at(-1);
+  assert.equal(command.boost, false);
+  assert.equal(command.x, 1);
+});
+
+test("PC keys drive and hold space while mouse joystick stays available", () => {
+  const h = harness();
+  h.deliver({
+    type: "state",
+    phase: "playing",
+    remaining: 100,
+    players: [
+      { id: "me", energy: 1, boostHeld: false, cooldown: 0, stun: 0, boost: 0 },
+    ],
+    stations: [],
+    batteries: [],
+  });
+  h.events.KeyDown({ code: "KeyD", key: "d" });
+  h.events.KeyDown({ code: "Space", key: " " });
+  h.tick();
+  h.tick();
+  let m = h.sent.filter((m) => m.type === "input").at(-1);
+  assert.equal(m.x, 1);
+  assert.equal(m.boost, true);
+  h.events.KeyUp({ code: "Space", key: " " });
+  h.tick();
+  m = h.sent.filter((m) => m.type === "input").at(-1);
+  assert.equal(m.boost, false);
+  assert.equal(m.x, 1);
+  h.events.Hide();
+  h.events.Show();
+  h.tick();
+  m = h.sent.filter((m) => m.type === "input").at(-1);
+  assert.equal(m.x, 0);
+  assert.equal(m.boost, false);
 });

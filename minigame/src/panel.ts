@@ -18,6 +18,8 @@ import {
 } from "../../client/src/presentation";
 export interface PanelModel {
   connected: boolean;
+  selfVisual?: import("../../client/src/types").Player;
+  keyboardEnabled?: boolean;
   soundEnabled?: boolean;
   status: string;
   name: string;
@@ -155,9 +157,21 @@ export class CartoonPanel extends Phaser.Scene {
     enabled = true,
     h = 46,
   ) {
-    this.rounded(this.paint, x, y, w, h, secondary ? 0xdce8f5 : UI.cyan, h / 2);
+    const start = enabled && !secondary && label.includes("开始比赛");
+    const ready = enabled && label.includes("已准备");
+    this.rounded(
+      this.paint,
+      x,
+      y,
+      w,
+      h,
+      start ? 0xce2b70 : ready ? 0x12836c : secondary ? 0xdce8f5 : UI.cyan,
+      h / 2,
+    );
+    if (start)
+      this.paint.lineStyle(3, 0xffd868).strokeRoundedRect(x, y, w, h, h / 2);
     this.paint
-      .lineStyle(2, secondary ? 0xbacddd : 0x9cf9ff)
+      .lineStyle(2, start ? 0xffe69b : secondary ? 0xbacddd : 0x9cf9ff)
       .lineBetween(x + 20, y + 5, x + w - 20, y + 5);
     this.text(
       x + w / 2,
@@ -276,7 +290,14 @@ export class CartoonPanel extends Phaser.Scene {
         55,
       );
       this.button(400, 374, 190, "服务器设置", this.actions.server, true);
-      this.text(172, 354, "小车大电量\n出发，抢点电！", 27).setOrigin(0.5);
+      this.text(
+        172,
+        354,
+        m.keyboardEnabled
+          ? "WASD / 方向键驾驶\n按住空格冲刺，松开充能\n鼠标也可拖动摇杆"
+          : "小车大电量\n出发，抢点电！",
+        m.keyboardEnabled ? 16 : 27,
+      ).setOrigin(0.5);
       this.guide(428, W);
     } else if (!m.roomId) {
       this.button(
@@ -604,6 +625,7 @@ export class CartoonPanel extends Phaser.Scene {
     const signature = JSON.stringify([
       this.textures.exists("rover"),
       m.connected,
+      m.keyboardEnabled,
       m.name,
       m.color,
       m.roomId,
@@ -626,13 +648,37 @@ export class CartoonPanel extends Phaser.Scene {
     }
     this.dynamic.clear();
     for (const label of this.labels.values()) label.setVisible(false);
+    if (m.state?.phase === "lobby" && !m.spectator && !me?.ready) {
+      const s = this.menu.scaleX;
+      this.dynamic
+        .lineStyle(3, 0xffba5a, 0.4 + 0.2 * Math.sin(Date.now() / 350))
+        .strokeRoundedRect(
+          this.menu.x + 277 * s,
+          this.menu.y + 345 * s,
+          350 * s,
+          64 * s,
+          32 * s,
+        );
+    }
     const g = this.dynamic,
       w = this.scale.width,
       h = this.scale.height,
       { left, right, top } = this.insets();
     if (playing && m.state) {
+      if (m.keyboardEnabled)
+        this.label(
+          "keyboard-help",
+          w / 2,
+          h - 12,
+          "WASD / 方向键驾驶 · 按住空格冲刺",
+          12,
+        ).setStroke("#17354f", 3);
       const layout = controlLayout(w, h, left, right),
-        skill = skillView(me, m.age, m.state ?? undefined);
+        skill = skillView(
+          m.selfVisual ?? me,
+          m.selfVisual ? 0 : m.age,
+          m.state ?? undefined,
+        );
       // The native capsule occupies the upper right; keep HUD centered and actions below it.
       const barW = Math.min(w * 0.43, 410),
         bx = (w - barW) / 2,

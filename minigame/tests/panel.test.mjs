@@ -247,3 +247,20 @@ test("local lobby nickname opens rename action", () => {
   p.press(p.menu.x + 422 * s, p.menu.y + (layout.top + layout.nameY) * s);
   assert.equal(calls.at(-1)[0], "rename");
 });
+test("PC startup displays key guide while mobile keeps touch introduction", () => {
+  const { p, model } = harness(),
+    labels = [];
+  const original = p.text.bind(p);
+  p.text = (x, y, text, ...rest) => {
+    labels.push(text);
+    return original(x, y, text, ...rest);
+  };
+  model.keyboardEnabled = true;
+  p.update();
+  assert.ok(labels.some((s) => s.includes("WASD") && s.includes("松开充能")));
+  labels.length = 0;
+  model.keyboardEnabled = false;
+  p.invalidate();
+  p.update();
+  assert.ok(!labels.some((s) => s.includes("WASD")));
+});

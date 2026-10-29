@@ -375,3 +375,40 @@ test("dash integration uses configured speed multiplier", () => {
   motion.integrate(p, 0.1, 500, 0, 100, 5);
   assert.equal(p.x, 50);
 });
+test("dash feedback predicts before ack and stops on authoritative stun", () => {
+  const m = new motion.Motion();
+  m.receive(
+    state(0, player({ energy: 1, boostHeld: false }), {
+      boostDuration: 1,
+      boostCooldown: 4,
+      collisionRadius: 60,
+    }),
+    "1",
+    false,
+    0,
+  );
+  const command = m.input({ x: 1, y: 0, boost: true }, 0);
+  const predicted = m.predictedSelf(50);
+  assert.ok(predicted.boost > 0);
+  assert.ok(predicted.energy < 1);
+  m.receive(
+    state(
+      0.05,
+      player({
+        energy: 0.2,
+        boostHeld: false,
+        boost: 0,
+        stun: 1,
+        kx: 0,
+        ky: 0,
+        inputSeq: command.seq,
+        inputElapsed: 0.05,
+      }),
+      { boostDuration: 1, boostCooldown: 4, collisionRadius: 60 },
+    ),
+    "1",
+    false,
+    50,
+  );
+  assert.equal(m.predictedSelf(60).boost, 0);
+});

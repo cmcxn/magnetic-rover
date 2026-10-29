@@ -198,3 +198,19 @@ test("native errors are visible in read-only diagnostics, missing API cannot cra
   });
   assert.match(silent.diagnostics.error, /不支持/);
 });
+test("native held boost loops once and stops on release or mute", () => {
+  const h = harness();
+  h.audio.unlock();
+  h.audio.setBoosting(true);
+  h.audio.setBoosting(true);
+  const effect = h.contexts.find((c) => c.src.endsWith("boost.wav"));
+  assert.equal(effect.plays, 1);
+  assert.equal(effect.loop, true);
+  h.audio.setBoosting(false);
+  assert.equal(effect.loop, false);
+  h.audio.setBoosting(true);
+  assert.equal(effect.plays, 2);
+  h.audio.toggle();
+  h.audio.setBoosting(true);
+  assert.equal(effect.plays, 2);
+});

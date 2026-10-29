@@ -302,6 +302,9 @@ export class Motion {
     }
     return true;
   }
+  predictedSelf(now: number) {
+    return this.predict(now);
+  }
   private predict(now: number): Player | undefined {
     const latest = this.snapshots[this.snapshots.length - 1];
     if (!latest) return;

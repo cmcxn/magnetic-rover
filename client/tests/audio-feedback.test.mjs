@@ -114,3 +114,39 @@ test("pickup sample has a short fade and rapid events cannot stack sources", () 
   assert.equal(starts.length, 1);
   assert.ok(stops[0] <= 10.24);
 });
+test("held boost loop starts once, stops on release and can restart", () => {
+  const sounds = harness();
+  let starts = 0,
+    stops = 0;
+  sounds.context = {
+    state: "running",
+    currentTime: 0,
+    destination: {},
+    createBufferSource: () => ({
+      connect() {},
+      disconnect() {},
+      start() {
+        starts++;
+      },
+      stop() {
+        stops++;
+      },
+    }),
+    createGain: () => ({
+      gain: { value: 0, setValueAtTime() {}, linearRampToValueAtTime() {} },
+      connect() {},
+      disconnect() {},
+    }),
+  };
+  sounds.buffers.set("boost", { duration: 0.28 });
+  sounds.setBoosting(true);
+  sounds.setBoosting(true);
+  assert.equal(starts, 1);
+  sounds.setBoosting(false);
+  assert.equal(stops, 1);
+  sounds.setBoosting(true);
+  assert.equal(starts, 2);
+  sounds.enabled = false;
+  sounds.setBoosting(true);
+  assert.equal(stops, 2);
+});

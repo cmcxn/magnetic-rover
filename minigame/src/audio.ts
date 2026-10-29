@@ -59,6 +59,22 @@ export class WeChatSounds {
       this.contexts.clear();
     }
   }
+  private boostLoop = false;
+  setBoosting(active: boolean) {
+    const audio = this.contexts.get("boost");
+    const shouldPlay =
+      active && this.enabled && this.active && this.unlocked && !!audio;
+    if (shouldPlay === this.boostLoop) return;
+    this.boostLoop = shouldPlay;
+    if (!audio) return;
+    try {
+      audio.stop();
+      audio.loop = shouldPlay;
+      if (shouldPlay) audio.play();
+    } catch (e) {
+      this.error = String(e);
+    }
+  }
   play(name: Sound) {
     if (!this.enabled || !this.active || !this.unlocked) return;
     const audio = this.contexts.get(name),
@@ -77,9 +93,11 @@ export class WeChatSounds {
     }
   }
   private stop() {
+    this.boostLoop = false;
     for (const audio of this.contexts.values())
       try {
         audio.stop();
+        audio.loop = false;
       } catch {}
   }
   toggle() {
@@ -114,7 +132,8 @@ export class WeChatSounds {
     if (b.score > a.score) this.play("deposit");
     else if (b.hitSeq > (a.hitSeq ?? 0)) this.play("hit");
     if (pickupCount(prev, next, id) > 0) this.play("pickup");
-    if (b.cooldown > a.cooldown + 0.2) this.play("boost");
+    if (b.energy === undefined && b.cooldown > a.cooldown + 0.2)
+      this.play("boost");
     if (
       Math.ceil(next.remaining) < Math.ceil(prev.remaining) &&
       next.remaining <= 5 &&

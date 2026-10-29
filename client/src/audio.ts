@@ -13,6 +13,47 @@ export class Sounds {
   buffers = new Map<Sound, AudioBuffer>();
   enabled = localStorage.getItem("rover.sound") !== "off";
   last = new Map<Sound, number>();
+  private boostLoop: { source: AudioBufferSourceNode; gain: GainNode } | null =
+    null;
+  setBoosting(active: boolean) {
+    const c = this.context,
+      b = this.buffers.get("boost");
+    const shouldPlay =
+      active && this.enabled && !!c && c.state === "running" && !!b;
+    if (!shouldPlay) {
+      if (this.boostLoop) {
+        const old = this.boostLoop;
+        this.boostLoop = null;
+        try {
+          old.gain.gain.setValueAtTime(
+            old.gain.gain.value,
+            c?.currentTime ?? 0,
+          );
+          old.gain.gain.linearRampToValueAtTime(
+            0,
+            (c?.currentTime ?? 0) + 0.04,
+          );
+          old.source.stop((c?.currentTime ?? 0) + 0.045);
+        } catch {}
+      }
+      return;
+    }
+    if (this.boostLoop) return;
+    const source = c!.createBufferSource(),
+      gain = c!.createGain();
+    source.buffer = b!;
+    source.loop = true;
+    source.loopEnd = Math.min(0.28, b!.duration);
+    gain.gain.value = 0.26;
+    source.connect(gain);
+    gain.connect(c!.destination);
+    this.boostLoop = { source, gain };
+    source.onended = () => {
+      source.disconnect();
+      gain.disconnect();
+    };
+    source.start();
+  }
   async unlock() {
     if (!this.context) {
       this.context = new AudioContext();
@@ -28,6 +69,7 @@ export class Sounds {
   }
   toggle() {
     this.enabled = !this.enabled;
+    if (!this.enabled) this.setBoosting(false);
     localStorage.setItem("rover.sound", this.enabled ? "on" : "off");
     if (this.enabled) void this.unlock().catch(() => {});
     return this.enabled;
@@ -76,7 +118,8 @@ export class Sounds {
     if (b.score > a.score) this.play("deposit");
     else if (b.hitSeq > (a.hitSeq ?? 0)) this.play("hit");
     if (pickupCount(prev, next, id) > 0) this.play("pickup");
-    if (b.cooldown > a.cooldown + 0.2) this.play("boost");
+    if (b.energy === undefined && b.cooldown > a.cooldown + 0.2)
+      this.play("boost");
     if (
       Math.ceil(next.remaining) < Math.ceil(prev.remaining) &&
       next.remaining <= 5 &&

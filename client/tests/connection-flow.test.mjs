@@ -1527,3 +1527,21 @@ test("hold boost persists across input ticks and space release stops it", () => 
   inputs = socket.sent.filter((m) => m.type === "input");
   assert.equal(inputs.at(-1).boost, false);
 });
+test("boost click accepts the same predicted recovery state shown by the button", () => {
+  const h = harness();
+  h.connect();
+  const socket = welcome(h);
+  playing(h, { energy: 0.5, boostHeld: false, boost: 0, stun: 0.1 });
+  h.context.testWorld.predictedPlayer = () => ({
+    energy: 0.5,
+    boostHeld: false,
+    boost: 0,
+    stun: 0,
+    cooldown: 2,
+  });
+  h.dispatch("#boost:pointerdown", touch(22));
+  assert.equal(
+    socket.sent.filter((m) => m.type === "input").at(-1).boost,
+    true,
+  );
+});

@@ -907,6 +907,22 @@ function wireControls() {
       mouseMode ? "按住场地，朝鼠标方向行驶。" : "使用 WASD 或方向键驾驶。",
     );
   };
+  document.querySelector("#boost")!.addEventListener("keydown", (event) => {
+    const e = event as KeyboardEvent;
+    if (e.code !== "Space") return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (!e.repeat) requestBoost(null);
+  });
+  document.querySelector("#boost")!.addEventListener("keyup", (event) => {
+    const e = event as KeyboardEvent;
+    if (e.code !== "Space") return;
+    e.preventDefault();
+    e.stopPropagation();
+    boost = false;
+    flushDrive();
+    updateSkillButton();
+  });
   document.querySelector("#boost")!.addEventListener("pointerdown", (e) => {
     e.preventDefault();
     requestBoost((e as PointerEvent).pointerId);
@@ -921,8 +937,23 @@ function wireControls() {
     }
   });
 }
+function flushDrive() {
+  if (state?.players.find((p) => p.id === id)?.energy === undefined) return;
+  const v = normalize(
+    joy.x +
+      Number(keys.has("d") || keys.has("arrowright")) -
+      Number(keys.has("a") || keys.has("arrowleft")),
+    joy.y +
+      Number(keys.has("s") || keys.has("arrowdown")) -
+      Number(keys.has("w") || keys.has("arrowup")),
+  );
+  sendInput({ ...v, boost });
+}
 function requestBoost(pointer: number | null) {
-  const me = state?.players.find((player) => player.id === id);
+  void sounds.unlock().catch(() => {});
+  const me =
+    world.predictedPlayer?.() ??
+    state?.players.find((player) => player.id === id);
   if (
     !canSendInput() ||
     document.hidden ||
@@ -933,6 +964,8 @@ function requestBoost(pointer: number | null) {
     return;
   boost = true;
   boostPointer = pointer;
+  flushDrive();
+  updateSkillButton();
 }
 window.addEventListener("keydown", (e) => {
   if (
@@ -946,11 +979,20 @@ window.addEventListener("keydown", (e) => {
   if ([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
     e.preventDefault();
   keys.add(e.key.toLowerCase());
-  if (e.code === "Space" && !e.repeat) boost = true;
+  if (e.code === "Space" && !e.repeat) {
+    boost = true;
+    void sounds.unlock().catch(() => {});
+  }
+  if (!e.repeat) {
+    flushDrive();
+    updateSkillButton();
+  }
 });
 window.addEventListener("keyup", (e) => {
   keys.delete(e.key.toLowerCase());
   if (e.code === "Space") boost = false;
+  flushDrive();
+  updateSkillButton();
 });
 window.addEventListener("blur", () => {
   world.resetMotion();
@@ -1003,9 +1045,21 @@ window.addEventListener("pointercancel", (e) => {
 function updateSkillButton() {
   const b = document.querySelector<HTMLButtonElement>("#boost");
   if (!b) return;
-  const me = state?.players.find((p) => p.id === id);
+  const predicted = world.predictedPlayer?.();
+  const me = predicted ?? state?.players.find((p) => p.id === id);
   b.style.setProperty("--player-color", me?.color ?? color);
-  const view = skillView(me, performance.now() - lastState, state ?? undefined);
+  const view = skillView(
+    me,
+    predicted ? 0 : performance.now() - lastState,
+    state ?? undefined,
+  );
+  sounds.setBoosting?.(
+    phase === "playing" &&
+      boost &&
+      view.boosting &&
+      !document.hidden &&
+      performance.now() - lastState < 500,
+  );
   const stun = me?.stun ?? 0;
   const label = view.boosting
     ? "冲刺中"
@@ -1115,6 +1169,8 @@ for (const event of [
       )
         boost = false;
       boostPointer = null;
+      flushDrive();
+      updateSkillButton();
     }
   });
 for (const event of ["resize", "orientationchange"])

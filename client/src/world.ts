@@ -28,6 +28,13 @@ export class World extends Phaser.Scene {
     this.syncMotion(now);
     return this.motion.input(control, now);
   }
+  predictedPlayer(now = performance.now()) {
+    this.syncMotion(now);
+    return (
+      this.motion.predictedSelf(now) ??
+      this.state?.players.find((p) => p.id === this.self)
+    );
+  }
   self = "";
   spectating = false;
   follow = "";
@@ -604,12 +611,19 @@ export class World extends Phaser.Scene {
       }
       // Interpolate only fresh server timers. Readiness still requires server zero.
       const boostVisible = effectsActive && p.connected;
-      const boostLeft = Math.max(0, p.boost - this.effectAge / 1000);
+      const visual =
+        p.id === this.self && !this.spectating
+          ? (this.predictedPlayer(motionNow) ?? p)
+          : p;
+      const boostLeft = Math.max(
+        0,
+        visual.boost - (visual === p ? this.effectAge / 1000 : 0),
+      );
       const cooldownLeft = Math.max(
         0.1,
         (p.cooldown ?? 0) - this.effectAge / 1000,
       );
-      const boosting = boostLeft > 0;
+      const boosting = boostLeft > 0 && !(visual.stun > 0);
       const cooling = (p.cooldown ?? 0) > 0;
       const ready = !boosting && !cooling && !(p.stun > 0);
       let indicator = this.boostIndicators.get(p.id);
@@ -623,8 +637,8 @@ export class World extends Phaser.Scene {
         const flashing =
           !this.reducedEffects && ready && _time < indicator.flashUntil;
         const progress =
-          p.energy !== undefined
-            ? p.energy
+          visual.energy !== undefined
+            ? visual.energy
             : boosting
               ? Math.min(1, boostLeft / (this.state?.boostDuration ?? 0.32))
               : cooling
@@ -660,6 +674,15 @@ export class World extends Phaser.Scene {
         }
       } else this.boostIndicators.delete(p.id);
       if (boostVisible && boosting) {
+        const halo =
+          (this.state?.collisionRadius ?? 60) *
+          (1.03 + (this.reducedEffects ? 0 : Math.sin(_time * 0.025) * 0.07));
+        g.lineStyle(
+          3,
+          c,
+          this.reducedEffects ? 0.35 : 0.45 + 0.2 * Math.sin(_time * 0.025),
+        ).strokeCircle(v.x, v.y, halo);
+        circle(v.x, v.y, halo, c, 0.1);
         if (!this.reducedEffects) {
           for (const side of [-11, 0, 11]) {
             const a = rot(-18, side),
