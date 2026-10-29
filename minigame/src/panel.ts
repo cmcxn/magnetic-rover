@@ -24,7 +24,6 @@ export interface PanelModel {
   status: string;
   name: string;
   color: string;
-  endpoint: string;
   rooms: RoomSummary[];
   state: State | null;
   self: string;
@@ -40,7 +39,6 @@ export interface PanelActions {
   toggleSound?(): void;
   rename(): void;
   color(value: string): void;
-  server(): void;
   send(message: object): void;
   leave(): void;
   boost(): void;
@@ -289,7 +287,6 @@ export class CartoonPanel extends Phaser.Scene {
         true,
         55,
       );
-      this.button(400, 374, 190, "服务器设置", this.actions.server, true);
       this.text(
         172,
         354,

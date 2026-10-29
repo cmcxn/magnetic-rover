@@ -28,8 +28,7 @@ const safeRight = () =>
   );
 
 // A separate client keeps all outcomes authoritative on the unchanged Skynet server.
-const endpoint =
-  wx.getStorageSync("rover.spike.endpoint") || "wss://cb.chenmin.org/ws";
+const endpoint = "wss://cb.chenmin.org/ws";
 const tokenKey = "rover.spike.token:" + endpoint;
 let name =
   wx.getStorageSync("rover.name") ||
@@ -114,7 +113,7 @@ function disconnect() {
 }
 function connect() {
   disconnect();
-  status = "正在连接 " + endpoint;
+  status = "正在连接服务器";
   notice = "";
   uiKey = "";
   const current = wx.connectSocket({
@@ -245,7 +244,6 @@ panel = new CartoonPanel(
     soundEnabled: sounds.enabled,
     name,
     color,
-    endpoint,
     rooms,
     state,
     self,
@@ -269,17 +267,6 @@ panel = new CartoonPanel(
       color = value;
       wx.setStorageSync("rover.color", color);
     },
-    server: () =>
-      editable("WebSocket 地址", endpoint, (value) => {
-        if (/^wss?:\/\/[^\s]+\/ws$/.test(value)) {
-          wx.setStorageSync("rover.spike.endpoint", value);
-          wx.showModal({
-            title: "地址已保存",
-            content: "重新进入小游戏后使用新地址",
-            showCancel: false,
-          });
-        } else notice = "请输入有效的 wss:// 域名/ws 地址";
-      }),
     send,
     leave: () => {
       resetInput();

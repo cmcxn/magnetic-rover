@@ -51,7 +51,6 @@ function harness() {
     status: "test",
     name: "车手",
     color: types.COLORS[0],
-    endpoint: "wss://x/ws",
     rooms: [],
     state: null,
     self: "me",
@@ -67,7 +66,6 @@ function harness() {
       "connect",
       "rename",
       "color",
-      "server",
       "send",
       "leave",
       "boost",
@@ -111,7 +109,7 @@ function harness() {
 }
 test("scaled login button hit tests agree with rendered menu placement", () => {
   const { p, calls } = harness();
-  const login = p.hits[p.hits.length - 2];
+  const login = p.hits[p.hits.length - 1];
   assert.equal(p.press(login.x + login.w / 2, login.y + login.h / 2), true);
   assert.equal(calls[0][0], "connect");
 });
@@ -263,4 +261,21 @@ test("PC startup displays key guide while mobile keeps touch introduction", () =
   p.invalidate();
   p.update();
   assert.ok(!labels.some((s) => s.includes("WASD")));
+});
+test("mobile and PC minigame have no server settings entry", () => {
+  for (const keyboardEnabled of [false, true]) {
+    const { p, model } = harness(),
+      labels = [];
+    const original = p.text.bind(p);
+    p.text = (x, y, text, ...rest) => {
+      labels.push(text);
+      return original(x, y, text, ...rest);
+    };
+    model.keyboardEnabled = keyboardEnabled;
+    p.invalidate();
+    p.update();
+    assert.ok(
+      !labels.some((s) => s.includes("服务器设置") || s.includes("WebSocket")),
+    );
+  }
 });
