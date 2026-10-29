@@ -1,0 +1,6 @@
+32 rooms, 672 natural batteries/room, initial AI decision CPU: 0.966182 seconds
+/skynet/3rd/lua/lua: /verification/bot-load.lua:10: AI batch exceeds 250ms verification budget on this machine
+stack traceback:
+	[C]: in global 'assert'
+	/verification/bot-load.lua:10: in main chunk
+	[C]: in ?

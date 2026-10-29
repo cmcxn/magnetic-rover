@@ -8,6 +8,7 @@ import "./ai-lobby.css";
 import {
   latencyView,
   botLobbyView,
+  minimapScale,
   controlLayout,
   joystickPose,
   skillView,
@@ -876,6 +877,7 @@ function drawMap() {
     .querySelector<HTMLCanvasElement>("#map")
     ?.getContext("2d");
   if (!ctx || !state) return;
+  const mapScale = minimapScale(state.radius, 90);
   ctx.clearRect(0, 0, 200, 200);
   ctx.fillStyle = "#f7ebce";
   ctx.beginPath();
@@ -885,7 +887,7 @@ function drawMap() {
     ctx.strokeStyle = "#318f80";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(100, 100, state.supply.outerRadius * 0.18, 0, Math.PI * 2);
+    ctx.arc(100, 100, state.supply.outerRadius * mapScale, 0, Math.PI * 2);
     ctx.stroke();
     if (
       state.supply.nextOuterRadius !== undefined &&
@@ -894,7 +896,13 @@ function drawMap() {
       ctx.strokeStyle = "#d89427";
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
-      ctx.arc(100, 100, state.supply.nextOuterRadius * 0.18, 0, Math.PI * 2);
+      ctx.arc(
+        100,
+        100,
+        state.supply.nextOuterRadius * mapScale,
+        0,
+        Math.PI * 2,
+      );
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -902,13 +910,19 @@ function drawMap() {
   for (const s of state.stations) {
     ctx.fillStyle = "#79b896";
     ctx.beginPath();
-    ctx.arc(100 + s.x * 0.18, 100 + s.y * 0.18, 10, 0, 7);
+    ctx.arc(100 + s.x * mapScale, 100 + s.y * mapScale, 10, 0, 7);
     ctx.fill();
   }
   for (const p of state.players) {
     ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.arc(100 + p.x * 0.18, 100 + p.y * 0.18, p.id === id ? 6 : 4, 0, 7);
+    ctx.arc(
+      100 + p.x * mapScale,
+      100 + p.y * mapScale,
+      p.id === id ? 6 : 4,
+      0,
+      7,
+    );
     ctx.fill();
     if (p.id === id) {
       ctx.strokeStyle = "#214d3e";

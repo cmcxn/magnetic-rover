@@ -551,3 +551,27 @@ test("round reset silently baselines impact sequence instead of showing a false 
   w.update(116, 16);
   assert.equal(w.impactState.get("p").until, 0);
 });
+
+test("overview camera and background scale with server arena without resizing vehicles", () => {
+  const { w, calls } = harness();
+  w.scale.width = 1600;
+  w.scale.height = 1200;
+  w.state = {
+    phase: "playing",
+    radius: 1000,
+    players: [],
+    stations: [],
+    batteries: [],
+  };
+  calls.length = 0;
+  w.update(0, 16);
+  assert.ok(Math.abs(w.worldScale - 1200 / 2320) < 1e-8);
+  assert.ok(
+    calls.some(
+      (c) =>
+        c.kind === "image" &&
+        c.key === "setScale" &&
+        Math.abs(c.args[0] - w.worldScale * 2) < 1e-8,
+    ),
+  );
+});

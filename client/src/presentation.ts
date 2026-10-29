@@ -228,3 +228,16 @@ export function botLobbyView(
     hasBot: (state.botCount ?? 0) > 0,
   };
 }
+
+/** World-to-minimap mapping keeps authoritative edges inside either client HUD. */
+export function minimapScale(
+  arenaRadius: number | undefined,
+  displayRadius: number,
+) {
+  return (
+    displayRadius /
+    (arenaRadius && Number.isFinite(arenaRadius) && arenaRadius > 0
+      ? arenaRadius
+      : 500)
+  );
+}

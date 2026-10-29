@@ -1,0 +1,1 @@
+PASS native bundle: real solo/add/explicit start/AI match and keyboard; no page errors

@@ -20,7 +20,7 @@ function C.sweep(a,finishA,angleA,b,finishB,angleB,padding)
  return math.max(0,first),math.min(1,last)
 end
 function C.project(players)
- local bound=500-config.collisionRadius;local diameter=2*config.collisionRadius
+ local bound=config.arenaRadius-config.collisionRadius;local diameter=2*config.collisionRadius
  -- Stable ID order gives the same result regardless of room array order.
  for _=1,512 do
   local error=0
@@ -70,7 +70,7 @@ function C.resolve(players,dt,onContacts)
      if (a.vx-b.vx)*nx+(a.vy-b.vy)*ny>EPS then candidate(t*remaining,{a=a,b=b,nx=nx,ny=ny}) end
     end
    end
-   local bound=500-config.collisionRadius
+   local bound=config.arenaRadius-config.collisionRadius
    local aa=a.vx*a.vx+a.vy*a.vy;local dot=a.x*a.vx+a.y*a.vy
    if aa>EPS then
     local disc=dot*dot-aa*(a.x*a.x+a.y*a.y-bound*bound)

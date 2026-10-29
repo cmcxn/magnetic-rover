@@ -1,0 +1,8 @@
+{
+  "radius": 1000,
+  "refillInterval": 5,
+  "initial": 144,
+  "after5s": 168,
+  "boundaryX": 939.152551471639,
+  "collisionRadius": 60
+}

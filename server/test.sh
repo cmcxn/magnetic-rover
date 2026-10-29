@@ -3,10 +3,14 @@ set -eu
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SKYNET_ROOT="${SKYNET_ROOT:-$HERE/../../pluto-aoi-integration/vendor/skynet/}"
 cd "$HERE"
+SKYNET_ROOT="$SKYNET_ROOT" sh test_arena_supply.sh
+# Historical geometry/resource fixtures explicitly exercise legacy settings.
+export ROVER_MAP_SCALE=1 ROVER_SUPPLY_SPEED=1
 SKYNET_ROOT="$SKYNET_ROOT" sh test_base_speed.sh
 "$SKYNET_ROOT/3rd/lua/lua" test_client_root.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_game.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_bot.lua
+"$SKYNET_ROOT/3rd/lua/lua" test_arena_supply.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_motion_protocol.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_fast_movement.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_pickup_seq.lua

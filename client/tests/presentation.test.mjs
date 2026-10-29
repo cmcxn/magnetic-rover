@@ -154,3 +154,11 @@ test("AI lobby entry requires capability and a connected player; old servers and
     "remove_bot",
   );
 });
+
+test("minimap coordinate scale follows authoritative arena radius", async () => {
+  const { minimapScale } = await import("../src/presentation.ts");
+  assert.equal(minimapScale(500, 90), 0.18);
+  assert.equal(minimapScale(1000, 90), 0.09);
+  assert.equal(900 * minimapScale(1000, 90), 81);
+  assert.equal(minimapScale(undefined, 90), 0.18);
+});

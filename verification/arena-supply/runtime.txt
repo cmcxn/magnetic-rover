@@ -1,0 +1,2 @@
+PASS network: radius1000, initial144, first5s refill168, car moves beyond old boundary and clamps at940
+PASS H5 double map/mobile+desktop camera/minimap; no page errors; test sessions left

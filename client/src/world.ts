@@ -198,7 +198,10 @@ export class World extends Phaser.Scene {
   layout() {
     const w = this.scale.width,
       h = this.scale.height;
-    this.worldScale = Math.min(w / 1160, h / 1160);
+    this.worldScale = Math.min(
+      w / (1160 * ((this.state?.radius ?? 500) / 500)),
+      h / (1160 * ((this.state?.radius ?? 500) / 500)),
+    );
     this.ox = w / 2;
     this.oy = h / 2 + 22;
   }
@@ -354,16 +357,20 @@ export class World extends Phaser.Scene {
       this.ox = w / 2 - v.x * this.worldScale;
       this.oy = h * 0.52 - v.y * this.worldScale;
     } else {
-      this.worldScale = Math.min(w / 1160, h / 1160);
+      this.worldScale = Math.min(
+        w / (1160 * ((this.state?.radius ?? 500) / 500)),
+        h / (1160 * ((this.state?.radius ?? 500) / 500)),
+      );
       this.ox = w / 2;
       this.oy = h / 2 + 22;
     }
     const s = this.worldScale;
+    const mapScale = (this.state?.radius ?? 500) / 500;
     if (this.textures.exists("island"))
       this.background
-        .setPosition(this.ox, this.oy + 54 * s)
-        .setDisplaySize(1390 * s, 1390 * s);
-    else this.background.setPosition(this.ox, this.oy).setScale(s);
+        .setPosition(this.ox, this.oy + 54 * s * mapScale)
+        .setDisplaySize(1390 * s * mapScale, 1390 * s * mapScale);
+    else this.background.setPosition(this.ox, this.oy).setScale(s * mapScale);
     g.setPosition(this.ox, this.oy);
     g.setScale(s);
     this.cargoG.setPosition(this.ox, this.oy).setScale(s);

@@ -3,7 +3,7 @@ local config=require 'game_config'
 local B={}
 local radius=10
 local function allowed(g,b)
- if b.x*b.x+b.y*b.y>(500-radius)^2+1e-6 then return false end
+ if b.x*b.x+b.y*b.y>(config.arenaRadius-radius)^2+1e-6 then return false end
  for _,s in ipairs(g.stations) do if (b.x-s.x)^2+(b.y-s.y)^2<(s.r+radius)^2 then return false end end
  for _,p in ipairs(g.players) do if not p.removed and (b.x-p.x)^2+(b.y-p.y)^2<(config.collisionRadius+radius)^2-1e-5 then return false end end
  return true
@@ -11,7 +11,7 @@ end
 function B.place(g,b)
  for _=1,40 do
   local d=math.sqrt(b.x*b.x+b.y*b.y)
-  if d>500-radius then b.x=b.x*(500-radius)/d;b.y=b.y*(500-radius)/d end
+  if d>config.arenaRadius-radius then b.x=b.x*(config.arenaRadius-radius)/d;b.y=b.y*(config.arenaRadius-radius)/d end
   local function exclude(p,r)
    local x,y=b.x-p.x,b.y-p.y;local d=math.sqrt(x*x+y*y)
    if d<r then if d<1e-8 then x=1;y=0;d=1 end;b.x=p.x+x/d*(r+1e-5);b.y=p.y+y/d*(r+1e-5) end

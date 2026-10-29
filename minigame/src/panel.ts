@@ -12,6 +12,7 @@ import {
   UI,
   latencyView,
   botLobbyView,
+  minimapScale,
   compactHudLayout,
   controlLayout,
   joystickPose,
@@ -1044,15 +1045,15 @@ export class CartoonPanel extends Phaser.Scene {
         g.lineStyle(2, 0x88b3c6).strokeCircle(x, y, r);
         for (const s of m.state.stations) {
           g.fillStyle(0x6eedb1).fillCircle(
-            x + (s.x / 500) * r * 0.85,
-            y + (s.y / 500) * r * 0.85,
+            x + s.x * minimapScale(m.state.radius, r * 0.85),
+            y + s.y * minimapScale(m.state.radius, r * 0.85),
             4,
           );
         }
         for (const p of m.state.players) {
           g.fillStyle(parseInt(p.color.slice(1), 16)).fillCircle(
-            x + (p.x / 500) * r * 0.85,
-            y + (p.y / 500) * r * 0.85,
+            x + p.x * minimapScale(m.state.radius, r * 0.85),
+            y + p.y * minimapScale(m.state.radius, r * 0.85),
             p.id === m.self ? 4 : 3,
           );
         }

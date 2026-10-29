@@ -60,6 +60,9 @@ export interface State {
   }[];
   stations: { x: number; y: number; r: number }[];
   radius: number;
+  mapScale?: number;
+  supplySpeed?: number;
+  refillInterval?: number;
   vehicleScale?: number;
   boostMultiplier?: number;
   boostCooldown?: number;

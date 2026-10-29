@@ -4,6 +4,26 @@ local B={}
 local function distance(a,b) return math.sqrt((a.x-b.x)^2+(a.y-b.y)^2) end
 function B.new(random) return {random=random or math.random,nextThink=-1,holdUntil=-1,nextDash=-1} end
 local function available(g,b) return (b.unlock or 0)<=g.time and (b.z or 0)<=1 end
+-- Local density scoring uses spatial buckets, keeping large arenas inexpensive.
+local function batteryGrid(g)
+ local list,grid={},{}
+ for _,b in ipairs(g.batteries) do if available(g,b) then
+  list[#list+1]=b;local x,y=math.floor(b.x/110),math.floor(b.y/110)
+  grid[x]=grid[x] or {};grid[x][y]=grid[x][y] or {};local cell=grid[x][y];cell[#cell+1]=b
+ end end
+ return list,grid
+end
+local function neighbors(b,grid)
+ local x,y=math.floor(b.x/110),math.floor(b.y/110);local count=0
+ for i=x-1,x+1 do local column=grid[i];if column then
+  for j=y-1,y+1 do for _,other in ipairs(column[j] or {}) do
+   if other~=b and (other.x-b.x)^2+(other.y-b.y)^2<12100 then
+    count=count+1;if count==5 then return count end
+   end
+  end end
+ end end
+ return count
+end
 function B.input(c,g,p,now)
  if p.stun>0 or not p.connected or g.phase~='playing' then c.holdUntil=-1;return {x=0,y=0,boost=false} end
  if not c.sampleAt or now-c.sampleAt>=.8 then
@@ -32,13 +52,13 @@ function B.input(c,g,p,now)
    end
    if not target then
     local best=math.huge
-    for _,b in ipairs(g.batteries) do if available(g,b) then
-     local d=distance(p,b);local nearby=0
-     for _,other in ipairs(g.batteries) do if other~=b and available(g,other) and distance(b,other)<110 then nearby=nearby+1 end end
-     local score=d-math.min(nearby,5)*12
+    local candidates,grid=batteryGrid(g)
+    for _,b in ipairs(candidates) do
+     local d=distance(p,b)
+     local score=d-neighbors(b,grid)*12
      for _,q in ipairs(g.players) do if q~=p and q.connected and distance(q,b)<d then score=score+25 end end
      if score<best then best=score;target=b end
-    end end
+    end
    end
    if target then mode='collect'
    elseif p.cargo>0 then
