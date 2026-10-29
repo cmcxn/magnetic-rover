@@ -2,6 +2,7 @@ local G={}; G.__index=G
 local config=require 'game_config'
 local vehicleCollision=require 'vehicle_collision'
 local batteryMotion=require 'battery_motion'
+local Bot=require 'bot'
 local resources=config.resources
 local palette={'#38bdf8','#fb7185','#a78bfa','#facc15','#34d399','#fb923c','#e879f9','#cbd5e1'}
 local colors={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=true,['#34d399']=true,['#fb923c']=true,['#e879f9']=true,['#cbd5e1']=true}
@@ -124,7 +125,7 @@ function G:start()
 end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
- local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.energy=1;p.boostHeld=false;p.boost=0;p.stun=0;p.hitSeq=0;p.impactSeq=0;p.kx=0;p.ky=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*math.pi/4)*220*math.max(1,config.vehicleScale);p.y=math.sin(#keep*math.pi/4)*220*math.max(1,config.vehicleScale);keep[#keep+1]=p end end
+ local keep={};for _,p in ipairs(self.players) do if p.connected then p.bot=nil;p.score=0;p.cargo=0;p.cooldown=0;p.energy=1;p.boostHeld=false;p.boost=0;p.stun=0;p.hitSeq=0;p.impactSeq=0;p.kx=0;p.ky=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*math.pi/4)*220*math.max(1,config.vehicleScale);p.y=math.sin(#keep*math.pi/4)*220*math.max(1,config.vehicleScale);keep[#keep+1]=p end end
  self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=config.matchDuration;self.finishedAt=nil;self.nextrefill=nil;self.supplyStage=nil;return true
 end
 function G:drop(p,n,nx,ny)
@@ -160,6 +161,11 @@ function G:step(dt,elapsed,remaining)
  self:contractSupply()
  if self.time>=self.nextrefill and self.remaining>resources.stopRemaining then self:replenish();self.nextrefill=self.time+resources.refillInterval end
  local active={}
+ for _,p in ipairs(self.players) do
+  if p.isBot and p.connected and not p.removed and dt>0 then
+   p.bot=p.bot or Bot.new();self:input(p,Bot.input(p.bot,self,p,self.time))
+  end
+ end
  for _,p in ipairs(self.players) do
   if dt>0 and p.connected then
    if p.inputSeq~=p.pendingSeq then p.inputSeq=p.pendingSeq;p.inputElapsed=0 end

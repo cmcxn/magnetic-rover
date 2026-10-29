@@ -6,6 +6,7 @@ cd "$HERE"
 SKYNET_ROOT="$SKYNET_ROOT" sh test_base_speed.sh
 "$SKYNET_ROOT/3rd/lua/lua" test_client_root.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_game.lua
+"$SKYNET_ROOT/3rd/lua/lua" test_bot.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_motion_protocol.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_fast_movement.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_pickup_seq.lua
