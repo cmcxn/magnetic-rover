@@ -1,13 +1,20 @@
 import Phaser from "phaser";
+import { VehicleMotion, TireDust, wheelAngle } from "./vehicle-effects";
 import { Motion, type Control } from "./motion";
 import { cameraPolicy, type State } from "./types";
 export class World extends Phaser.Scene {
   state: State | null = null;
   private motion = new Motion();
+  private wheelMotion = new VehicleMotion();
+  private tireDust = new TireDust();
+  private dustAt = new Map<string, number>();
   private motionSnapshot: State | null = null;
   private motionRole = "";
   resetMotion() {
     this.motion.reset();
+    this.wheelMotion.reset();
+    this.tireDust.clear();
+    this.dustAt.clear();
     // Wait for a fresh snapshot after a focus/session reset.
     this.motionSnapshot = this.state;
     this.motionRole = `${this.self}:${this.spectating}`;
@@ -63,6 +70,30 @@ export class World extends Phaser.Scene {
   smooth = new Map<string, { x: number; y: number; angle: number }>();
   sprites = new Map<string, Phaser.GameObjects.Image>();
   spriteIds = new Set<string>();
+  get vehicleDiagnostics() {
+    return {
+      dust: this.tireDust.particles.length,
+      wheelPlayers: this.wheelMotion.size,
+      wheels: [...this.sprites]
+        .filter(([id]) => id.startsWith("wheel-"))
+        .map(([id, s]) => ({
+          id,
+          texture: s.texture.key,
+          angle: s.rotation,
+          x: s.x,
+          y: s.y,
+        })),
+      bodies: [...this.sprites]
+        .filter(([id]) => id.startsWith("car-"))
+        .map(([id, s]) => ({
+          id,
+          texture: s.texture.key,
+          angle: s.rotation,
+          x: s.x,
+          y: s.y,
+        })),
+    };
+  }
   worldScale = 1;
   ox = 0;
   oy = 0;
@@ -86,6 +117,8 @@ export class World extends Phaser.Scene {
     if (!this.reducedEffects) this.cameras?.main.shake(100, 0.002);
   }
   preload() {
+    this.load.image("chassis", "/assets/cartoon/rover-chassis.png");
+    this.load.image("tire", "/assets/cartoon/rover-tire.png");
     this.load.image("rover", "/assets/cartoon/rover.png");
     this.load.image("battery", "/assets/cartoon/battery.png");
     this.load.image("station", "/assets/cartoon/station.png");
@@ -93,7 +126,7 @@ export class World extends Phaser.Scene {
   }
   create() {
     // Production PNGs are alpha-trimmed at export, retaining their original sources.
-    for (const key of ["rover", "battery", "station"]) {
+    for (const key of ["rover", "chassis", "tire", "battery", "station"]) {
       if (this.textures.exists(key)) {
         const source = this.textures
           .get(key)
@@ -104,6 +137,7 @@ export class World extends Phaser.Scene {
       }
     }
     this.createRoverColors();
+    this.createWheelFrames();
     this.createBackground();
     this.g = this.add.graphics();
     this.cargoG = this.add.graphics().setDepth(5);
@@ -111,34 +145,67 @@ export class World extends Phaser.Scene {
     this.layout();
   }
   private createRoverColors() {
-    if (!this.textures.exists("rover")) return;
+    for (const base of ["rover", "chassis"]) {
+      if (!this.textures.exists(base)) continue;
+      const source = this.textures
+        .get(base)
+        .getSourceImage() as HTMLImageElement;
+      for (const color of [
+        "38bdf8",
+        "fb7185",
+        "a78bfa",
+        "facc15",
+        "34d399",
+        "fb923c",
+        "e879f9",
+        "cbd5e1",
+      ]) {
+        const key = base + "-" + color;
+        if (this.textures.exists(key)) continue;
+        const texture = this.textures.createCanvas(key, 192, 134);
+        if (!texture) continue;
+        const ctx = texture.context;
+        ctx.drawImage(source, 0, 0, 192, 134);
+        ctx.globalCompositeOperation = "multiply";
+        ctx.fillStyle = "#" + color;
+        ctx.fillRect(0, 0, 192, 134);
+        ctx.globalCompositeOperation = "destination-in";
+        ctx.drawImage(source, 0, 0, 192, 134);
+        ctx.globalCompositeOperation = "source-over";
+        texture.add("trim", 0, 0, 0, 192, 134);
+        texture.refresh();
+      }
+    }
+  }
+  private createWheelFrames() {
+    if (!this.textures.exists("tire")) return;
     const source = this.textures
-      .get("rover")
+      .get("tire")
       .getSourceImage() as HTMLImageElement;
-    for (const color of [
-      "38bdf8",
-      "fb7185",
-      "a78bfa",
-      "facc15",
-      "34d399",
-      "fb923c",
-      "e879f9",
-      "cbd5e1",
-    ]) {
-      const key = "rover-" + color;
+    for (let frame = 0; frame < 8; frame++) {
+      const key = `tire-roll-${frame}`;
       if (this.textures.exists(key)) continue;
-      const texture = this.textures.createCanvas(key, 192, 134);
-      if (!texture) continue;
-      const ctx = texture.context;
-      ctx.drawImage(source, 0, 0, 192, 134);
-      ctx.globalCompositeOperation = "multiply";
-      ctx.fillStyle = "#" + color;
-      ctx.fillRect(0, 0, 192, 134);
-      ctx.globalCompositeOperation = "destination-in";
-      ctx.drawImage(source, 0, 0, 192, 134);
+      const tex = this.textures.createCanvas(key, 128, 78);
+      if (!tex) continue;
+      const ctx = tex.context;
+      ctx.drawImage(source, 0, 0, 128, 78);
+      ctx.globalCompositeOperation = "source-atop";
+      // Fixed silhouette; only the tread bands translate, so tires do not wobble.
+      for (let x = -48 + frame * 5.25; x < 180; x += 42) {
+        ctx.beginPath();
+        ctx.moveTo(x - 9, 7);
+        ctx.lineTo(x + 5, 39);
+        ctx.lineTo(x - 9, 71);
+        ctx.strokeStyle = "rgba(8,17,33,.45)";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(137,172,205,.22)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
       ctx.globalCompositeOperation = "source-over";
-      texture.add("trim", 0, 0, 0, 192, 134);
-      texture.refresh();
+      tex.add("trim", 0, 0, 0, 128, 78);
+      tex.refresh();
     }
   }
   createBackground() {
@@ -228,6 +295,7 @@ export class World extends Phaser.Scene {
       image = this.add.image(0, 0, key, "trim");
       this.sprites.set(id, image);
     }
+    if (image.texture?.key !== key) image.setTexture(key, "trim");
     image
       .setPosition(this.ox + x * this.worldScale, this.oy + y * this.worldScale)
       .setDisplaySize(width * this.worldScale, height * this.worldScale)
@@ -257,8 +325,12 @@ export class World extends Phaser.Scene {
         prev?.phase !== "playing" ||
         next?.phase !== "playing" ||
         prev.roundId !== next.roundId
-      )
+      ) {
         this.impactState.clear();
+        this.wheelMotion.reset();
+        this.tireDust.clear();
+        this.dustAt.clear();
+      }
       if (
         prev?.phase === "playing" &&
         next?.phase === "playing" &&
@@ -497,6 +569,22 @@ export class World extends Phaser.Scene {
       this.state?.collisionRadius ?? this.state?.pickupRadius ?? 20;
     const labelClearance = (_angle: number, _cargo: number) =>
       68 * (this.state?.vehicleScale ?? 1);
+    this.tireDust.step(delta, effectsActive && !this.reducedEffects);
+    for (const p of this.tireDust.particles) {
+      const life = 1 - p.age / p.life;
+      g.fillStyle(0xb8a78b, 0.3 * life).fillEllipse(
+        p.x,
+        p.y,
+        p.size * (2 + p.age * 10),
+        p.size * (1.3 + p.age * 5),
+      );
+      g.fillStyle(0xfff1d1, 0.24 * life).fillEllipse(
+        p.x - 1,
+        p.y - 1,
+        p.size * (1 + p.age * 8),
+        p.size * (0.8 + p.age * 4),
+      );
+    }
     const present = new Set<string>();
     for (const p of this.state?.players ?? []) {
       present.add(p.id);
@@ -537,11 +625,55 @@ export class World extends Phaser.Scene {
         p.id === this.self ? 0.65 : 0.15,
       );
       g.strokeCircle(v.x, v.y, boundaryRadius);
+      const vehicleScale = this.state?.vehicleScale ?? 1;
+      const wheels = this.wheelMotion.sample(p.id, v, delta, {
+        active: effectsActive && p.connected && p.stun <= 0,
+        scale: vehicleScale,
+      });
+      const layered =
+        this.textures.exists("chassis") && this.textures.exists("tire-roll-0");
+      if (layered) {
+        for (const front of [false, true])
+          for (const side of [-1, 1]) {
+            const lx = (front ? 22 : -33) * vehicleScale,
+              ly = side * 25 * vehicleScale;
+            const x = v.x + lx * Math.cos(v.angle) - ly * Math.sin(v.angle),
+              y = v.y + lx * Math.sin(v.angle) + ly * Math.cos(v.angle);
+            this.sprite(
+              `wheel-${p.id}-${front}-${side}`,
+              `tire-roll-${wheels.frame}`,
+              x,
+              y,
+              30 * vehicleScale,
+              18 * vehicleScale,
+              3,
+              v.angle + wheelAngle(wheels.steer, side, front),
+            );
+            if (
+              effectsActive &&
+              !this.reducedEffects &&
+              wheels.speed > 35 &&
+              _time - (this.dustAt.get(p.id) ?? -1000) > 85 &&
+              !front
+            ) {
+              this.tireDust.emit(
+                x,
+                y,
+                v.angle,
+                vehicleScale,
+                _time * 0.01 + side * 3,
+              );
+            }
+          }
+        if (wheels.speed > 35 && _time - (this.dustAt.get(p.id) ?? -1000) > 85)
+          this.dustAt.set(p.id, _time);
+      }
+      const bodyKey = layered ? "chassis" : "rover";
       const hasSprite = this.sprite(
         `car-${p.id}`,
-        this.textures.exists("rover-" + p.color.slice(1))
-          ? "rover-" + p.color.slice(1)
-          : "rover",
+        this.textures.exists(bodyKey + "-" + p.color.slice(1))
+          ? bodyKey + "-" + p.color.slice(1)
+          : bodyKey,
         v.x,
         v.y,
         49 * roverScale,
@@ -703,19 +835,29 @@ export class World extends Phaser.Scene {
         }
         const tail = -24;
         const length =
-          8 +
-          20 * Math.min(1, boostLeft / (this.state?.boostDuration ?? 0.32)) +
+          18 +
+          30 * Math.min(1, boostLeft / (this.state?.boostDuration ?? 0.32)) +
           (this.reducedEffects ? 0 : Math.sin(_time * 0.045) * 2);
         const flame = (width: number, len: number, col: number) => {
-          const a = rot(tail, -width),
-            b = rot(tail - len, 0),
-            c = rot(tail, width);
+          const wave = this.reducedEffects
+            ? 0
+            : Math.sin(_time * 0.065) * width * 0.22;
+          const points = [
+            rot(tail, -width * 0.65),
+            rot(tail - len * 0.22, -width),
+            rot(tail - len * 0.49, -width * 0.4),
+            rot(tail - len, wave),
+            rot(tail - len * 0.58, width * 0.48),
+            rot(tail - len * 0.25, width * 0.86),
+            rot(tail, width * 0.65),
+          ];
           g.fillStyle(col);
-          g.fillTriangle(a.x, a.y, b.x, b.y, c.x, c.y);
+          g.fillPoints(points, true);
         };
-        flame(9, length, 0xff7a32);
-        flame(5, length * 0.7, 0xffdb69);
-        flame(2.5, length * 0.35, 0xfff8dc);
+        flame(10, length * 1.1, c);
+        flame(7.5, length, 0xff7a32);
+        flame(5, length * 0.72, 0xffe889);
+        flame(2.8, length * 0.48, 0xf0ffff);
       }
       const boostText =
         p.id === this.self && !this.spectating && boostVisible
@@ -756,6 +898,9 @@ export class World extends Phaser.Scene {
         label.setText(`掉落 ${impact.lost} · ${p.name}`);
       label.setVisible(this.state?.phase === "playing");
     }
+    this.wheelMotion.retain(present);
+    for (const id of this.dustAt.keys())
+      if (!present.has(id)) this.dustAt.delete(id);
     for (const id of this.impactState.keys())
       if (!present.has(id)) this.impactState.delete(id);
     for (const id of this.boostIndicators.keys()) {

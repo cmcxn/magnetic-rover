@@ -1,0 +1,56 @@
+{
+  "status": "integrated-master-source",
+  "facing": "+X (right)",
+  "assets": {
+    "chassis.png": {
+      "width": 1446,
+      "height": 1088,
+      "alpha": true,
+      "visibleBoundsAlpha128": [
+        67,
+        202,
+        1421,
+        881
+      ],
+      "transparentFraction": 0.5205
+    },
+    "tire.png": {
+      "width": 1606,
+      "height": 979,
+      "alpha": true,
+      "visibleBoundsAlpha128": [
+        173,
+        109,
+        1432,
+        877
+      ],
+      "transparentFraction": 0.4416
+    }
+  },
+  "suggestedExport": {
+    "chassisCanvas": [
+      384,
+      289
+    ],
+    "tireTrimmed": [
+      128,
+      78
+    ]
+  },
+  "registrationNote": "Generated masters require visual mount/pivot calibration at integration; canvas is not a guaranteed pixel-exact extraction of original sprite.",
+  "layerOrder": [
+    "rear-and-front-tires",
+    "chassis",
+    "cargo-and-effects"
+  ],
+  "steering": {
+    "frontWheels": "same steering sign; inside angle slightly larger",
+    "rearWheels": "aligned with chassis"
+  },
+  "animation": "Tread motion should track actual travel; sprint increases rate, steering pivots entire independent front tire.",
+  "runtimeExports": {
+    "chassis": "client/public/assets/cartoon/rover-chassis.png",
+    "tire": "client/public/assets/cartoon/rover-tire.png",
+    "treadFrames": "eight cached runtime Canvas textures"
+  }
+}

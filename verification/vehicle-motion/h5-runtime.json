@@ -1,0 +1,269 @@
+{
+  "moving": {
+    "dust": 10,
+    "wheelPlayers": 2,
+    "wheels": [
+      {
+        "id": "wheel-1-false--1",
+        "texture": "tire-roll-2",
+        "angle": 0,
+        "x": 394.0217391304348,
+        "y": 181.60434782608698
+      },
+      {
+        "id": "wheel-1-false-1",
+        "texture": "tire-roll-2",
+        "angle": 0,
+        "x": 394.0217391304348,
+        "y": 223.99565217391304
+      },
+      {
+        "id": "wheel-1-true--1",
+        "texture": "tire-roll-2",
+        "angle": 0,
+        "x": 440.6521739130435,
+        "y": 181.60434782608698
+      },
+      {
+        "id": "wheel-1-true-1",
+        "texture": "tire-roll-2",
+        "angle": 0,
+        "x": 440.6521739130435,
+        "y": 223.99565217391304
+      },
+      {
+        "id": "wheel-2-false--1",
+        "texture": "tire-roll-3",
+        "angle": -2.0247717072357654,
+        "x": -484.7724315882574,
+        "y": 751.8595423412773
+      },
+      {
+        "id": "wheel-2-false-1",
+        "texture": "tire-roll-3",
+        "angle": -2.0247717072357654,
+        "x": -446.6749069226968,
+        "y": 733.2691873509332
+      },
+      {
+        "id": "wheel-2-true--1",
+        "texture": "tire-roll-3",
+        "angle": -2.1983898952874252,
+        "x": -505.22182207763603,
+        "y": 709.9522652091605
+      },
+      {
+        "id": "wheel-2-true-1",
+        "texture": "tire-roll-3",
+        "angle": -2.1611859978477845,
+        "x": -467.1242974120753,
+        "y": 691.3619102188164
+      }
+    ],
+    "bodies": [
+      {
+        "id": "car-1",
+        "texture": "chassis-38bdf8",
+        "angle": 0,
+        "x": 422,
+        "y": 202.8
+      },
+      {
+        "id": "car-2",
+        "texture": "chassis-fb923c",
+        "angle": -2.0247717072357654,
+        "x": -477.9933035491042,
+        "y": 717.4199985668351
+      }
+    ]
+  },
+  "turn": {
+    "dust": 16,
+    "wheelPlayers": 2,
+    "wheels": [
+      {
+        "id": "wheel-1-false--1",
+        "texture": "tire-roll-4",
+        "angle": -0.7853981633974492,
+        "x": 387.2287926294789,
+        "y": 207.5960286028305
+      },
+      {
+        "id": "wheel-1-false-1",
+        "texture": "tire-roll-4",
+        "angle": -0.7853981633974492,
+        "x": 417.20397139716954,
+        "y": 237.5712073705211
+      },
+      {
+        "id": "wheel-1-true--1",
+        "texture": "tire-roll-4",
+        "angle": -0.9280422593974471,
+        "x": 420.2014892739386,
+        "y": 174.62333195837084
+      },
+      {
+        "id": "wheel-1-true-1",
+        "texture": "tire-roll-4",
+        "angle": -0.8974756673974476,
+        "x": 450.1766680416292,
+        "y": 204.59851072606145
+      },
+      {
+        "id": "wheel-2-false--1",
+        "texture": "tire-roll-4",
+        "angle": 2.7758576269636723,
+        "x": -533.9245069195387,
+        "y": 734.232788801417
+      },
+      {
+        "id": "wheel-2-false-1",
+        "texture": "tire-roll-4",
+        "angle": 2.7758576269636723,
+        "x": -549.0851551252988,
+        "y": 694.6451969285687
+      },
+      {
+        "id": "wheel-2-true--1",
+        "texture": "tire-roll-4",
+        "angle": 2.5321937065019373,
+        "x": -577.4708579796716,
+        "y": 750.909501827753
+      },
+      {
+        "id": "wheel-2-true-1",
+        "texture": "tire-roll-4",
+        "angle": 2.5844074037437377,
+        "x": -592.6315061854318,
+        "y": 711.3219099549049
+      }
+    ],
+    "bodies": [
+      {
+        "id": "car-1",
+        "texture": "chassis-38bdf8",
+        "angle": -0.7853981633974492,
+        "x": 422,
+        "y": 202.8
+      },
+      {
+        "id": "car-2",
+        "texture": "chassis-fb923c",
+        "angle": 2.7758576269636723,
+        "x": -567.6326416584985,
+        "y": 724.4450206807945
+      }
+    ]
+  },
+  "boost": {
+    "dust": 10,
+    "wheelPlayers": 2,
+    "wheels": [
+      {
+        "id": "wheel-1-false--1",
+        "texture": "tire-roll-5",
+        "angle": 0,
+        "x": 394.02173913043487,
+        "y": 181.60434782608695
+      },
+      {
+        "id": "wheel-1-false-1",
+        "texture": "tire-roll-5",
+        "angle": 0,
+        "x": 394.02173913043487,
+        "y": 223.99565217391307
+      },
+      {
+        "id": "wheel-1-true--1",
+        "texture": "tire-roll-5",
+        "angle": 0.001973548206297693,
+        "x": 440.6521739130435,
+        "y": 181.60434782608695
+      },
+      {
+        "id": "wheel-1-true-1",
+        "texture": "tire-roll-5",
+        "angle": 0.0025117886261973865,
+        "x": 440.6521739130435,
+        "y": 223.99565217391307
+      },
+      {
+        "id": "wheel-2-false--1",
+        "texture": "tire-roll-3",
+        "angle": 0.17035448182991964,
+        "x": -615.9974229622701,
+        "y": 864.9377297907306
+      },
+      {
+        "id": "wheel-2-false-1",
+        "texture": "tire-roll-3",
+        "angle": 0.17035448182991964,
+        "x": -623.1840932911327,
+        "y": 906.7154086862157
+      },
+      {
+        "id": "wheel-2-true--1",
+        "texture": "tire-roll-3",
+        "angle": 0.1682814683592433,
+        "x": -570.0419761772364,
+        "y": 872.8430671524796
+      },
+      {
+        "id": "wheel-2-true-1",
+        "texture": "tire-roll-3",
+        "angle": 0.16872568553153044,
+        "x": -577.228646506099,
+        "y": 914.6207460479646
+      }
+    ],
+    "bodies": [
+      {
+        "id": "car-1",
+        "texture": "chassis-38bdf8",
+        "angle": 0,
+        "x": 422,
+        "y": 202.8
+      },
+      {
+        "id": "car-2",
+        "texture": "chassis-fb923c",
+        "angle": 0.17035448182991964,
+        "x": -592.0174900556812,
+        "y": 890.5697716555226
+      }
+    ]
+  },
+  "audio": [
+    {
+      "event": "start",
+      "loop": true,
+      "state": "running",
+      "duration": 0.48
+    },
+    {
+      "event": "start",
+      "loop": false,
+      "state": "running",
+      "duration": 0.5456666666666666
+    },
+    {
+      "event": "stop",
+      "loop": false
+    },
+    {
+      "event": "stop",
+      "loop": true
+    },
+    {
+      "event": "start",
+      "loop": false,
+      "state": "running",
+      "duration": 0.5456666666666666
+    },
+    {
+      "event": "stop",
+      "loop": false
+    }
+  ],
+  "errors": []
+}

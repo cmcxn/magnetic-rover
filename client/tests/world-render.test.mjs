@@ -3,6 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { VehicleMotion, TireDust, wheelAngle } from "../src/vehicle-effects.ts";
 import { Motion } from "../src/motion.ts";
 import { cameraPolicy } from "../src/types.ts";
 const source = fs.readFileSync(
@@ -37,6 +38,9 @@ function harness() {
   }
   const context = {
     cameraPolicy,
+    VehicleMotion,
+    TireDust,
+    wheelAngle,
     Motion,
     performance: { now: () => 0 },
     window: { matchMedia: () => ({ matches: false }) },
@@ -574,4 +578,29 @@ test("overview camera and background scale with server arena without resizing ve
         Math.abs(c.args[0] - w.worldScale * 2) < 1e-8,
     ),
   );
+});
+
+test("layered vehicle renders four independent wheels, reuses them, and removes departed wheels", () => {
+  const { w, calls } = renderCar(0);
+  w.state.players[0].stun = 0;
+  w.textures.exists = (k) =>
+    k === "chassis" || k.startsWith("chassis-") || k.startsWith("tire-roll-");
+  w.update(116, 16);
+  assert.equal(
+    [...w.sprites.keys()].filter((k) => k.startsWith("wheel-p-")).length,
+    4,
+  );
+  const wheel = w.sprites.get("wheel-p-true-1");
+  w.state.players[0].x = 8;
+  w.state.players[0].angle = 0.2;
+  w.update(132, 16);
+  assert.equal(w.sprites.get("wheel-p-true-1"), wheel);
+  assert.ok(w.wheelMotion.size === 1);
+  w.state.players = [];
+  w.update(148, 16);
+  assert.equal(
+    [...w.sprites.keys()].filter((k) => k.startsWith("wheel-")).length,
+    0,
+  );
+  assert.equal(w.wheelMotion.size, 0);
 });

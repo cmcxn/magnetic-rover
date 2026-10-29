@@ -32,6 +32,9 @@ import {
   roomRenderKey,
 } from "./types";
 const world = new World();
+Object.defineProperty(window, "roverVisuals", {
+  get: () => world.vehicleDiagnostics,
+});
 const motionPreference = window.matchMedia?.(
   "(prefers-reduced-motion: reduce)",
 );

@@ -103,7 +103,7 @@ test("native audio starts only after a gesture and reuses a bounded pool", () =>
   assert.equal(h.contexts.length, 6);
   assert.ok(
     h.contexts.every(
-      (c) => c.src.startsWith("art/audio/") && c.obeyMuteSwitch === true,
+      (c) => c.src.startsWith("art/audio/") && c.obeyMuteSwitch === false,
     ),
   );
 });
@@ -213,4 +213,13 @@ test("native held boost loops once and stops on release or mute", () => {
   h.audio.toggle();
   h.audio.setBoosting(true);
   assert.equal(effect.plays, 2);
+});
+
+test("native engine loop has audible gain, no system mute dependency, and keeps full motor cycle", () => {
+  const h = harness();
+  h.audio.unlock();
+  h.audio.setBoosting(true);
+  const c = h.contexts.find((c) => c.src.endsWith("boost.wav"));
+  assert.ok(c.volume >= 0.6);
+  assert.equal(c.obeyMuteSwitch, false);
 });

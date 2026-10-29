@@ -64,13 +64,12 @@ export function compactWav(input, limitSeconds = Infinity) {
 export async function buildAudio(source, destination) {
   await mkdir(destination, { recursive: true });
   for (const name of SOUND_NAMES) {
-    const data = await readFile(join(source, name + ".wav"));
+    const data = await readFile(
+      join(source, (name === "boost" ? "boost-engine" : name) + ".wav"),
+    );
     await writeFile(
       join(destination, name + ".wav"),
-      compactWav(
-        data,
-        name === "pickup" ? 0.22 : name === "boost" ? 0.28 : Infinity,
-      ),
+      compactWav(data, name === "pickup" ? 0.22 : Infinity),
     );
   }
   await copyFile(

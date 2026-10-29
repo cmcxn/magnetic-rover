@@ -70,6 +70,8 @@ let scenePeakMs = 0,
 const joystick = new FloatingJoystick();
 const world = new (class extends World {
   preload() {
+    this.load.image("chassis", "art/cartoon/rover-chassis.png");
+    this.load.image("tire", "art/cartoon/rover-tire.png");
     this.load.image("rover", "art/cartoon/rover.png");
     this.load.image("battery", "art/cartoon/battery.png");
     this.load.image("station", "art/cartoon/station.png");
@@ -533,6 +535,7 @@ Object.defineProperty(GameGlobal, "roverSpike", {
     endpoint,
     connected,
     audio: sounds.diagnostics,
+    visuals: world.vehicleDiagnostics,
     status,
     lastTouch,
     hitAreas: panel?.hits.map(({ action, ...hit }) => hit),

@@ -150,3 +150,20 @@ test("held boost loop starts once, stops on release and can restart", () => {
   sounds.setBoosting(true);
   assert.equal(stops, 2);
 });
+
+test("held engine loop starts with clear gain and uses the full sustained cycle", () => {
+  const sounds = harness();
+  let source, gain;
+  sounds.context = {
+    state: "running",
+    currentTime: 0,
+    destination: {},
+    createBufferSource: () => (source = { connect() {}, start() {} }),
+    createGain: () => (gain = { gain: { value: 0 }, connect() {} }),
+  };
+  sounds.buffers.set("boost", { duration: 0.48 });
+  sounds.setBoosting(true);
+  assert.ok(gain.gain.value >= 0.6);
+  assert.equal(source.loopEnd, 0.48);
+  assert.equal(source.loopStart, 0.08);
+});

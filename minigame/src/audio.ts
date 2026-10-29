@@ -36,9 +36,8 @@ export class WeChatSounds {
         const audio = this.api.createInnerAudioContext();
         audio.autoplay = false;
         audio.loop = false;
-        audio.obeyMuteSwitch = true;
-        audio.volume =
-          name === "boost" ? 0.34 : name === "pickup" ? 0.25 : 0.24;
+        audio.obeyMuteSwitch = false;
+        audio.volume = name === "boost" ? 0.7 : name === "pickup" ? 0.25 : 0.24;
         audio.onError?.((e: any) => {
           this.error = `${name}: ${e.errMsg || e.errCode || "播放失败"}`;
           console.warn("[rover] audio", this.error);

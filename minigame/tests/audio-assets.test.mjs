@@ -31,3 +31,28 @@ test("all six packaged WAVs stay native-compatible; short effects fade out and p
     "audio must not recreate the previous package-size failure",
   );
 });
+
+test("motor source has immediate audible energy and native export retains a full loop", async () => {
+  const { buildAudio } = await import("../audio-assets.mjs");
+  const { mkdtemp, rm } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const dir = await mkdtemp(join(tmpdir(), "rover-motor-"));
+  try {
+    await buildAudio(
+      new URL("../../client/public/assets/audio/", import.meta.url).pathname,
+      dir,
+    );
+    const b = await readFile(join(dir, "boost.wav"));
+    const rate = b.readUInt32LE(24),
+      frames = b.readUInt32LE(40) / 2;
+    assert.ok(frames / rate >= 0.47);
+    let power = 0;
+    const count = Math.floor(rate * 0.02);
+    for (let i = 0; i < count; i++)
+      power += (b.readInt16LE(44 + i * 2) / 32768) ** 2;
+    assert.ok(Math.sqrt(power / count) > 0.15);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

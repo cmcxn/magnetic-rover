@@ -43,8 +43,9 @@ export class Sounds {
       gain = c!.createGain();
     source.buffer = b!;
     source.loop = true;
-    source.loopEnd = Math.min(0.28, b!.duration);
-    gain.gain.value = 0.26;
+    source.loopStart = b!.duration >= 0.48 ? 0.08 : 0;
+    source.loopEnd = b!.duration;
+    gain.gain.value = 0.65;
     source.connect(gain);
     gain.connect(c!.destination);
     this.boostLoop = { source, gain };
@@ -59,7 +60,7 @@ export class Sounds {
       this.context = new AudioContext();
       const c = this.context;
       for (const n of names)
-        fetch(`/assets/audio/${n}.wav`)
+        fetch(`/assets/audio/${n === "boost" ? "boost-engine" : n}.wav`)
           .then((r) => r.arrayBuffer())
           .then((b) => c.decodeAudioData(b))
           .then((b) => this.buffers.set(n, b))

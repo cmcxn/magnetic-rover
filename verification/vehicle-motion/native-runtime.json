@@ -1,0 +1,129 @@
+{
+  "visuals": {
+    "dust": 16,
+    "wheelPlayers": 2,
+    "wheels": [
+      {
+        "id": "wheel-1-false--1",
+        "texture": "tire-roll-6",
+        "angle": 0,
+        "x": 379.0978260869565,
+        "y": 174.6195652173913
+      },
+      {
+        "id": "wheel-1-false-1",
+        "texture": "tire-roll-6",
+        "angle": 0,
+        "x": 379.0978260869565,
+        "y": 215.3804347826087
+      },
+      {
+        "id": "wheel-1-true--1",
+        "texture": "tire-roll-6",
+        "angle": 0.00010643620862715863,
+        "x": 423.9347826086956,
+        "y": 174.6195652173913
+      },
+      {
+        "id": "wheel-1-true-1",
+        "texture": "tire-roll-6",
+        "angle": 0.0001354642655257976,
+        "x": 423.9347826086956,
+        "y": 215.3804347826087
+      },
+      {
+        "id": "wheel-2-false--1",
+        "texture": "tire-roll-3",
+        "angle": -0.8244906371860452,
+        "x": 79.79276587327968,
+        "y": 514.9363459406527
+      },
+      {
+        "id": "wheel-2-false-1",
+        "texture": "tire-roll-3",
+        "angle": -0.8244906371860452,
+        "x": 109.71948008333544,
+        "y": 542.6101650537116
+      },
+      {
+        "id": "wheel-2-true--1",
+        "texture": "tire-roll-3",
+        "angle": -0.953089853315797,
+        "x": 110.23396689764462,
+        "y": 482.01696030959135
+      },
+      {
+        "id": "wheel-2-true-1",
+        "texture": "tire-roll-3",
+        "angle": -0.9255328784308503,
+        "x": 140.16068110770033,
+        "y": 509.69077942265034
+      }
+    ],
+    "bodies": [
+      {
+        "id": "car-1",
+        "texture": "chassis-38bdf8",
+        "angle": 0,
+        "x": 406,
+        "y": 195
+      },
+      {
+        "id": "car-2",
+        "texture": "chassis-fb923c",
+        "angle": -0.8244906371860452,
+        "x": 113.02084359292655,
+        "y": 509.0216241185454
+      }
+    ]
+  },
+  "audio": {
+    "enabled": true,
+    "backend": "wx.createInnerAudioContext",
+    "unlocked": true,
+    "active": true,
+    "contexts": 6,
+    "played": 2,
+    "lastPlayed": "boost",
+    "error": ""
+  },
+  "pool": [
+    {
+      "src": "http://127.0.0.1:18084/art/audio/pickup.wav",
+      "loop": false,
+      "volume": 0.25,
+      "time": 0.22
+    },
+    {
+      "src": "http://127.0.0.1:18084/art/audio/boost.wav",
+      "loop": false,
+      "volume": 0.7,
+      "time": 0
+    },
+    {
+      "src": "http://127.0.0.1:18084/art/audio/hit.wav",
+      "loop": false,
+      "volume": 0.24,
+      "time": 0
+    },
+    {
+      "src": "http://127.0.0.1:18084/art/audio/deposit.wav",
+      "loop": false,
+      "volume": 0.24,
+      "time": 0
+    },
+    {
+      "src": "http://127.0.0.1:18084/art/audio/countdown.wav",
+      "loop": false,
+      "volume": 0.24,
+      "time": 0
+    },
+    {
+      "src": "http://127.0.0.1:18084/art/audio/result.wav",
+      "loop": false,
+      "volume": 0.24,
+      "time": 0
+    }
+  ],
+  "errors": []
+}
