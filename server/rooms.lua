@@ -15,9 +15,26 @@ function R:counts(room)
  for _,s in pairs(self.sessions) do if s.room==room and s.role=='spectator' and s.fd then spectators=spectators+1 end end
  return players,ready,spectators
 end
+function R:humanCounts(room)
+ local humans,online,bots=0,0,0
+ for _,p in ipairs(room.game.players) do if not p.removed then
+  if p.isBot then bots=bots+1 else humans=humans+1;if p.connected then online=online+1 end end
+ end end
+ return humans,online,bots
+end
+function R:resetReady(room)
+ room.ready={}
+ for _,p in ipairs(room.game.players) do if p.isBot and p.connected and not p.removed then room.ready[p.id]=true end end
+end
+function R:removeBots(room)
+ for i=#room.game.players,1,-1 do if room.game.players[i].isBot then table.remove(room.game.players,i) end end
+ self:resetReady(room)
+end
 function R:summary(room)
  local n,r,s=self:counts(room)
- return {roomId=room.id,roomCode=room.id,phase=room.game.phase,remaining=room.game.remaining,playerCount=n,readyCount=r,spectatorCount=s,maxPlayers=8,maxSpectators=16,canJoin=room.game.phase=='lobby' and #room.game.players<8,canSpectate=s<16}
+ local humans,online,bots=self:humanCounts(room)
+ local solo=room.game.phase=='lobby' and humans==1 and online==1
+ return {humanCount=humans,botCount=bots,canAddBot=solo and bots==0,canRemoveBot=solo and bots>0,roomId=room.id,roomCode=room.id,phase=room.game.phase,remaining=room.game.remaining,playerCount=n,readyCount=r,spectatorCount=s,maxPlayers=8,maxSpectators=16,canJoin=room.game.phase=='lobby' and #room.game.players<8,canSpectate=s<16}
 end
 function R:directory(fd)
  local list=self.array();for _,room in pairs(self.rooms) do list[#list+1]=self:summary(room) end
@@ -29,7 +46,7 @@ function R:welcome(s)
 end
 function R:snapshot(room)
  local out=room.game:snapshot(self.array);local summary=self:summary(room)
- for _,key in ipairs({'roomId','roomCode','playerCount','readyCount','spectatorCount','maxPlayers','maxSpectators'}) do out[key]=summary[key] end
+ for _,key in ipairs({'roomId','roomCode','playerCount','readyCount','spectatorCount','maxPlayers','maxSpectators','humanCount','botCount','canAddBot','canRemoveBot'}) do out[key]=summary[key] end
  out.canStart=out.phase=='lobby' and summary.playerCount>=2 and summary.readyCount==summary.playerCount
  for _,p in ipairs(out.players) do p.ready=room.ready[p.id]==true end
  return out
@@ -55,6 +72,8 @@ function R:enter(s,room,role)
   local p,e=room.game:join(s.fd,s.name,s.color)
   if not p then return self:error(s.fd,e) end
   p.token=s.token;s.player=p;s.room=room;s.role='player';room.ready[p.id]=false
+  local humans,_,bots=self:humanCounts(room)
+  if humans>=2 and bots>0 then self:removeBots(room) end
  end
  room.emptySince=nil;self:welcome(s);self:sendState(s)
 end
@@ -118,7 +137,18 @@ function R:handle(fd,m,now)
  end
  if not s.room or s.role~='player' or not s.player then return self:error(fd,'Only room players can perform this action') end
  local room=s.room;local g=room.game
- if m.type=='set_color' then
+ if m.type=='add_bot' or m.type=='remove_bot' then
+  if g.phase~='lobby' then return self:error(fd,'Not in lobby') end
+  local humans,online,bots=self:humanCounts(room)
+  if humans~=1 or online~=1 then return self:error(fd,'AI requires one connected human player') end
+  if m.type=='remove_bot' then self:removeBots(room)
+  elseif bots==0 then
+   local bot,e=g:join({},'竞技小车','#fb923c')
+   if not bot then return self:error(fd,e) end
+   bot.isBot=true;bot.token=nil;self:resetReady(room)
+  end
+  self:sendState(s);return
+ elseif m.type=='set_color' then
   if g.phase~='lobby' then return self:error(fd,'Not in lobby') end
   local allowed={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=true,['#34d399']=true,['#fb923c']=true,['#e879f9']=true,['#cbd5e1']=true}
   if not allowed[m.color] then return self:error(fd,'Invalid color') end
@@ -131,7 +161,7 @@ function R:handle(fd,m,now)
   if type(ready)~='boolean' then return self:error(fd,'Ready must be a boolean') end
   room.ready[s.player.id]=ready;self:tryStart(room)
  elseif m.type=='input' then local _,e=g:input(s.player,m);if e then self:error(fd,e) end
- elseif m.type=='again' then local ok,e=g:again();if not ok then self:error(fd,e) else room.ready={} end
+ elseif m.type=='again' then local ok,e=g:again();if not ok then self:error(fd,e) else self:resetReady(room) end
  else self:error(fd,'Unknown action') end
 end
 function R:disconnect(fd,now)
@@ -144,7 +174,10 @@ function R:advance(now)
  self.now=math.max(self.now,now or self.now)
  for id,room in pairs(self.rooms) do
   local phase=room.game.phase;room.clock:advance(self.now)
-  if phase~='lobby' and room.game.phase=='lobby' then room.ready={} end
+  if phase~='lobby' and room.game.phase=='lobby' then
+   local humans=self:humanCounts(room)
+   if humans~=1 then self:removeBots(room) else self:resetReady(room) end
+  end
   self:tryStart(room)
   -- Disconnected seats expire in the core. Preserve active-match tokens/results.
   local occupied=false
