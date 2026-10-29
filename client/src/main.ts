@@ -14,6 +14,7 @@ import { FrameMetrics, type FrameSample } from "./performance";
 import {
   FloatingJoystick,
   pickupCount,
+  GAME_NAME,
   COLORS,
   escape,
   normalize,
@@ -124,7 +125,7 @@ world.diagnostics = debug;
 const defaultUrl =
   query.get("ws") ||
   `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`;
-app.innerHTML = `<div class="brand"><div class="brand-icon">ϟ</div><div><strong>磁力小车</strong><small>MAGNETIC ROVER CLUB</small></div></div><div class="connection pill"><span class="dot"></span><span id="status">尚未连接</span><div class="performance-line"><span id="fps" title="实际渲染循环帧率，约每秒测量一次；不是网络更新率">FPS：—</span><span id="latency" title="网络 RTT：WebSocket 应用层往返时间，不是帧率或快照间隔">RTT：未连接</span></div></div>${debug ? '<div id="diagnostics" class="diagnostics">FPS：— · 快照间隔：—</div>' : ""}<div id="surface"></div><div id="notice" class="toast hidden" role="status"></div>`;
+app.innerHTML = `<div class="brand"><div class="brand-icon">ϟ</div><div><strong>${GAME_NAME}</strong><small>100秒抢运赛</small></div></div><div class="connection pill"><strong class="registered-game-name">${GAME_NAME}</strong><span class="dot"></span><span id="status">尚未连接</span><div class="performance-line"><span id="fps" title="实际渲染循环帧率，约每秒测量一次；不是网络更新率">FPS：—</span><span id="latency" title="网络 RTT：WebSocket 应用层往返时间，不是帧率或快照间隔">RTT：未连接</span></div></div>${debug ? '<div id="diagnostics" class="diagnostics">FPS：— · 快照间隔：—</div>' : ""}<div id="surface"></div><div id="notice" class="toast hidden" role="status"></div>`;
 const surface = document.querySelector<HTMLDivElement>("#surface")!;
 const frameMetrics = new FrameMetrics();
 const fpsElement = document.querySelector<HTMLElement>("#fps")!;
@@ -554,7 +555,7 @@ function showWaiting(availableIn: unknown) {
 }
 function showJoin(disconnected = false) {
   app.className = "";
-  surface.innerHTML = `<div class="center"><section class="card driver-card"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h2>100秒抢运赛</h2></header><h1>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>100 秒抢运赛，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button>${disconnected && retryAllowed ? '<button class="secondary" id="cancel-connect">取消自动重连</button>' : ""}<div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>冲刺撞击才掉电池</div><div><b>03</b>进站存入得分</div></div></section></div>`;
+  surface.innerHTML = `<div class="center"><section class="card driver-card"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h2>100秒抢运赛</h2></header><h1>出发，抢点电！</h1><p class="subtitle">捡起电池，送回薄荷回收站。<br>100 秒抢运赛，和 2–8 位朋友一起争夺榜首。</p><label class="field-label" for="nickname">你的车手昵称</label><input id="nickname" maxlength="16" autocomplete="nickname" placeholder="比如：薄荷闪电" value="${escape(localStorage.getItem("rover.name") || "")}"><button class="primary" id="join">${disconnected ? "重新连接 →" : "驶入大厅 →"}</button>${disconnected && retryAllowed ? '<button class="secondary" id="cancel-connect">取消自动重连</button>' : ""}<div class="error" id="error" role="alert">${escape(disconnected ? error || "连接中断；本局身份已保留，重新连接可尝试回到比赛。" : error)}</div><details><summary>服务器设置</summary><input aria-label="WebSocket服务器地址" id="server" value="${escape(localStorage.getItem("rover.server") || defaultUrl)}"></details><div class="instructions"><div><b>01</b>沿途收集电池</div><div><b>02</b>冲刺撞击才掉电池</div><div><b>03</b>进站存入得分</div></div></section></div>`;
   const cancel = document.querySelector<HTMLButtonElement>("#cancel-connect");
   if (cancel) cancel.onclick = cancelConnection;
   document.querySelector("#join")!.addEventListener("click", () => connect());
@@ -588,7 +589,7 @@ function showDirectory() {
     directorySignature = "";
     renderKey = "";
     app.className = "directory";
-    surface.innerHTML = `<div class="center garage-center"><section class="card garage directory-card"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="directory-heading"><div><h2>选择你的赛场</h2><p>2–8 人同场 · 全员准备即发车</p></div><button id="create-room" class="primary">＋ 创建房间</button></div><button id="edit-name" class="secondary profile-edit">昵称：${escape(localStorage.getItem("rover.name") || "车手")} · 修改</button><form id="join-code" class="join-code"><input id="room-input" maxlength="16" placeholder="输入朋友的房间码" aria-label="房间码"><button class="secondary" type="submit">加入</button></form><div id="room-list" class="room-list"></div><div class="error" id="error" role="alert"></div>${raceGuide()}</section></div>`;
+    surface.innerHTML = `<div class="center garage-center"><section class="card garage directory-card"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="directory-heading"><div><h2>选择你的赛场</h2><p>2–8 人同场 · 全员准备即发车</p></div><button id="create-room" class="primary">＋ 创建房间</button></div><button id="edit-name" class="secondary profile-edit">昵称：${escape(localStorage.getItem("rover.name") || "车手")} · 修改</button><form id="join-code" class="join-code"><input id="room-input" maxlength="16" placeholder="输入朋友的房间码" aria-label="房间码"><button class="secondary" type="submit">加入</button></form><div id="room-list" class="room-list"></div><div class="error" id="error" role="alert"></div>${raceGuide()}</section></div>`;
     document.querySelector<HTMLButtonElement>("#edit-name")!.onclick =
       renameDriver;
     document.querySelector<HTMLButtonElement>("#create-room")!.onclick = () =>
@@ -655,7 +656,7 @@ function render() {
     mouseDown = false;
     boost = false;
     if (phase === "lobby")
-      surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>磁力小车<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="room-palette" class="room-palette" aria-label="房间车身颜色"></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><button id="start" class="primary race-start">❯❯ 开始比赛</button><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
+      surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="room-palette" class="room-palette" aria-label="房间车身颜色"></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><button id="start" class="primary race-start">❯❯ 开始比赛</button><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
     if (phase === "playing") {
       surface.innerHTML = `<div class="hud"><div class="stat"><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat"><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="match-actions"><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-controls="settings" aria-expanded="false">设置</button>${role !== "spectator" ? '<button class="secondary leave-room">返回大厅</button>' : ""}</div><aside class="leaderboard"><h3>已存排行</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
       surface.insertAdjacentHTML(
@@ -714,13 +715,17 @@ function render() {
     const rename = document.querySelector<HTMLButtonElement>(".driver-name");
     if (rename) rename.onclick = renameDriver;
     const palette = document.querySelector<HTMLDivElement>("#room-palette")!;
-    const paletteKey = JSON.stringify([id, role, state.players.map(p => [p.id, p.color])]);
+    const paletteKey = JSON.stringify([
+      id,
+      role,
+      state.players.map((p) => [p.id, p.color]),
+    ]);
     if (palette.dataset.signature !== paletteKey) {
       palette.dataset.signature = paletteKey;
       palette.innerHTML = COLORS.map((c) => {
-      const taken = state!.players.some((p) => p.id !== id && p.color === c);
-      return `<button data-room-color="${c}" style="background:${c}" ${taken || role !== "player" ? "disabled" : ""} aria-label="${taken ? "已占用" : "选择颜色"} ${c}" aria-pressed="${me?.color === c}" title="${taken ? "已占用" : "选择颜色"}">${taken ? "×" : me?.color === c ? "✓" : ""}</button>`;
-    }).join("");
+        const taken = state!.players.some((p) => p.id !== id && p.color === c);
+        return `<button data-room-color="${c}" style="background:${c}" ${taken || role !== "player" ? "disabled" : ""} aria-label="${taken ? "已占用" : "选择颜色"} ${c}" aria-pressed="${me?.color === c}" title="${taken ? "已占用" : "选择颜色"}">${taken ? "×" : me?.color === c ? "✓" : ""}</button>`;
+      }).join("");
     }
 
     document

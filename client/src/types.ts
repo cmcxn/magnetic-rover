@@ -1,3 +1,4 @@
+export const GAME_NAME = "真的好好玩的游戏";
 export interface Player {
   id: string;
   name: string;

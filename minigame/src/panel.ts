@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { lobbyCardLayout } from "./lobby-layout";
 import {
+  GAME_NAME,
   COLORS,
   sharedRank,
   type RoomSummary,
@@ -234,8 +235,8 @@ export class CartoonPanel extends Phaser.Scene {
     this.text(
       W / 2,
       28,
-      m.state?.phase === "finished" ? "本局结算" : "磁力小车 ϟ",
-      38,
+      m.state?.phase === "finished" ? "本局结算" : GAME_NAME + " ϟ",
+      28,
       "#fff9e7",
     ).setOrigin(0.5);
     this.text(W / 2, 77, "100 秒抢运赛 · 2–8 人同场", 17).setOrigin(0.5);
@@ -661,8 +662,8 @@ export class CartoonPanel extends Phaser.Scene {
         "brand",
         left + 8,
         by + 15,
-        "磁力小车 ϟ",
-        20,
+        GAME_NAME + " ϟ",
+        14,
         "#fff9e9",
         0,
       ).setStroke("#17354f", 5);
