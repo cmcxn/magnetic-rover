@@ -628,7 +628,7 @@ export class CartoonPanel extends Phaser.Scene {
       { left, right, top } = this.insets();
     if (playing && m.state) {
       const layout = controlLayout(w, h, left, right),
-        skill = skillView(me, m.age);
+        skill = skillView(me, m.age, m.state ?? undefined);
       // The native capsule occupies the upper right; keep HUD centered and actions below it.
       const barW = Math.min(w * 0.43, 410),
         bx = (w - barW) / 2,

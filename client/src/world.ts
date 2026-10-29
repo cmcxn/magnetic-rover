@@ -476,12 +476,13 @@ export class World extends Phaser.Scene {
         );
       }
     // All devices show the server body dimensions: 98x68, local +X forward.
-    const roverScale = 2;
+    const roverScale = 2 * (this.state?.vehicleScale ?? 1);
     // Modern servers advertise a solid boundary. Pickup range remains independent
     // and has no competing circle; old servers retain their legacy magnet guide.
     const boundaryRadius =
       this.state?.collisionRadius ?? this.state?.pickupRadius ?? 20;
-    const labelClearance = (_angle: number, _cargo: number) => 68;
+    const labelClearance = (_angle: number, _cargo: number) =>
+      68 * (this.state?.vehicleScale ?? 1);
     const present = new Set<string>();
     for (const p of this.state?.players ?? []) {
       present.add(p.id);
@@ -622,9 +623,15 @@ export class World extends Phaser.Scene {
         const flashing =
           !this.reducedEffects && ready && _time < indicator.flashUntil;
         const progress = boosting
-          ? Math.min(1, boostLeft / 0.32)
+          ? Math.min(1, boostLeft / (this.state?.boostDuration ?? 0.32))
           : cooling
-            ? Math.min(1, Math.max(0, 1 - cooldownLeft / 4))
+            ? Math.min(
+                1,
+                Math.max(
+                  0,
+                  1 - cooldownLeft / (this.state?.boostCooldown ?? 4),
+                ),
+              )
             : 1;
         const tint = flashing ? 0xfff8dc : boosting ? 0xffbd59 : c;
         for (const y of hasSprite ? [] : [-15, 15]) {
@@ -664,7 +671,7 @@ export class World extends Phaser.Scene {
         const tail = -24;
         const length =
           8 +
-          20 * Math.min(1, boostLeft / 0.32) +
+          20 * Math.min(1, boostLeft / (this.state?.boostDuration ?? 0.32)) +
           (this.reducedEffects ? 0 : Math.sin(_time * 0.045) * 2);
         const flame = (width: number, len: number, col: number) => {
           const a = rot(tail, -width),

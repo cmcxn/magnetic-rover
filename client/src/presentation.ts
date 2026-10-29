@@ -30,6 +30,7 @@ export function joystickPose(
 export function skillView(
   player: Pick<Player, "cooldown" | "stun" | "boost"> | undefined,
   ageMs: number,
+  tuning?: { boostCooldown?: number; boostDuration?: number },
 ) {
   const age = ageMs <= 500 ? Math.max(0, ageMs) / 1000 : 0;
   const blocked = (player?.stun ?? 0) > 0;
@@ -38,22 +39,32 @@ export function skillView(
   const boosting = boostLeft > 0 && !blocked;
   const seconds = blocked
     ? Math.max(0.1, player!.stun - age)
-    : cooling
-      ? Math.max(0.1, player!.cooldown - age)
-      : 0;
+    : boosting
+      ? boostLeft
+      : cooling
+        ? Math.max(0.1, player!.cooldown - age)
+        : 0;
   return {
     ready: !!player && !blocked && !cooling && !boosting,
     boosting,
     energy: blocked
       ? 0
       : boosting
-        ? Math.min(1, boostLeft / 0.32)
+        ? Math.min(1, boostLeft / (tuning?.boostDuration ?? 0.32))
         : cooling
-          ? Math.min(1, Math.max(0, 1 - seconds / 4))
+          ? Math.min(1, Math.max(0, 1 - seconds / (tuning?.boostCooldown ?? 4)))
           : 1,
     seconds,
     progress: cooling
-      ? Math.min(1, Math.max(0, 1 - seconds / 4))
+      ? Math.min(
+          1,
+          Math.max(
+            0,
+            1 -
+              Math.max(0, (player?.cooldown ?? 0) - age) /
+                (tuning?.boostCooldown ?? 4),
+          ),
+        )
       : blocked
         ? 0
         : 1,

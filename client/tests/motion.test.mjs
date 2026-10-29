@@ -370,3 +370,8 @@ test("snapshot baseSpeed drives prediction, loaded movement and boost", () => {
       );
     }
 });
+test("dash integration uses configured speed multiplier", () => {
+  const p = player({ boost: 1, cooldown: 4, bx: 1, by: 0, ix: 1, iy: 0 });
+  motion.integrate(p, 0.1, 500, 0, 100, 5);
+  assert.equal(p.x, 50);
+});

@@ -80,3 +80,25 @@ ROVER_PORT=18083 docker compose -p magnetic-rover-runtime up -d --build --wait
 保留 Phaser 的独立小游戏验证工程位于 `minigame/`，复用网页端场景和 Skynet 联机协议。执行 `./scripts/build-wechat.sh` 构建，再用微信开发者工具导入 `minigame/`（测试号、不使用云服务）。原网页端仍可与小游戏端加入同一房间。
 
 运行步骤、构建方式、资源与后端分工、验证记录和正式发布边界见 [小游戏验证说明](minigame/README.md)。当前仅供本地验证，未上传/发布微信。
+
+## 小车尺寸与冲刺环境变量
+
+服务端启动时读取以下配置；不配置、非数字或超出支持范围时使用默认值。
+
+| 环境变量 | 默认值 | 支持范围 | 含义 |
+| --- | --- | --- | --- |
+| `ROVER_VEHICLE_SCALE` | `1` | `0.25–1.5` | 相对当前车身尺寸的倍数 |
+| `ROVER_BOOST_MULTIPLIER` | `3` | `1–10` | 冲刺相对同载货量正常速度的倍数 |
+| `ROVER_BOOST_COOLDOWN` | `4` | `0.1–60` | 冲刺冷却秒数，从触发冲刺开始计算 |
+| `ROVER_BOOST_DURATION` | `0.32` | `0.01–10` | 冲刺持续秒数 |
+
+例如在项目目录执行：
+
+```sh
+ROVER_VEHICLE_SCALE=0.75 ROVER_BOOST_COOLDOWN=5 ROVER_BOOST_DURATION=0.4 docker compose up -d --build
+```
+
+也可将这四项写入 Compose 使用的 `.env` 文件。修改后需重新创建服务容器；原生运行需重启服务进程。
+小车缩放同步作用于场内车身、碰撞半径、边界约束、拾取半径、碰撞释放间距及出生排列。
+地图、电池和回收站本身的尺寸保持原设定；菜单中的小车缩略图为固定布局预览。
+实际参数随游戏状态下发，H5 与微信小游戏读取同一份参数进行预测、显示和充能计算；客户端缺失新字段时保留旧默认值。

@@ -997,7 +997,7 @@ function updateSkillButton() {
   if (!b) return;
   const me = state?.players.find((p) => p.id === id);
   b.style.setProperty("--player-color", me?.color ?? color);
-  const view = skillView(me, performance.now() - lastState);
+  const view = skillView(me, performance.now() - lastState, state ?? undefined);
   const stun = me?.stun ?? 0;
   const label = view.boosting
     ? "冲刺中"

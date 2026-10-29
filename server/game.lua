@@ -17,7 +17,7 @@ local function circleInterval(a,b,p,r)
  if leave<0 or enter>1 then return end
  return math.max(0,enter),math.min(1,leave)
 end
-local function pickupRadius(b) return b.source=='drop' and config.collisionRadius+10.001 or config.pickupRadius end
+local function pickupRadius(b) return b.source=='drop' and config.collisionRadius+10.001*config.vehicleScale or config.pickupRadius end
 local function along(a,b,t) return {x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t} end
 local function clamp(p) local d=math.sqrt(p.x*p.x+p.y*p.y);if d>500 then p.x=p.x*500/d;p.y=p.y*500/d end end
 function G.new(tokenfn)
@@ -42,11 +42,11 @@ function G:join(fd,name,color,token,deferNew)
  local used={};for _,q in ipairs(self.players) do if not q.removed then used[q.color]=true end end
  if not colors[color] or used[color] then for _,c in ipairs(palette) do if not used[c] then color=c;break end end end
  self.nextid=self.nextid+1;local n=self.nextid
- local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos((n-1)*math.pi/4)*220,y=math.sin((n-1)*math.pi/4)*220,angle=0,cargo=0,score=0,cooldown=0,boost=0,stun=0,hitSeq=0,impactSeq=0,kx=0,ky=0,pickupSeq=0,protect=0,connected=true,ix=0,iy=0,last=self.time,lastInputSeq=0,pendingSeq=0,inputSeq=0,inputElapsed=0}
+ local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos((n-1)*math.pi/4)*220*math.max(1,config.vehicleScale),y=math.sin((n-1)*math.pi/4)*220*math.max(1,config.vehicleScale),angle=0,cargo=0,score=0,cooldown=0,boost=0,stun=0,hitSeq=0,impactSeq=0,kx=0,ky=0,pickupSeq=0,protect=0,connected=true,ix=0,iy=0,last=self.time,lastInputSeq=0,pendingSeq=0,inputSeq=0,inputElapsed=0}
  -- Reuse an actually free lobby slot, not nextid modulo eight after churn.
  for offset=0,7 do
   local angle=((n-1+offset)%8)*math.pi/4
-  local x,y=math.cos(angle)*220,math.sin(angle)*220;local free=true
+  local x,y=math.cos(angle)*220*math.max(1,config.vehicleScale),math.sin(angle)*220*math.max(1,config.vehicleScale);local free=true
   for _,q in ipairs(self.players) do if not q.removed and (q.x-x)^2+(q.y-y)^2<(2*config.collisionRadius)^2 then free=false;break end end
   if free then p.x=x;p.y=y;break end
  end
@@ -67,7 +67,7 @@ function G:input(p,m)
  p.ix=x;p.iy=y;p.last=self.time
  if m.boost and p.cooldown<=0 then
   if n>=.1 then p.angle=math.atan(y,x) end
-  p.bx=math.cos(p.angle);p.by=math.sin(p.angle);p.boost=.32;p.cooldown=4
+  p.bx=math.cos(p.angle);p.by=math.sin(p.angle);p.boost=config.boostDuration;p.cooldown=config.boostCooldown
  end
  return true
 end
@@ -122,7 +122,7 @@ function G:start()
 end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
- local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.stun=0;p.hitSeq=0;p.impactSeq=0;p.kx=0;p.ky=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*math.pi/4)*220;p.y=math.sin(#keep*math.pi/4)*220;keep[#keep+1]=p end end
+ local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.stun=0;p.hitSeq=0;p.impactSeq=0;p.kx=0;p.ky=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*math.pi/4)*220*math.max(1,config.vehicleScale);p.y=math.sin(#keep*math.pi/4)*220*math.max(1,config.vehicleScale);keep[#keep+1]=p end end
  self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=config.matchDuration;self.finishedAt=nil;self.nextrefill=nil;self.supplyStage=nil;return true
 end
 function G:drop(p,n,nx,ny)
@@ -199,8 +199,8 @@ function G:step(dt,elapsed,remaining)
     local nx,ny=e.nx,e.ny
     local closing=(e.avx-e.bvx)*nx+(e.avy-e.bvy)*ny
     local af=a.driveX*nx+a.driveY*ny;local bf=-b.driveX*nx-b.driveY*ny
-    local frontA=math.cos(a.angle)*nx+math.sin(a.angle)*ny>=config.collision.frontDot and af>=30
-    local frontB=-math.cos(b.angle)*nx-math.sin(b.angle)*ny>=config.collision.frontDot and bf>=30
+    local frontA=math.cos(a.angle)*nx+math.sin(a.angle)*ny>=config.collision.frontDot and af>=30*config.vehicleScale
+    local frontB=-math.cos(b.angle)*nx-math.sin(b.angle)*ny>=config.collision.frontDot and bf>=30*config.vehicleScale
     local boostA=closing>=config.collision.minClosing and a.boost>0 and sliceStart+(e.time or 0)<=a.boost+1e-9 and frontA
     local boostB=closing>=config.collision.minClosing and b.boost>0 and sliceStart+(e.time or 0)<=b.boost+1e-9 and frontB
     local safe=self:station(a) or self:station(b)
@@ -243,8 +243,8 @@ function G:step(dt,elapsed,remaining)
    for _,p in ipairs(active) do
     local boosting=p.boost>sliceStart+1e-8
     local speed=config.baseSpeed*(1-.2*p.cargo/20)
-    p.driveX=speed*(boosting and (p.bx or math.cos(p.angle))*3 or p.ix)
-    p.driveY=speed*(boosting and (p.by or math.sin(p.angle))*3 or p.iy)
+    p.driveX=speed*(boosting and (p.bx or math.cos(p.angle))*config.boostMultiplier or p.ix)
+    p.driveY=speed*(boosting and (p.by or math.sin(p.angle))*config.boostMultiplier or p.iy)
     initialK[p]={x=p.kx or 0,y=p.ky or 0}
     p.vx=p.driveX+initialK[p].x*average;p.vy=p.driveY+initialK[p].y*average;p.collisionAt=nil
    end
@@ -302,7 +302,7 @@ function G:step(dt,elapsed,remaining)
 end
 function G:snapshot(array)
  array=array or function(t)return t or {} end
- local s={type='state',baseSpeed=config.baseSpeed,serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=500,collisionRadius=config.collisionRadius,pickupRadius=config.pickupRadius,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
+ local s={type='state',boostMultiplier=config.boostMultiplier,vehicleScale=config.vehicleScale,boostCooldown=config.boostCooldown,boostDuration=config.boostDuration,baseSpeed=config.baseSpeed,serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=500,collisionRadius=config.collisionRadius,pickupRadius=config.pickupRadius,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
  if self.phase~='lobby' then s.supply=self:supply() end
  for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,impactSeq=p.impactSeq,kx=p.kx,ky=p.ky,pickupSeq=p.pickupSeq,connected=p.connected,inputSeq=p.inputSeq,inputElapsed=p.inputElapsed,ix=p.ix,iy=p.iy,bx=p.bx,by=p.by} end end
  for _,b in ipairs(self.batteries) do s.batteries[#s.batteries+1]={id=b.id,x=b.x,y=b.y,z=b.z,vx=b.vx,vy=b.vy,source=b.source,unlock=b.unlock} end

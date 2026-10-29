@@ -17,7 +17,7 @@ COPY licenses/ /app/licenses/
 ENV SKYNET_ROOT=/skynet/ ROVER_BIND=0.0.0.0 ROVER_SERVER=/app/server/ ROVER_CLIENT=/app/client/dist
 # Historical geometry fixtures use 240; speed tests independently cover the new
 # default 480, supported overrides, loaded speed and dash multiplication.
-RUN cd /app/server && sh test_base_speed.sh && \
+RUN cd /app/server && sh test_base_speed.sh && sh test_tuning.sh && \
     for test in test_*.lua; do \
       if [ "$test" != test_base_speed.lua ]; then ROVER_BASE_SPEED=240 /skynet/3rd/lua/lua "$test" || exit 1; fi; \
     done

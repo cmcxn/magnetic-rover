@@ -220,3 +220,13 @@ Both clients persist confirmed names and preferred colors as `rover.name` and
 `rover.color`: H5 uses browser localStorage; WeChat uses device wx storage and
 continues reading the legacy `rover.spike.name` key. These are independent local
 profiles; there is no account-based cross-device or H5/WeChat synchronization.
+
+### Server-owned vehicle and dash tuning
+
+State snapshots include `vehicleScale` (default 1), `boostCooldown` (seconds,
+default 4), and `boostDuration` (seconds, default 0.32). `collisionRadius` and
+`pickupRadius` are already scaled by the server: do not scale these twice.
+Both clients use the tuning fields for visual size, local input replay and
+skill charge/release indicators. The server remains authoritative.
+
+`boostMultiplier` (default 3) controls dash speed relative to normal movement at the same cargo load; it is included in authoritative snapshots and local prediction.

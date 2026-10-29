@@ -630,7 +630,7 @@ test("boost haptics use 25ms once per authoritative activation and tolerate deni
   playing(h, { cooldown: 3.94, boost: 0.27 });
   assert.deepEqual(vibrations, [25]);
   assert.equal(h.context.testWorld.boostCount, 1);
-  assert.match(h.node("#boost").innerHTML, /3.9/);
+  assert.match(h.node("#boost").innerHTML, /0.3秒/);
 });
 
 test("hit notice expires with the one-second stun rather than lingering as a stale warning", () => {

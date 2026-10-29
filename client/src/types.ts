@@ -51,6 +51,10 @@ export interface State {
   }[];
   stations: { x: number; y: number; r: number }[];
   radius: number;
+  vehicleScale?: number;
+  boostMultiplier?: number;
+  boostCooldown?: number;
+  boostDuration?: number;
   baseSpeed?: number;
   pickupRadius?: number;
   collisionRadius?: number;

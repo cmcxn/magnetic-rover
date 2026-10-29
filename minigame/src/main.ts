@@ -280,6 +280,7 @@ panel = new CartoonPanel(
         skillView(
           state.players.find((p) => p.id === self),
           Date.now() - lastSnapshot,
+          state,
         ).ready
       )
         boost = true;

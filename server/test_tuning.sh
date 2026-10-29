@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")"
+LUA="${SKYNET_ROOT:?Set SKYNET_ROOT}/3rd/lua/lua"
+env -u ROVER_BOOST_MULTIPLIER -u ROVER_VEHICLE_SCALE -u ROVER_BOOST_COOLDOWN -u ROVER_BOOST_DURATION "$LUA" test_tuning.lua
+ROVER_BOOST_MULTIPLIER=5 ROVER_VEHICLE_SCALE=.5 ROVER_BOOST_COOLDOWN=8 ROVER_BOOST_DURATION=1 "$LUA" test_tuning.lua .5 8 1 5
+ROVER_VEHICLE_SCALE=1.5 ROVER_BOOST_COOLDOWN=2 ROVER_BOOST_DURATION=.1 "$LUA" test_tuning.lua 1.5 2 .1
+for value in '' invalid NaN inf 1e999 -1 0; do
+ ROVER_VEHICLE_SCALE="$value" ROVER_BOOST_COOLDOWN="$value" ROVER_BOOST_DURATION="$value" "$LUA" test_tuning.lua
+done
+ROVER_VEHICLE_SCALE=2 ROVER_BOOST_COOLDOWN=61 ROVER_BOOST_DURATION=11 "$LUA" test_tuning.lua
+
+for value in invalid inf 0 11; do
+ ROVER_BOOST_MULTIPLIER="$value" "$LUA" test_tuning.lua
+done

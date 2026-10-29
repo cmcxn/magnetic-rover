@@ -73,3 +73,11 @@ test("liquid surface stays inside a circular orb with bounded geometry at every 
         assert.ok(Math.hypot(p.x - 20, p.y - 30) <= 50.00001);
     }
 });
+test("skill energy follows server duration and cooldown", () => {
+  const tuning = { boostCooldown: 8, boostDuration: 1 };
+  const release = skillView({ cooldown: 8, boost: 0.5, stun: 0 }, 0, tuning);
+  assert.equal(release.energy, 0.5);
+  assert.equal(release.seconds, 0.5);
+  const charge = skillView({ cooldown: 4, boost: 0, stun: 0 }, 0, tuning);
+  assert.equal(charge.progress, 0.5);
+});

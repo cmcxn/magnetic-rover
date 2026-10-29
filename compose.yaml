@@ -6,6 +6,10 @@ services:
     ports:
       - "${ROVER_PORT:-18080}:18080"
     environment:
+      ROVER_VEHICLE_SCALE: "${ROVER_VEHICLE_SCALE:-1}"
+      ROVER_BOOST_MULTIPLIER: "${ROVER_BOOST_MULTIPLIER:-3}"
+      ROVER_BOOST_COOLDOWN: "${ROVER_BOOST_COOLDOWN:-4}"
+      ROVER_BOOST_DURATION: "${ROVER_BOOST_DURATION:-0.32}"
       ROVER_BASE_SPEED: "${ROVER_BASE_SPEED:-480}"
     runtime: runc
     restart: unless-stopped

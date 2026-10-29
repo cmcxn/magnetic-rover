@@ -130,6 +130,7 @@ export function integrate(
   radius: number,
   collisionRadius = 0,
   baseSpeed = 240,
+  boostMultiplier = 3,
 ) {
   const stunned = p.stun > 0;
   p.stun = Math.max(0, p.stun - dt);
@@ -146,15 +147,19 @@ export function integrate(
     speed = baseSpeed * (1 - (0.2 * p.cargo) / 20);
   const decay = Math.exp(-5 * dt),
     travel = (1 - decay) / 5;
-  p.x += speed * (bx * 3 * dash + ix * (dt - dash)) + (p.kx ?? 0) * travel;
-  p.y += speed * (by * 3 * dash + iy * (dt - dash)) + (p.ky ?? 0) * travel;
+  p.x +=
+    speed * (bx * boostMultiplier * dash + ix * (dt - dash)) +
+    (p.kx ?? 0) * travel;
+  p.y +=
+    speed * (by * boostMultiplier * dash + iy * (dt - dash)) +
+    (p.ky ?? 0) * travel;
   if (p.kx !== undefined) p.kx *= decay;
   if (p.ky !== undefined) p.ky *= decay;
   clampPose(p, radius - collisionRadius);
   if (bx !== 0 || by !== 0) p.angle = Math.atan2(by, bx);
   p.boost = Math.max(0, p.boost - dt);
 }
-function apply(p: Player, c: Control) {
+function apply(p: Player, c: Control, tuning: State) {
   if (p.stun > 0) return;
   const n = Math.hypot(c.x, c.y),
     scale = Math.max(1, n);
@@ -164,8 +169,8 @@ function apply(p: Player, c: Control) {
     if (n >= 0.1) p.angle = Math.atan2(c.y, c.x);
     p.bx = Math.cos(p.angle);
     p.by = Math.sin(p.angle);
-    p.boost = 0.32;
-    p.cooldown = 4;
+    p.boost = tuning.boostDuration ?? 0.32;
+    p.cooldown = tuning.boostCooldown ?? 4;
   }
 }
 export class Motion {
@@ -295,6 +300,7 @@ export class Motion {
         s.radius,
         s.collisionRadius ?? 0,
         s.baseSpeed ?? 240,
+        s.boostMultiplier ?? 3,
       );
       return result;
     }
@@ -315,6 +321,7 @@ export class Motion {
           s.radius,
           s.collisionRadius ?? 0,
           s.baseSpeed ?? 240,
+          s.boostMultiplier ?? 3,
         );
         if (s.collisionRadius) {
           const velocity = {
@@ -343,7 +350,7 @@ export class Motion {
     for (const c of pending) {
       if (c.at > end) break;
       advance(Math.max(cursor, c.at));
-      apply(result, c);
+      apply(result, c, s);
     }
     advance(
       Math.min(
