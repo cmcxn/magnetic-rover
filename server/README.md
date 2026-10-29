@@ -93,3 +93,31 @@ the handler derives `../client/dist` from `ROVER_SERVER`; without either variabl
 the process must run from the repository root (`./server/../client/dist`). The
 provided `server/run.sh` sets both directories absolutely and can be invoked from
 any working directory. No machine-specific path is embedded in the fallback.
+
+
+## Opt-in solo competitive AI
+
+In a waiting room with exactly one reserved human seat and that human online,
+`add_bot` adds one `竞技小车` using a free color. Repeated adds are idempotent.
+The bot is automatically ready, but the human's ready state resets so that an
+explicit Start is still required. `remove_bot` is available to that sole human
+only in the lobby. Spectators cannot perform either action.
+
+Snapshots advertise room-wide `canAddBot`, `canRemoveBot`, `humanCount` and
+`botCount`; clients also check their own player role before exposing actions.
+Player/result entries include `isBot`. Bots have no network session or reconnect
+token. A second human successfully entering the lobby removes the bot and resets
+readiness; spectators, failed entries and reconnections do not remove it.
+
+`bot.lua` emits ordinary inputs before each physical step and chooses goals at
+150ms intervals. It contests batteries, banks at 10 cargo or in the last 12
+seconds, and aims short held dashes at loaded, unprotected opponents. All pickup,
+score, energy and impact outcomes use normal authoritative rules and configured
+movement parameters. Rematches retain a ready bot and reset human readiness;
+normal session cleanup still removes abandoned rooms.
+
+Deploy this server together with the H5 and minigame clients. On an older server
+without capability fields, both clients hide the AI entry. No new dependency,
+external AI service or API key is required. `test_bot.lua` and
+`test_bots_rooms.lua` cover behavior and lifecycle; the image build runs them
+alongside all existing Lua fixtures.

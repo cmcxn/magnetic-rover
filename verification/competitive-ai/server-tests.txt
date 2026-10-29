@@ -1,0 +1,69 @@
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 1: snapshot, authority, cargo and boost
+PASS base speed 180: snapshot, authority, cargo and boost
+PASS base speed 240: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 180.5: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+PASS base speed 480: snapshot, authority, cargo and boost
+tuning validated	1	4	0.32
+tuning validated	0.5	8	1
+tuning validated	1.5	2	0.1
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+tuning validated	1	4	0.32
+PASS admission: bounded FIFO, truthful estimates, invalid rejection, automatic one-time join, cancellation cleanup, old token priority, live-token protection and full room
+PASS boost-hit: idle direction, exact dash, stale/disconnected input, moving stun, immunity, walls, simultaneous multi-hit, no boosted chain, rematch, capacity and cooldown
+bot target/cadence/banking/attack/release/protection/stun/unstuck/full match: ok; score 83
+bot rooms: lifecycle, authority, idempotence, color, join/reconnect, rematch, cleanup passed
+PASS portable HTTP client root: explicit override, server-relative default, trailing slash, repository cwd fallback
+PASS monotonic clock: no cumulative drift, exact finish boundary, bounded catchup, stale-input expiry, cooldown expiry, no post-deadline motion, rematch deadline, backwards-clock clamp
+PASS stalled boost cannot apply an expired attack
+PASS disconnect clock: paused service then immediate reconnect preserves cargo, fresh ten-second grace expires correctly
+PASS collision redesign 552 assertions
+PASS settled drop pickup and initial eight-car nonoverlap
+PASS lobby churn chooses an unoccupied solid spawn
+PASS seeded80x25 eight-car wall/pile stress; total 72626 assertions
+PASS partial-boost expiry, exact knockback decay, approved safezone boost rule; total 72630 assertions
+PASS collision regressions: normal no-loss, boost amounts, separating/following, safe zones, simultaneous fairness, contact hysteresis and immunity
+unique room colors and occupied color rejection passed
+PASS doubled movement, swept pickup/station grazing, locks, radius, collision and arena bounds
+PASS path ordered station entry/exit pickups, contact-time safety, stationary and tangent regressions
+PASS unified magnet radius, snapshot, exact boundary, capacity and simultaneous single claim
+PASS loaded magnet sweep and exact tangent boundary
+PASS game: pickup/deposit once, input validation, normalized movement, bounds, stale inputs, boost/drop protection, reconnect, timeout, finish/restart
+PASS limits: 8 guests, UTF-8 sanitization, six-color allowlist, station spawn exclusion, last-ten-seconds refill stop, shared ties, token privacy, full 100-second simulated match
+PASS mechanics: cargo cap, loaded speed, boost speed and cooldown spam rejection
+PASS regressions: abandoned lobby frees slots; simultaneous station boost collisions are order-independent
+PASS overlapping stationary boost does not attack; station safe-zone deposits both full cargo
+hold, release, recharge and partial reuse passed
+PASS latency protocol: bounded integer IDs, exact echo, two replies/sec per peer, malformed rejection
+PASS lifecycle: ten-second cargo removal preserves identity, live token protected, empty finished reset honors grace and connected results viewer
+PASS motion protocol: applied ack, held time, sequence validation, coalescing, reconnect, round
+PASS motion no-op ack, stale input and skipped time, reconnect sequence restart
+PASS pickupSeq: authoritative per-battery increments, same-tick batches, cap, deposits, drops, locks, per-player isolation, reconnect baseline and rematch reset
+profile: preferred fallback, rename validation, acknowledged color and reentry passed
+PASS resources: staged contraction, warnings, full-cap migration, identity/count conservation, drops retained, reconnect/reset, final banking, no catch-up bursts
+room directory, isolation, readiness, spectator caps, stable token, cleanup: ok
+tuning validated	1	4	0.32
+PASS authoritative circle boundary: exact tangent, near miss, sweep, rotation invariance, hysteresis, initial overlap
+bot target/cadence/banking/attack/release/protection/stun/unstuck/full match: ok; score 84
+bot target/cadence/banking/attack/release/protection/stun/unstuck/full match: ok; score 75

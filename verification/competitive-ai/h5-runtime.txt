@@ -1,0 +1,1 @@
+PASS final H5 runtime: sprite clearance, landscape/portrait, remove/re-add, spectator authority, failed join, second human removes AI, explicit start and real match; clean exits
