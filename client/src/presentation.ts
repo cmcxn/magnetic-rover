@@ -28,10 +28,45 @@ export function joystickPose(
 }
 /** Visual timer only. An expired estimate cannot grant a server-owned ability. */
 export function skillView(
-  player: Pick<Player, "cooldown" | "stun" | "boost"> | undefined,
+  player:
+    | Pick<Player, "cooldown" | "stun" | "boost" | "energy" | "boostHeld">
+    | undefined,
   ageMs: number,
   tuning?: { boostCooldown?: number; boostDuration?: number },
 ) {
+  if (player?.energy !== undefined) {
+    const age = ageMs <= 500 ? Math.max(0, ageMs) / 1000 : 0;
+    const duration = tuning?.boostDuration ?? 0.32,
+      recharge = tuning?.boostCooldown ?? 4;
+    const boosting = player.boost > 0 && player.stun <= 0;
+    const energy = Math.max(
+      0,
+      Math.min(
+        1,
+        player.energy +
+          (boosting ? -age / duration : player.boostHeld ? 0 : age / recharge),
+      ),
+    );
+    const blocked = player.stun > 0;
+    return {
+      ready: !blocked && energy > 0.001,
+      boosting,
+      energy,
+      progress: energy,
+      seconds: blocked
+        ? Math.max(0.1, player.stun - age)
+        : boosting
+          ? energy * duration
+          : (1 - energy) * recharge,
+      label: blocked
+        ? "眩晕"
+        : player.boostHeld && energy <= 0.001
+          ? "松开充能"
+          : energy < 1
+            ? "充能"
+            : "冲刺",
+    };
+  }
   const age = ageMs <= 500 ? Math.max(0, ageMs) / 1000 : 0;
   const blocked = (player?.stun ?? 0) > 0;
   const cooling = (player?.cooldown ?? 0) > 0;

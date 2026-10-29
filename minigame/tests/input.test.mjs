@@ -219,3 +219,10 @@ test("hide and spectator role cannot keep issuing movement", () => {
   h.tick();
   assert.equal(h.context.GameGlobal.roverSpike.controls.owner, null);
 });
+test('held boost persists and its own release stops without canceling joystick',()=>{
+ const h=harness();h.deliver({type:'state',phase:'playing',remaining:100,players:[{id:'me',name:'我',energy:1,boostHeld:false,cooldown:0,stun:0,boost:0}],stations:[],batteries:[]});
+ h.touch('TouchStart',1,120);h.touch('TouchMove',1,158);h.touch('TouchStart',2,740);h.tick();h.tick();
+ assert.equal(h.sent.filter(m=>m.type==='input').at(-1).boost,true);
+ h.touch('TouchEnd',2,740);h.tick();const command=h.sent.filter(m=>m.type==='input').at(-1);
+ assert.equal(command.boost,false);assert.equal(command.x,1);
+});

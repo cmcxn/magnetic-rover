@@ -42,7 +42,7 @@ function G:join(fd,name,color,token,deferNew)
  local used={};for _,q in ipairs(self.players) do if not q.removed then used[q.color]=true end end
  if not colors[color] or used[color] then for _,c in ipairs(palette) do if not used[c] then color=c;break end end end
  self.nextid=self.nextid+1;local n=self.nextid
- local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos((n-1)*math.pi/4)*220*math.max(1,config.vehicleScale),y=math.sin((n-1)*math.pi/4)*220*math.max(1,config.vehicleScale),angle=0,cargo=0,score=0,cooldown=0,boost=0,stun=0,hitSeq=0,impactSeq=0,kx=0,ky=0,pickupSeq=0,protect=0,connected=true,ix=0,iy=0,last=self.time,lastInputSeq=0,pendingSeq=0,inputSeq=0,inputElapsed=0}
+ local p={id=tostring(n),token=self.tokenfn and self.tokenfn() or ('test-'..n),fd=fd,name=name,color=colors[color] and color or '#38bdf8',x=math.cos((n-1)*math.pi/4)*220*math.max(1,config.vehicleScale),y=math.sin((n-1)*math.pi/4)*220*math.max(1,config.vehicleScale),angle=0,cargo=0,score=0,cooldown=0,energy=1,boostHeld=false,boost=0,stun=0,hitSeq=0,impactSeq=0,kx=0,ky=0,pickupSeq=0,protect=0,connected=true,ix=0,iy=0,last=self.time,lastInputSeq=0,pendingSeq=0,inputSeq=0,inputElapsed=0}
  -- Reuse an actually free lobby slot, not nextid modulo eight after churn.
  for offset=0,7 do
   local angle=((n-1+offset)%8)*math.pi/4
@@ -52,7 +52,7 @@ function G:join(fd,name,color,token,deferNew)
  end
  table.insert(self.players,p);return p
 end
-function G:disconnect(fd) for _,p in ipairs(self.players) do if p.fd==fd and p.connected then p.connected=false;p.disconnected=self.time;p.ix=0;p.iy=0;p.boost=0 end end end
+function G:disconnect(fd) for _,p in ipairs(self.players) do if p.fd==fd and p.connected then p.connected=false;p.boostHeld=false;p.disconnected=self.time;p.ix=0;p.iy=0;p.boost=0 end end end
 function G:input(p,m)
  local x,y=m.x,m.y
  if type(x)~='number' or type(y)~='number' or x~=x or y~=y or math.abs(x)>1000 or math.abs(y)>1000 or (m.boost~=nil and type(m.boost)~='boolean') then return nil,'Invalid input' end
@@ -65,10 +65,12 @@ function G:input(p,m)
  if p.stun>0 then p.ix=0;p.iy=0;return false end
  local n=math.sqrt(x*x+y*y);if n>1 then x=x/n;y=y/n end
  p.ix=x;p.iy=y;p.last=self.time
- if m.boost and p.cooldown<=0 then
+ if not m.boost then p.boostHeld=false;p.boost=0
+ elseif not p.boostHeld and p.energy>1e-9 then
   if n>=.1 then p.angle=math.atan(y,x) end
-  p.bx=math.cos(p.angle);p.by=math.sin(p.angle);p.boost=config.boostDuration;p.cooldown=config.boostCooldown
+  p.bx=math.cos(p.angle);p.by=math.sin(p.angle);p.boost=p.energy*config.boostDuration;p.cooldown=config.boostCooldown
  end
+ p.boostHeld=m.boost==true
  return true
 end
 function G:addbattery(x,y,unlock,source)
@@ -122,7 +124,7 @@ function G:start()
 end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
- local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.boost=0;p.stun=0;p.hitSeq=0;p.impactSeq=0;p.kx=0;p.ky=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*math.pi/4)*220*math.max(1,config.vehicleScale);p.y=math.sin(#keep*math.pi/4)*220*math.max(1,config.vehicleScale);keep[#keep+1]=p end end
+ local keep={};for _,p in ipairs(self.players) do if p.connected then p.score=0;p.cargo=0;p.cooldown=0;p.energy=1;p.boostHeld=false;p.boost=0;p.stun=0;p.hitSeq=0;p.impactSeq=0;p.kx=0;p.ky=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*math.pi/4)*220*math.max(1,config.vehicleScale);p.y=math.sin(#keep*math.pi/4)*220*math.max(1,config.vehicleScale);keep[#keep+1]=p end end
  self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=config.matchDuration;self.finishedAt=nil;self.nextrefill=nil;self.supplyStage=nil;return true
 end
 function G:drop(p,n,nx,ny)
@@ -163,10 +165,14 @@ function G:step(dt,elapsed,remaining)
    if p.inputSeq~=p.pendingSeq then p.inputSeq=p.pendingSeq;p.inputElapsed=0 end
    p.inputElapsed=p.inputElapsed+dt
   end
-  p.stun=math.max(0,p.stun-elapsed);p.cooldown=math.max(0,p.cooldown-elapsed);if p.cooldown<1e-9 then p.cooldown=0 end
+  if self.time-p.last>.3 or p.stun>0 or not p.connected then p.boostHeld=false;p.boost=0 end
+  local used=math.min(p.boost,elapsed)
+  if p.boostHeld then p.energy=math.max(0,p.energy-used/config.boostDuration)
+  else p.energy=math.min(1,p.energy+elapsed/config.boostCooldown);p.cooldown=(1-p.energy)*config.boostCooldown end
+  p.stun=math.max(0,p.stun-elapsed);p.cooldown=math.max(0,p.cooldown-(p.boostHeld and elapsed or 0));if p.cooldown<1e-9 then p.cooldown=0 end
   p.protect=math.max(0,p.protect-elapsed)
   if dt==0 then p.boost=math.max(0,p.boost-elapsed) end
-  if self.time-p.last>.3 or p.stun>0 or not p.connected then p.ix=0;p.iy=0;p.boost=0 end
+  if self.time-p.last>.3 or p.stun>0 or not p.connected then p.ix=0;p.iy=0;p.boost=0;p.boostHeld=false end
   local ix,iy=p.ix,p.iy
   if p.boost>0 and p.bx then ix=p.bx;iy=p.by end
   if ix~=0 or iy~=0 then p.angle=math.atan(iy,ix) end
@@ -304,7 +310,7 @@ function G:snapshot(array)
  array=array or function(t)return t or {} end
  local s={type='state',boostMultiplier=config.boostMultiplier,vehicleScale=config.vehicleScale,boostCooldown=config.boostCooldown,boostDuration=config.boostDuration,baseSpeed=config.baseSpeed,serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=500,collisionRadius=config.collisionRadius,pickupRadius=config.pickupRadius,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
  if self.phase~='lobby' then s.supply=self:supply() end
- for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,impactSeq=p.impactSeq,kx=p.kx,ky=p.ky,pickupSeq=p.pickupSeq,connected=p.connected,inputSeq=p.inputSeq,inputElapsed=p.inputElapsed,ix=p.ix,iy=p.iy,bx=p.bx,by=p.by} end end
+ for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,energy=p.energy,boostHeld=p.boostHeld,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,impactSeq=p.impactSeq,kx=p.kx,ky=p.ky,pickupSeq=p.pickupSeq,connected=p.connected,inputSeq=p.inputSeq,inputElapsed=p.inputElapsed,ix=p.ix,iy=p.iy,bx=p.bx,by=p.by} end end
  for _,b in ipairs(self.batteries) do s.batteries[#s.batteries+1]={id=b.id,x=b.x,y=b.y,z=b.z,vx=b.vx,vy=b.vy,source=b.source,unlock=b.unlock} end
  if self.phase=='finished' then s.results=array();for _,p in ipairs(self.players) do s.results[#s.results+1]={id=p.id,name=p.name,color=p.color,score=p.score} end;table.sort(s.results,function(a,b)return a.score>b.score or (a.score==b.score and tonumber(a.id)<tonumber(b.id)) end) end
  return s

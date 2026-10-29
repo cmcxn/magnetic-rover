@@ -81,3 +81,27 @@ test("skill energy follows server duration and cooldown", () => {
   const charge = skillView({ cooldown: 4, boost: 0, stun: 0 }, 0, tuning);
   assert.equal(charge.progress, 0.5);
 });
+test("partial hold energy is usable while release recharges", () => {
+  const tuning = { boostDuration: 1, boostCooldown: 4 };
+  const release = skillView(
+    { energy: 0.4, boostHeld: false, boost: 0, stun: 0, cooldown: 2.4 },
+    200,
+    tuning,
+  );
+  assert.ok(Math.abs(release.energy - 0.45) < 1e-8);
+  assert.equal(release.ready, true);
+  const held = skillView(
+    { energy: 0.4, boostHeld: true, boost: 0.4, stun: 0, cooldown: 4 },
+    100,
+    tuning,
+  );
+  assert.ok(Math.abs(held.energy - 0.3) < 1e-8);
+  assert.equal(held.boosting, true);
+  const empty = skillView(
+    { energy: 0, boostHeld: true, boost: 0, stun: 0, cooldown: 0 },
+    200,
+    tuning,
+  );
+  assert.equal(empty.energy, 0);
+  assert.equal(empty.label, "松开充能");
+});

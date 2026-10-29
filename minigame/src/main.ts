@@ -1,3 +1,4 @@
+import { installCanvasDensity } from "./density";
 import Phaser from "phaser";
 import { WeChatSounds } from "./audio";
 import { CartoonPanel } from "./panel";
@@ -52,6 +53,7 @@ let panel: CartoonPanel,
 let ping: { id: number; at: number } | null = null,
   pingSeq = 0,
   nextPing = 0;
+let boostOwner: number | null = null;
 let boost = false,
   lastInput = 0,
   uiKey = "",
@@ -90,6 +92,7 @@ function resetInput() {
   joystick.reset();
   fieldTouches.clear();
   boost = false;
+  boostOwner = null;
   world.resetMotion();
   if (connected && state?.phase === "playing")
     send(world.inputCommand({ x: 0, y: 0, boost: false }));
@@ -322,7 +325,8 @@ function networkTick() {
         boost: boost && !stunned,
       }),
     );
-    boost = false;
+    if (state.players.find((p) => p.id === self)?.energy === undefined)
+      boost = false;
   }
   if (
     connected &&
@@ -345,7 +349,10 @@ wx.onTouchStart((event: any) => {
       y = t.clientY;
     const hit = panel?.press(x, y) ?? false;
     lastTouch = { x, y, hit };
-    if (hit) continue;
+    if (hit) {
+      if (boost && boostOwner === null) boostOwner = t.identifier;
+      continue;
+    }
     if (active && !spectator && state?.phase === "playing") {
       fieldTouches.add(t.identifier);
       if (fieldTouches.size === 1) joystick.start(t.identifier, x, y);
@@ -358,11 +365,14 @@ wx.onTouchMove((event: any) => {
 });
 wx.onTouchEnd((event: any) => {
   for (const t of event.changedTouches) {
+    if (t.identifier === boostOwner) {
+      boost = false;
+      boostOwner = null;
+    }
     fieldTouches.delete(t.identifier);
     if (joystick.end(t.identifier)) {
-      boost = false;
       if (connected && !spectator && state?.phase === "playing")
-        send(world.inputCommand({ x: 0, y: 0, boost: false }));
+        send(world.inputCommand({ x: 0, y: 0, boost }));
     }
   }
 });
@@ -372,6 +382,7 @@ wx.onTouchCancel((event: any) => {
     return;
   }
   boost = false;
+  boostOwner = null;
   for (const t of event.changedTouches) {
     fieldTouches.delete(t.identifier);
     if (
@@ -416,6 +427,7 @@ const game = new Phaser.Game({
   scene: [world, panel],
   callbacks: {
     postBoot: (g) => {
+      installCanvasDensity(g, canvas, info);
       g.scene.start("panel");
     },
   },

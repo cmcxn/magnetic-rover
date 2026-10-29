@@ -622,17 +622,20 @@ export class World extends Phaser.Scene {
         indicator.cooling = cooling;
         const flashing =
           !this.reducedEffects && ready && _time < indicator.flashUntil;
-        const progress = boosting
-          ? Math.min(1, boostLeft / (this.state?.boostDuration ?? 0.32))
-          : cooling
-            ? Math.min(
-                1,
-                Math.max(
-                  0,
-                  1 - cooldownLeft / (this.state?.boostCooldown ?? 4),
-                ),
-              )
-            : 1;
+        const progress =
+          p.energy !== undefined
+            ? p.energy
+            : boosting
+              ? Math.min(1, boostLeft / (this.state?.boostDuration ?? 0.32))
+              : cooling
+                ? Math.min(
+                    1,
+                    Math.max(
+                      0,
+                      1 - cooldownLeft / (this.state?.boostCooldown ?? 4),
+                    ),
+                  )
+                : 1;
         const tint = flashing ? 0xfff8dc : boosting ? 0xffbd59 : c;
         for (const y of hasSprite ? [] : [-15, 15]) {
           box(0, y, 32, 4, 0x274f49, this.cargoG);
@@ -698,6 +701,10 @@ export class World extends Phaser.Scene {
       if (!label) {
         label = this.add
           .text(0, 0, "", {
+            resolution: Math.min(
+              3,
+              this.game?.canvas ? this.game.canvas.width / this.scale.width : 1,
+            ),
             fontFamily: "sans-serif",
             fontSize: "12px",
             color: "#264d40",
@@ -746,6 +753,10 @@ export class World extends Phaser.Scene {
       if (!this.pickupLabel)
         this.pickupLabel = this.add
           .text(0, 0, "", {
+            resolution: Math.min(
+              3,
+              this.game?.canvas ? this.game.canvas.width / this.scale.width : 1,
+            ),
             fontFamily: "sans-serif",
             fontSize: "22px",
             fontStyle: "bold",

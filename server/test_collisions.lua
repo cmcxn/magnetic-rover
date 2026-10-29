@@ -26,9 +26,9 @@ local g,a,b=setup();g:input(a,{x=1,y=0,boost=true});g:step(.05);assert(b.cargo==
 for i=1,35 do touching(g,a,b);a.boost=.2;a.bx=1;a.by=0;a.ix=1;a.last=g.time;g:step(.05);g.batteries={} end
 assert(b.cargo==15,'continuous contact cannot farm cargo after protection expires')
 a.x=-250;b.x=60;a.kx=0;b.kx=0;a.boost=0;g:input(a,{x=0,y=0});g:step(.05)
-touching(g,a,b);a.boost=.2;a.bx=1;a.by=0;g:input(a,{x=1,y=0});g:step(.05);assert(b.cargo==11,'genuine separated fresh boost can hit again')
+touching(g,a,b);a.energy=1;a.boostHeld=false;a.boost=.2;a.bx=1;a.by=0;g:input(a,{x=1,y=0,boost=true});g:step(.05);assert(b.cargo==11,'genuine separated fresh boost can hit again')
 local g,a,b=setup();g:input(a,{x=1,y=0,boost=true});g:step(.05);a.x=-250;b.x=60;a.kx=0;b.kx=0;g:input(a,{x=0,y=0});g:step(.05)
-touching(g,a,b);a.boost=.2;a.bx=1;a.by=0;g:input(a,{x=1,y=0});g:step(.05);assert(b.cargo==15,'separated return during protection does not lose cargo')
+touching(g,a,b);a.energy=1;a.boostHeld=false;a.boost=.2;a.bx=1;a.by=0;g:input(a,{x=1,y=0,boost=true});g:step(.05);assert(b.cargo==15,'separated return during protection does not lose cargo')
 for i=1,35 do touching(g,a,b);a.boost=.2;a.bx=1;a.by=0;a.ix=1;a.last=g.time;g:step(.05);g.batteries={} end
 assert(b.cargo==15,'protected recontact consumes episode until another separation')
 print('PASS collision regressions: normal no-loss, boost amounts, separating/following, safe zones, simultaneous fairness, contact hysteresis and immunity')

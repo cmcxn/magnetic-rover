@@ -913,7 +913,12 @@ function wireControls() {
   });
   document.querySelector("#boost")!.addEventListener("click", (e) => {
     // Keyboard / assistive activation has no pointerdown.
-    if ((e as MouseEvent).detail === 0) requestBoost(null);
+    if ((e as MouseEvent).detail === 0) {
+      requestBoost(null);
+      setTimeout(() => {
+        boost = false;
+      }, 100);
+    }
   });
 }
 function requestBoost(pointer: number | null) {
@@ -922,7 +927,7 @@ function requestBoost(pointer: number | null) {
     !canSendInput() ||
     document.hidden ||
     !me ||
-    me.cooldown > 0 ||
+    (me.energy === undefined ? me.cooldown > 0 : me.energy <= 0) ||
     me.stun > 0
   )
     return;
@@ -943,7 +948,10 @@ window.addEventListener("keydown", (e) => {
   keys.add(e.key.toLowerCase());
   if (e.code === "Space" && !e.repeat) boost = true;
 });
-window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
+window.addEventListener("keyup", (e) => {
+  keys.delete(e.key.toLowerCase());
+  if (e.code === "Space") boost = false;
+});
 window.addEventListener("blur", () => {
   world.resetMotion();
   keys.clear();
@@ -1007,7 +1015,7 @@ function updateSkillButton() {
   const signature = label + view.label + view.seconds.toFixed(1);
   if (b.dataset.label !== signature) {
     b.dataset.label = signature;
-    b.innerHTML = `<svg class="boost-orb" viewBox="-60 -60 120 120" aria-hidden="true"><circle cx="0" cy="0" r="56"/><polygon id="boost-liquid"/></svg><i aria-hidden="true">❯❯</i><strong>${label}</strong><span class="skill-caption">${view.boosting ? `能量释放 · ${view.seconds.toFixed(1)}秒` : view.ready ? "" : view.label}</span><span class="keyboard-hint">SPACE</span>`;
+    b.innerHTML = `<svg class="boost-orb" viewBox="-60 -60 120 120" aria-hidden="true"><circle cx="0" cy="0" r="56"/><polygon id="boost-liquid"/></svg><i aria-hidden="true">❯❯</i><strong>${label}</strong><span class="skill-caption">${view.boosting ? `能量释放 · ${view.seconds.toFixed(1)}秒` : view.ready && view.energy >= 1 ? "按住冲刺" : view.label}</span><span class="keyboard-hint">SPACE</span>`;
   }
   b.style.setProperty("--charge", `${view.progress * 360}deg`);
   b.classList.toggle("boosting", view.boosting);
@@ -1017,7 +1025,7 @@ function updateSkillButton() {
       .map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`)
       .join(" "),
   );
-  b.disabled = !view.ready;
+  b.disabled = me?.energy !== undefined ? me.stun > 0 : !view.ready;
   const status = document.querySelector("#stun-status");
   if (status)
     status.textContent =
@@ -1051,8 +1059,13 @@ function drawJoystick() {
 function resetJoystick(clearTouches = true) {
   const owner = joystick.owner;
   if (clearTouches) fieldTouches.clear();
-  boost = false;
-  boostPointer = null;
+  if (
+    clearTouches ||
+    state?.players.find((p) => p.id === id)?.energy === undefined
+  ) {
+    boost = false;
+    boostPointer = null;
+  }
   joystick.reset();
   drawJoystick();
   const game = document.querySelector<HTMLElement>("#game")!;
@@ -1096,7 +1109,11 @@ for (const event of [
     fieldTouches.delete(e.pointerId);
     if (e.pointerId === joystick.owner) resetJoystick(false);
     if (e.pointerId === boostPointer) {
-      if (event !== "pointerup") boost = false;
+      if (
+        event !== "pointerup" ||
+        state?.players.find((p) => p.id === id)?.energy !== undefined
+      )
+        boost = false;
       boostPointer = null;
     }
   });
@@ -1169,7 +1186,8 @@ setInterval(() => {
     ...(stunned ? { x: 0, y: 0 } : v),
     boost: boost && !stunned,
   });
-  boost = false;
+  if (state?.players.find((p) => p.id === id)?.energy === undefined)
+    boost = false;
   seq++;
   if (seq % 20 === 0 && performance.now() - lastState > 3000)
     status("网络延迟 · 等待同步");

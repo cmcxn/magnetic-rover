@@ -116,6 +116,10 @@ export class CartoonPanel extends Phaser.Scene {
     parent = this.menu,
   ) {
     const t = this.add.text(x, y, value, {
+      resolution: Math.min(
+        3,
+        this.game?.canvas ? this.game.canvas.width / this.scale.width : 1,
+      ),
       fontFamily: "sans-serif",
       fontSize: size + "px",
       fontStyle: "bold",
@@ -790,7 +794,7 @@ export class CartoonPanel extends Phaser.Scene {
               : `${skill.seconds.toFixed(1)}秒`,
           Math.round(b.r * 0.35),
         );
-        if (!skill.ready)
+        if (!skill.ready || skill.boosting || skill.energy < 1)
           this.label(
             "cooling",
             b.x,

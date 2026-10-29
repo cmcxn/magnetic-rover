@@ -230,3 +230,7 @@ Both clients use the tuning fields for visual size, local input replay and
 skill charge/release indicators. The server remains authoritative.
 
 `boostMultiplier` (default 3) controls dash speed relative to normal movement at the same cargo load; it is included in authoritative snapshots and local prediction.
+
+### Held boost energy
+
+Player state includes normalized `energy` and boolean `boostHeld`. Clients send `input.boost=true` continuously while held, false on release. Release stops the dash and recharges at `1 / boostCooldown` per second. Holding consumes energy at `1 / boostDuration` per second while boosting. Partial energy may be reused; holding at zero never recharges. Disconnection, stale input and stun release the hold safely. `boost` remains active dash time for physics and collision slicing; clients with the new energy field do not use the legacy cooldown gate to prevent partial-energy reuse. Deploy server and both clients together.

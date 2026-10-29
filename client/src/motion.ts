@@ -132,6 +132,14 @@ export function integrate(
   baseSpeed = 240,
   boostMultiplier = 3,
 ) {
+  if (p.energy !== undefined) {
+    if (p.boostHeld)
+      p.energy = Math.max(
+        0,
+        p.energy - Math.min(dt, p.boost) / (p.boostCapacity ?? 0.32),
+      );
+    else p.energy = Math.min(1, p.energy + dt / (p.rechargeTime ?? 4));
+  }
   const stunned = p.stun > 0;
   p.stun = Math.max(0, p.stun - dt);
   p.cooldown = Math.max(0, p.cooldown - dt);
@@ -165,6 +173,23 @@ function apply(p: Player, c: Control, tuning: State) {
     scale = Math.max(1, n);
   p.ix = c.x / scale;
   p.iy = c.y / scale;
+  if (p.energy !== undefined) {
+    p.boostCapacity = tuning.boostDuration ?? 0.32;
+    p.rechargeTime = tuning.boostCooldown ?? 4;
+    if (!c.boost) {
+      p.boostHeld = false;
+      p.boost = 0;
+      return;
+    }
+    if (!p.boostHeld && p.energy > 0) {
+      if (n >= 0.1) p.angle = Math.atan2(c.y, c.x);
+      p.bx = Math.cos(p.angle);
+      p.by = Math.sin(p.angle);
+      p.boost = p.energy * p.boostCapacity;
+    }
+    p.boostHeld = true;
+    return;
+  }
   if (c.boost && p.cooldown <= 0) {
     if (n >= 0.1) p.angle = Math.atan2(c.y, c.x);
     p.bx = Math.cos(p.angle);
@@ -283,7 +308,11 @@ export class Motion {
     const s = latest.state,
       p = s.players.find((p) => p.id === this.self);
     if (!p) return;
-    const result = { ...p };
+    const result = {
+      ...p,
+      boostCapacity: s.boostDuration ?? 0.32,
+      rechargeTime: s.boostCooldown ?? 4,
+    };
     if (
       this.spectator ||
       s.phase !== "playing" ||

@@ -10,6 +10,10 @@ export interface Player {
   score: number;
   cooldown: number;
   boost: number;
+  energy?: number;
+  boostCapacity?: number;
+  rechargeTime?: number;
+  boostHeld?: boolean;
   stun: number;
   hitSeq: number;
   impactSeq?: number;
