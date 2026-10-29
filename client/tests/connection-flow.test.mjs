@@ -1455,3 +1455,13 @@ test("confirmed profile persists name and preferred color for reconnect", () => 
   assert.equal(h.storage.get("rover.name"), "薄荷车手");
   assert.equal(h.storage.get("rover.color"), helpers.COLORS[6]);
 });
+test("unchanged lobby snapshots preserve color buttons while a click is in progress",()=>{
+ const h=harness();h.connect();const socket=h.sockets[0];socket.onopen();
+ socket.onmessage({data:JSON.stringify({type:"welcome",id:"p1",token:"t",role:"player",roomId:"1"})});
+ const palette=h.node("#room-palette");let writes=0,html="";
+ Object.defineProperty(palette,"innerHTML",{get:()=>html,set:value=>{writes++;html=value;}});
+ const snapshot={type:"state",phase:"lobby",roomId:"1",roomCode:"1",remaining:100,players:[{id:"p1",name:"Driver",color:helpers.COLORS[0],connected:true,ready:false}],batteries:[],stations:[]};
+ socket.onmessage({data:JSON.stringify(snapshot)});const before=writes;
+ socket.onmessage({data:JSON.stringify(snapshot)});
+ assert.equal(writes,before,"state heartbeats must not replace clickable buttons");
+});

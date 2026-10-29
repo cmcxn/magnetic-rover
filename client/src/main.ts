@@ -714,10 +714,14 @@ function render() {
     const rename = document.querySelector<HTMLButtonElement>(".driver-name");
     if (rename) rename.onclick = renameDriver;
     const palette = document.querySelector<HTMLDivElement>("#room-palette")!;
-    palette.innerHTML = COLORS.map((c) => {
+    const paletteKey = JSON.stringify([id, role, state.players.map(p => [p.id, p.color])]);
+    if (palette.dataset.signature !== paletteKey) {
+      palette.dataset.signature = paletteKey;
+      palette.innerHTML = COLORS.map((c) => {
       const taken = state!.players.some((p) => p.id !== id && p.color === c);
       return `<button data-room-color="${c}" style="background:${c}" ${taken || role !== "player" ? "disabled" : ""} aria-label="${taken ? "已占用" : "选择颜色"} ${c}" aria-pressed="${me?.color === c}" title="${taken ? "已占用" : "选择颜色"}">${taken ? "×" : me?.color === c ? "✓" : ""}</button>`;
     }).join("");
+    }
 
     document
       .querySelectorAll<HTMLButtonElement>("[data-room-color]:not(:disabled)")
