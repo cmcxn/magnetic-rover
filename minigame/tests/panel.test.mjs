@@ -346,3 +346,16 @@ test("solo AI entry and removal use real menu hit targets and keep start explici
   assert.ok(calls.some((c) => c[0] === "send" && c[1].type === "remove_bot"));
   assert.ok(calls.some((c) => c[0] === "send" && c[1].type === "ready"));
 });
+
+test("lobby help stays below the WeChat capsule and remains tappable", () => {
+  const { p, model, calls } = harness();
+  model.connected = true;
+  model.roomId = "r";
+  model.state = { phase: "lobby", players: [], batteries: [], stations: [] };
+  p.insets = () => ({ left: 47, right: 24, top: 8, capsuleBottom: 48 });
+  p.actions.showGuide = () => calls.push(["guide"]);
+  p.update();
+  assert.ok(p.guideHit.y >= 56);
+  p.press(p.guideHit.x + 10, p.guideHit.y + 10);
+  assert.equal(calls.at(-1)[0], "guide");
+});

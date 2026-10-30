@@ -1,3 +1,5 @@
+import { EntryGuide, GUIDE_KEY } from "./onboarding";
+import { GuideOverlay } from "./guide-overlay";
 import { Sounds } from "./audio";
 const sounds = new Sounds();
 import Phaser from "phaser";
@@ -31,6 +33,11 @@ import {
   type RoomRole,
   roomRenderKey,
 } from "./types";
+const entryGuide = new EntryGuide(
+  localStorage.getItem(GUIDE_KEY) === "yes",
+  () => localStorage.setItem(GUIDE_KEY, "yes"),
+);
+const guideOverlay = new GuideOverlay(() => entryGuide.close(Date.now()));
 const world = new World();
 Object.defineProperty(window, "roverVisuals", {
   get: () => world.vehicleDiagnostics,
@@ -412,6 +419,7 @@ function connect(automatic = false) {
       id = data.id;
       role = data.role ?? "player";
       roomId = data.roomId ?? null;
+      entryGuide.enter(role === "player" ? roomId : null, Date.now());
       state = world.state = null;
       world.clearPickupFeedback();
       world.smooth.clear();
@@ -436,6 +444,7 @@ function connect(automatic = false) {
       if (role === "directory" && joined) showDirectory();
     }
     if (data.type === "error") {
+      if (data.code === "ready_warning") return;
       showError(data.message);
       if (leavingRoom && joined) {
         // Errors have no request IDs. Do not assume the old room is still ours:
@@ -681,7 +690,7 @@ function render() {
     mouseDown = false;
     boost = false;
     if (phase === "lobby")
-      surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="room-palette" class="room-palette" aria-label="房间车身颜色"></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><div class="ai-actions" id="ai-actions"><button id="bot-action" class="primary ai-add" hidden>和 AI 一起玩</button><button id="start" class="primary race-start">❯❯ 开始比赛</button></div><p id="ready-hint" class="ready-hint"></p><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
+      surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="room-palette" class="room-palette" aria-label="房间车身颜色"></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><div class="ai-actions" id="ai-actions"><button id="bot-action" class="primary ai-add" hidden>和 AI 一起玩</button><button id="start" class="primary race-start">❯❯ 开始比赛</button></div><div class="ready-hint"><span id="ready-hint"></span><span id="ready-timeout"></span><button class="secondary" id="show-guide">玩法</button></div><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
     if (phase === "playing") {
       surface.innerHTML = `<div class="compact-hud-surface" aria-hidden="true"></div><div class="hud"><div class="stat compact-score"><span class="hud-icon" aria-hidden="true">♻</span><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat compact-cargo"><svg class="hud-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="3" fill="#ffd25c"/><path d="M9 1h6v3H9z" fill="#ffeaa2"/><path d="m13 7-4 7h3l-1 5 5-8h-4z" fill="#77512b"/></svg><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="match-actions"><button class="secondary compact-sound" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-label="更多设置" title="更多设置" aria-controls="settings" aria-expanded="false">⚙</button>${role !== "spectator" ? '<button class="secondary leave-room" aria-label="离开房间返回大厅">离开</button>' : ""}</div><aside class="leaderboard"><h3>已存排行</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
       surface.insertAdjacentHTML(
@@ -707,6 +716,9 @@ function render() {
         .querySelector("#again")
         ?.addEventListener("click", () => send({ type: "again" }));
     }
+    document
+      .querySelector("#show-guide")
+      ?.addEventListener("click", () => entryGuide.show(Date.now()));
     document.querySelector("#start")?.addEventListener("click", () =>
       send({
         type: "ready",
@@ -1319,3 +1331,22 @@ setInterval(() => {
   else if (seq % 20 === 0) status("在线 · 实时联机");
 }, 50);
 showJoin();
+
+setInterval(() => {
+  const lobby = joined && state?.phase === "lobby" && role === "player";
+  const ready = lobby
+    ? state?.players.find((p) => p.id === id)?.readyIn
+    : undefined;
+  const view = entryGuide.view(Date.now());
+  guideOverlay.render({ ...view, visible: !!lobby && view.visible }, ready);
+  const hint = document.querySelector<HTMLElement>("#ready-hint");
+  if (hint) hint.style.display = ready === undefined ? "" : "none";
+  const warning = document.querySelector("#ready-timeout");
+  if (warning)
+    warning.textContent =
+      ready === undefined
+        ? ""
+        : ready <= 10
+          ? `请准备，${ready} 秒后将被移出房间`
+          : `请在 ${ready} 秒内准备`;
+}, 100);

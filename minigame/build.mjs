@@ -39,6 +39,11 @@ await build({
   format: "cjs",
   target: "es2017",
   minify: true,
+  define: {
+    __ROVER_BUILD__: JSON.stringify(
+      "G1-" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15),
+    ),
+  },
   legalComments: "eof",
 });
 // The upload parser is older than the simulator: lower optional chaining too.

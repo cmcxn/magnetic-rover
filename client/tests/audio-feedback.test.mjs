@@ -167,3 +167,25 @@ test("held engine loop starts with clear gain and uses the full sustained cycle"
   assert.equal(source.loopEnd, 0.48);
   assert.equal(source.loopStart, 0.08);
 });
+
+test("lobby warning sounds once per changed second, never for ready/solo/other players", () => {
+  const sounds = harness(),
+    played = [];
+  sounds.play = (n) => played.push(n);
+  const s = (left) => ({
+    roomId: "r",
+    phase: "lobby",
+    players: [{ id: "me", readyIn: left }],
+  });
+  let prev = s(11);
+  for (let left = 10; left >= 1; left--) {
+    const next = s(left);
+    sounds.update(prev, next, "me");
+    sounds.update(next, next, "me");
+    prev = next;
+  }
+  assert.equal(played.length, 10);
+  sounds.update(prev, s(undefined), "me");
+  sounds.update(s(9), s(8), "other");
+  assert.equal(played.length, 10);
+});

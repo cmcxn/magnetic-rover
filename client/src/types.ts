@@ -22,6 +22,7 @@ export interface Player {
   pickupSeq: number;
   connected: boolean;
   ready?: boolean;
+  readyIn?: number;
   isBot?: boolean;
   inputSeq?: number;
   inputElapsed?: number;

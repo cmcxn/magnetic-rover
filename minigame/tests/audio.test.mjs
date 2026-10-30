@@ -223,3 +223,28 @@ test("native engine loop has audible gain, no system mute dependency, and keeps 
   assert.ok(c.volume >= 0.6);
   assert.equal(c.obeyMuteSwitch, false);
 });
+
+test("native lobby countdown beeps once a second and respects mute/background", () => {
+  const h = harness();
+  h.audio.unlock();
+  const s = (left) => ({ ...state({ readyIn: left }), phase: "lobby" });
+  let prev = s(11);
+  for (let left = 10; left >= 1; left--) {
+    h.advance(1000);
+    const next = s(left);
+    h.audio.update(prev, next, "me");
+    h.audio.update(next, next, "me");
+    prev = next;
+  }
+  const c = h.contexts.find((c) => c.src.endsWith("/countdown.wav"));
+  assert.equal(c.plays, 10);
+  h.audio.setActive(false);
+  h.advance(1000);
+  h.audio.update(s(10), s(9), "me");
+  assert.equal(c.plays, 10);
+  h.audio.setActive(true);
+  h.audio.toggle();
+  h.advance(1000);
+  h.audio.update(s(9), s(8), "me");
+  assert.equal(c.plays, 10);
+});

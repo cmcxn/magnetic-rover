@@ -21,6 +21,7 @@ import {
   orbLiquid,
 } from "../../client/src/presentation";
 export interface PanelModel {
+  build?: string;
   connected: boolean;
   selfVisual?: import("../../client/src/types").Player;
   keyboardEnabled?: boolean;
@@ -40,6 +41,7 @@ export interface PanelModel {
   age: number;
 }
 export interface PanelActions {
+  showGuide?(): void;
   connect(): void;
   toggleSound?(): void;
   rename(): void;
@@ -62,6 +64,7 @@ type Hit = {
 export class CartoonPanel extends Phaser.Scene {
   hits: Hit[] = [];
   private soundHit?: Hit;
+  private guideHit?: Hit;
   private menu!: Phaser.GameObjects.Container;
   private paint!: Phaser.GameObjects.Graphics;
   private live!: Phaser.GameObjects.Container;
@@ -109,7 +112,11 @@ export class CartoonPanel extends Phaser.Scene {
     this.key = "";
   }
   press(x: number, y: number) {
-    const hit = [...this.hits, ...(this.soundHit ? [this.soundHit] : [])]
+    const hit = [
+      ...this.hits,
+      ...(this.soundHit ? [this.soundHit] : []),
+      ...(this.guideHit ? [this.guideHit] : []),
+    ]
       .reverse()
       .find((b) =>
         b.circle
@@ -729,6 +736,7 @@ export class CartoonPanel extends Phaser.Scene {
       this.renderMenu(m);
     }
     this.dynamic.clear();
+    this.guideHit = undefined;
     for (const label of this.labels.values()) label.setVisible(false);
     if (m.state?.phase === "lobby" && !m.spectator && !me?.ready) {
       const s = this.menu.scaleX;
@@ -1059,6 +1067,10 @@ export class CartoonPanel extends Phaser.Scene {
         }
       }
     } else {
+      if (m.build)
+        this.label("build", w - right, h - 28, m.build, 10, "#fff8e7")
+          .setOrigin(1, 0.5)
+          .setStroke("#19374c", 2);
       this.label(
         "status",
         w / 2,
@@ -1091,6 +1103,26 @@ export class CartoonPanel extends Phaser.Scene {
         h: 43,
         action: this.actions.toggleSound,
       };
+    }
+    if (!playing && m.roomId && m.state?.phase === "lobby") {
+      if (this.actions.showGuide) {
+        const x = w - right - 70,
+          y = Math.max(8, top, (capsuleBottom ?? 0) + 8);
+        g.fillStyle(UI.navy, 0.65).fillRoundedRect(x, y, 64, 30, 10);
+        this.label("guide-link", x + 32, y + 15, "玩法", 13);
+        this.guideHit = { x, y, w: 64, h: 30, action: this.actions.showGuide };
+      }
+      if (me?.readyIn !== undefined)
+        this.label(
+          "ready-deadline",
+          w / 2,
+          h - 34,
+          me.readyIn <= 10
+            ? `请准备，${me.readyIn} 秒后将被移出房间`
+            : `请在 ${me.readyIn} 秒内准备`,
+          14,
+          me.readyIn <= 10 ? "#ffb3a5" : "#fff8e7",
+        ).setStroke("#19374c", 3);
     }
     if (m.notice && playing)
       this.label(

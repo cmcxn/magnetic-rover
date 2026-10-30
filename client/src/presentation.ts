@@ -189,12 +189,12 @@ export function compactHudLayout(
     y = Math.max(8, top);
   return {
     timer: { x: w / 2 - 48, y, w: 96, h: 36 },
-    map: { x: left + 36, y: y + 36, r: 36 },
+    map: { x: left + 72, y: y + 72 + (w < 580 ? 44 : 0), r: 72 },
     panel: {
       x: w - right - panelW,
       y: Math.max(
         y,
-        w < 580 ? y + 64 : y,
+        w < 580 ? y + 196 : y,
         capsuleBottom ? capsuleBottom + 6 : 0,
       ),
       w: panelW,

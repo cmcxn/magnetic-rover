@@ -1,0 +1,134 @@
+#entry-guide[hidden] {
+  display: none;
+}
+#entry-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #142b3eaa;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  pointer-events: auto;
+}
+#entry-guide section {
+  position: relative;
+  width: min(1050px, 96vw);
+  max-height: 95dvh;
+  overflow: auto;
+  background: #fff7e5f5;
+  border: 3px solid #e5c785;
+  border-radius: 24px;
+  padding: 12px 20px;
+  text-align: center;
+  color: #173d63;
+  box-shadow: 0 12px 60px #10283866;
+}
+#entry-guide h1 {
+  font-size: clamp(23px, 4vh, 40px);
+  margin: 0;
+}
+#entry-guide p {
+  margin: 4px 0 10px;
+  font-size: 14px;
+}
+.guide-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.guide-cards article {
+  background: #fff9ed;
+  border: 1px solid #dccba8;
+  border-radius: 14px;
+  padding: 8px;
+  min-width: 0;
+}
+.guide-cards h2 {
+  font-size: clamp(13px, 2.4vh, 22px);
+  margin: 0 0 6px;
+}
+.guide-picture {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  width: min(100%, 24vh);
+  margin: auto;
+}
+.guide-picture img {
+  position: absolute;
+  max-width: none;
+  height: auto;
+}
+.guide-cards strong {
+  display: block;
+  font-size: clamp(12px, 2.3vh, 18px);
+  margin-top: 6px;
+}
+#entry-guide small {
+  display: block;
+  font-size: clamp(10px, 2vh, 14px);
+  margin: 3px;
+}
+#guide-close {
+  background: linear-gradient(#ffe69a, #eab84d);
+  color: #664111;
+  border: 2px solid #b98b36;
+  border-radius: 28px;
+  margin-top: 10px;
+  padding: 10px 25px;
+  font-weight: bold;
+}
+#guide-close:disabled {
+  opacity: 0.65;
+}
+#entry-guide aside {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  background: #294966;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+#entry-guide aside.urgent {
+  background: #b82f36;
+}
+#ready-timeout {
+  color: #ad3535;
+  font-weight: bold;
+  text-align: center;
+}
+@media (max-width: 600px) and (orientation: portrait) {
+  .guide-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .guide-picture {
+    width: min(100%, 17vh);
+  }
+  #entry-guide aside {
+    position: static;
+    margin-top: 5px;
+  }
+}
+.lobby #show-guide {
+  min-height: 24px;
+  padding: 3px 9px;
+  margin-left: 10px;
+  font-size: 12px;
+  border-radius: 10px;
+}
+@media (max-height: 360px) and (orientation: landscape) {
+  #entry-guide { padding:6px; }
+  #entry-guide section { padding:5px 10px; }
+  #entry-guide h1 { font-size:20px; }
+  #entry-guide p { font-size:12px; margin:2px 0 5px; }
+  .guide-cards { gap:6px; }
+  .guide-cards article { padding:4px; }
+  .guide-cards h2 { font-size:12px; margin-bottom:3px; }
+  .guide-picture { width:min(100%,20vh); }
+  .guide-cards strong { margin-top:3px; }
+  #guide-close { min-height:28px; margin-top:5px; padding:5px 15px; font-size:12px; }
+  #entry-guide small { margin:2px; }
+}

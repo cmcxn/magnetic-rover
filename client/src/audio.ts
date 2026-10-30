@@ -107,6 +107,16 @@ export class Sounds {
     } else src.start();
   }
   update(prev: State | null, next: State, id: string) {
+    const left = next.players.find((p) => p.id === id)?.readyIn;
+    if (
+      next.phase === "lobby" &&
+      left !== undefined &&
+      left > 0 &&
+      left <= 10 &&
+      (prev?.roomId !== next.roomId ||
+        prev?.players.find((p) => p.id === id)?.readyIn !== left)
+    )
+      this.play("countdown");
     if (!prev) return;
     const a = prev.players.find((p) => p.id === id),
       b = next.players.find((p) => p.id === id);

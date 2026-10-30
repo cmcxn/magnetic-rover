@@ -126,6 +126,7 @@ test("compact HUD keeps timer centered, map left and capsule clear", async () =>
     assert.equal(layout.timer.x + layout.timer.w / 2, w / 2);
     assert.ok(layout.panel.y >= 48);
     assert.equal(layout.map.x - layout.map.r, 24);
+    assert.equal(layout.map.r, 72);
     assert.ok(layout.panel.x + layout.panel.w <= w - 24 + 0.01);
   }
 });

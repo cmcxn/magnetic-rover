@@ -222,8 +222,8 @@
   right: auto;
   top: var(--hud-top);
   bottom: auto;
-  width: 72px;
-  height: 72px;
+  width: 144px;
+  height: 144px;
   border-radius: 50%;
   border: 1px solid #b1e5e4aa;
   opacity: 0.78;
@@ -289,21 +289,24 @@
   }
 }
 @media (max-width: 579px) {
+  #app.playing .minimap {
+    top: calc(var(--hud-top) + 44px);
+  }
   #app.playing .compact-hud-surface {
-    top: calc(var(--hud-top) + 64px);
+    top: calc(var(--hud-top) + 196px);
   }
   #app.playing .stat:not(.timer) {
-    top: calc(var(--hud-top) + 69px);
+    top: calc(var(--hud-top) + 201px);
   }
   #app.playing .connection {
-    top: calc(var(--hud-top) + 74px);
+    top: calc(var(--hud-top) + 206px);
   }
   #app.playing .match-actions {
-    top: calc(var(--hud-top) + 96px);
+    top: calc(var(--hud-top) + 228px);
   }
   #app.playing .leaderboard,
   #app.playing .controls {
-    top: calc(var(--hud-top) + 148px);
+    top: calc(var(--hud-top) + 280px);
   }
 }
 @media (prefers-reduced-motion: reduce) {

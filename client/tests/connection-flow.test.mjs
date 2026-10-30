@@ -1,3 +1,4 @@
+import { EntryGuide, GUIDE_KEY } from "../src/onboarding.ts";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
@@ -131,6 +132,11 @@ function harness(search = "", options = {}) {
     }
   }
   const context = {
+    EntryGuide,
+    GUIDE_KEY,
+    GuideOverlay: class {
+      render() {}
+    },
     ...helpers,
     ...presentation,
     FrameMetrics,

@@ -1,3 +1,5 @@
+import { EntryGuide, GUIDE_KEY } from "../../client/src/onboarding";
+import { TutorialScene } from "./guide";
 import { installCanvasDensity } from "./density";
 import Phaser from "phaser";
 import { WeChatSounds } from "./audio";
@@ -13,6 +15,7 @@ import {
   type RoomSummary,
   type State,
 } from "../../client/src/types";
+declare const __ROVER_BUILD__: string;
 declare const wx: any;
 declare const GameGlobal: any;
 declare const canvas: HTMLCanvasElement;
@@ -59,6 +62,21 @@ let boost = false,
   lastInput = 0,
   uiKey = "",
   notice = "";
+const entryGuide = new EntryGuide(wx.getStorageSync(GUIDE_KEY) === "yes", () =>
+  wx.setStorageSync(GUIDE_KEY, "yes"),
+);
+const tutorial = new TutorialScene(
+  () => ({
+    ...entryGuide.view(Date.now()),
+    visible:
+      active &&
+      state?.phase === "lobby" &&
+      !spectator &&
+      entryGuide.view(Date.now()).visible,
+    ready: state?.players.find((p) => p.id === self)?.readyIn,
+  }),
+  () => entryGuide.close(Date.now()),
+);
 const sounds = new WeChatSounds(wx);
 console.info(
   "[rover] audio backend: wx.createInnerAudioContext (first touch unlocks)",
@@ -70,6 +88,10 @@ let scenePeakMs = 0,
 const joystick = new FloatingJoystick();
 const world = new (class extends World {
   preload() {
+    console.info("[rover] build", __ROVER_BUILD__);
+    this.load.on("loaderror", (file: any) =>
+      console.error("[rover] asset failed", file.key, file.src),
+    );
     this.load.image("chassis", "art/cartoon/rover-chassis.png");
     this.load.image("tire", "art/cartoon/rover-tire.png");
     this.load.image("rover", "art/cartoon/rover.png");
@@ -77,9 +99,23 @@ const world = new (class extends World {
     this.load.image("station", "art/cartoon/station.png");
     this.load.image("island", "art/cartoon/island.png");
   }
+  private nextVehicleLog = 0;
+  private vehicleLogs = 0;
   update(time: number, delta: number) {
     const started = Date.now();
     super.update(time, delta);
+    if (
+      this.state?.phase === "playing" &&
+      time >= this.nextVehicleLog &&
+      this.vehicleLogs < 12
+    ) {
+      this.nextVehicleLog = time + 3000;
+      this.vehicleLogs++;
+      console.info(
+        "[rover] vehicle",
+        JSON.stringify({ build: __ROVER_BUILD__, ...this.vehicleDiagnostics }),
+      );
+    }
     scenePeakMs = Math.max(scenePeakMs, Date.now() - started);
   }
 })();
@@ -164,6 +200,7 @@ function connect() {
       self = data.id;
       roomId = data.roomId;
       spectator = data.role === "spectator";
+      entryGuide.enter(data.role === "player" ? roomId : null, Date.now());
       world.spectating = spectator;
       state = null;
       world.state = null;
@@ -189,6 +226,7 @@ function connect() {
       rtt = Date.now() - ping.at;
       ping = null;
     } else if (data.type === "error") {
+      if (data.code === "ready_warning") return;
       notice = data.message;
       uiKey = "";
       console.warn("[rover] server", data.message);
@@ -247,6 +285,7 @@ function editable(
 }
 panel = new CartoonPanel(
   () => ({
+    build: __ROVER_BUILD__,
     connected,
     selfVisual: world.predictedPlayer?.(),
     keyboardEnabled:
@@ -271,6 +310,7 @@ panel = new CartoonPanel(
   }),
   {
     connect,
+    showGuide: () => entryGuide.show(Date.now()),
     toggleSound: () => sounds.toggle(),
     rename: () =>
       editable("车手昵称", name, (value) => {
@@ -418,6 +458,7 @@ wx.onTouchStart((event: any) => {
   for (const t of event.changedTouches) {
     const x = t.clientX,
       y = t.clientY;
+    if (tutorial.press(x, y)) continue;
     const hit = panel?.press(x, y) ?? false;
     lastTouch = { x, y, hit };
     if (hit) {
@@ -495,11 +536,12 @@ const game = new Phaser.Game({
   input: { keyboard: false, mouse: false, touch: false, gamepad: false },
   loader: { imageLoadType: "HTMLImageElement" },
   scale: { mode: Phaser.Scale.NONE },
-  scene: [world, panel],
+  scene: [world, panel, tutorial],
   callbacks: {
     postBoot: (g) => {
       installCanvasDensity(g, canvas, info);
       g.scene.start("panel");
+      g.scene.start("tutorial");
     },
   },
 });
@@ -532,6 +574,7 @@ wx.onWindowResize?.((event: any) => {
 Object.defineProperty(GameGlobal, "roverSpike", {
   configurable: true,
   get: () => ({
+    build: __ROVER_BUILD__,
     endpoint,
     connected,
     audio: sounds.diagnostics,

@@ -23,8 +23,52 @@ function R:humanCounts(room)
  return humans,online,bots
 end
 function R:resetReady(room)
+ room.readyDeadlines={};room.readyWarnings={}
  room.ready={}
  for _,p in ipairs(room.game.players) do if p.isBot and p.connected and not p.removed then room.ready[p.id]=true end end
+end
+-- Wall-clock deadlines are additive protocol metadata; legacy clients still use
+-- error text and the existing directory welcome when a seat is released.
+function R:clearReadyWarning(room,id)
+ if not room.readyWarnings or not room.readyWarnings[id] then return end
+ for _,s in pairs(self.sessions) do if s.room==room and s.player and s.player.id==id and s.fd then self:emit(s.fd,{type='error',code='ready_warning_clear',message=''}) end end
+ room.readyWarnings[id]=nil
+end
+function R:syncReady(room)
+ room.readyDeadlines=room.readyDeadlines or {};room.readyWarnings=room.readyWarnings or {}
+ local humans=self:humanCounts(room)
+ if room.game.phase~='lobby' or humans<2 then for id in pairs(room.readyWarnings) do self:clearReadyWarning(room,id) end;room.readyDeadlines={};room.readyWarnings={};return end
+ local present={}
+ for _,p in ipairs(room.game.players) do if not p.isBot and not p.removed then
+  present[p.id]=true
+  if room.ready[p.id] then room.readyDeadlines[p.id]=nil;self:clearReadyWarning(room,p.id)
+  elseif not room.readyDeadlines[p.id] then room.readyDeadlines[p.id]=self.now+60 end
+ end end
+ for id in pairs(room.readyDeadlines) do if not present[id] then room.readyDeadlines[id]=nil;room.readyWarnings[id]=nil end end
+end
+function R:expireReady(room)
+ self:syncReady(room)
+ local expired={}
+ for _,s in pairs(self.sessions) do if s.room==room and s.player then
+  local deadline=room.readyDeadlines[s.player.id]
+  if deadline then
+   local left=math.max(0,math.ceil(deadline-self.now))
+   if left==0 then expired[#expired+1]=s
+   elseif left<=10 and room.readyWarnings[s.player.id]~=left then
+    room.readyWarnings[s.player.id]=left
+    if s.fd then self:emit(s.fd,{type='error',code='ready_warning',message='请准备，'..left..' 秒后将被移出房间',seconds=left}) end
+   end
+  end
+ end end
+ -- Collect first so simultaneous expiry is independent of iteration order.
+ for _,s in ipairs(expired) do
+  self:detach(s,true)
+  if s.fd then
+   self:welcome(s);self:directory(s.fd)
+   self:emit(s.fd,{type='error',code='ready_timeout',message='超过 60 秒未准备，已返回房间大厅'})
+  end
+ end
+ self:syncReady(room)
 end
 function R:removeBots(room)
  for i=#room.game.players,1,-1 do if room.game.players[i].isBot then table.remove(room.game.players,i) end end
@@ -48,7 +92,8 @@ function R:snapshot(room)
  local out=room.game:snapshot(self.array);local summary=self:summary(room)
  for _,key in ipairs({'roomId','roomCode','playerCount','readyCount','spectatorCount','maxPlayers','maxSpectators','humanCount','botCount','canAddBot','canRemoveBot'}) do out[key]=summary[key] end
  out.canStart=out.phase=='lobby' and summary.playerCount>=2 and summary.readyCount==summary.playerCount
- for _,p in ipairs(out.players) do p.ready=room.ready[p.id]==true end
+ self:syncReady(room)
+ for _,p in ipairs(out.players) do p.ready=room.ready[p.id]==true;local d=room.readyDeadlines[p.id];if d then p.readyIn=math.max(0,math.ceil(d-self.now)) end end
  return out
 end
 function R:sendState(s) if s.room then self:emit(s.fd,self:snapshot(s.room)) else self:directory(s.fd) end end
@@ -75,6 +120,7 @@ function R:enter(s,room,role)
   local humans,_,bots=self:humanCounts(room)
   if humans>=2 and bots>0 then self:removeBots(room) end
  end
+ self:syncReady(room)
  room.emptySince=nil;self:welcome(s);self:sendState(s)
 end
 function R:tryStart(room)
@@ -159,7 +205,7 @@ function R:handle(fd,m,now)
   if g.phase~='lobby' then return self:error(fd,'Not in lobby') end
   local ready=m.type=='start' or m.ready
   if type(ready)~='boolean' then return self:error(fd,'Ready must be a boolean') end
-  room.ready[s.player.id]=ready;self:tryStart(room)
+  room.ready[s.player.id]=ready;self:syncReady(room);self:tryStart(room)
  elseif m.type=='input' then local _,e=g:input(s.player,m);if e then self:error(fd,e) end
  elseif m.type=='again' then local ok,e=g:again();if not ok then self:error(fd,e) else self:resetReady(room) end
  else self:error(fd,'Unknown action') end
@@ -178,6 +224,7 @@ function R:advance(now)
    local humans=self:humanCounts(room)
    if humans~=1 then self:removeBots(room) else self:resetReady(room) end
   end
+  self:expireReady(room)
   self:tryStart(room)
   -- Disconnected seats expire in the core. Preserve active-match tokens/results.
   local occupied=false

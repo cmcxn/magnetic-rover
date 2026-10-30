@@ -1,3 +1,4 @@
+import { EntryGuide, GUIDE_KEY } from "../../client/src/onboarding.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
@@ -83,6 +84,14 @@ function harness() {
     }
   }
   const context = {
+    EntryGuide,
+    GUIDE_KEY,
+    TutorialScene: class {
+      press() {
+        return false;
+      }
+    },
+    __ROVER_BUILD__: "test-build",
     exports: {},
     ...types,
     skillView,
