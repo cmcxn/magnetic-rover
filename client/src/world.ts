@@ -8,6 +8,8 @@ export class World extends Phaser.Scene {
   private wheelMotion = new VehicleMotion();
   private tireDust = new TireDust();
   private dustAt = new Map<string, number>();
+  private vehicleSample = { speed: 0, frame: 0, steer: 0 };
+  private effectsActive = false;
   private motionSnapshot: State | null = null;
   private motionRole = "";
   resetMotion() {
@@ -65,6 +67,7 @@ export class World extends Phaser.Scene {
   private frameElapsed = 0;
   g!: Phaser.GameObjects.Graphics;
   cargoG!: Phaser.GameObjects.Graphics;
+  wheelG!: Phaser.GameObjects.Graphics;
   background!: Phaser.GameObjects.Image;
   labels = new Map<string, Phaser.GameObjects.Text>();
   smooth = new Map<string, { x: number; y: number; angle: number }>();
@@ -72,6 +75,15 @@ export class World extends Phaser.Scene {
   spriteIds = new Set<string>();
   get vehicleDiagnostics() {
     return {
+      revision: "wheels-2",
+      effectsActive: this.effectsActive,
+      snapshotAge: this.effectAge,
+      assets: {
+        chassis: this.textures.exists("chassis"),
+        tire: this.textures.exists("tire"),
+        frames: this.textures.exists("tire-roll-0"),
+      },
+      self: this.vehicleSample,
       dust: this.tireDust.particles.length,
       wheelPlayers: this.wheelMotion.size,
       wheels: [...this.sprites]
@@ -141,6 +153,7 @@ export class World extends Phaser.Scene {
     this.createBackground();
     this.g = this.add.graphics();
     this.cargoG = this.add.graphics().setDepth(5);
+    this.wheelG = this.add.graphics().setDepth(3.5);
     this.scale.on("resize", () => this.layout());
     this.layout();
   }
@@ -182,7 +195,7 @@ export class World extends Phaser.Scene {
     const source = this.textures
       .get("tire")
       .getSourceImage() as HTMLImageElement;
-    for (let frame = 0; frame < 8; frame++) {
+    for (let frame = 0; frame < 16; frame++) {
       const key = `tire-roll-${frame}`;
       if (this.textures.exists(key)) continue;
       const tex = this.textures.createCanvas(key, 128, 78);
@@ -190,19 +203,41 @@ export class World extends Phaser.Scene {
       const ctx = tex.context;
       ctx.drawImage(source, 0, 0, 128, 78);
       ctx.globalCompositeOperation = "source-atop";
-      // Fixed silhouette; only the tread bands translate, so tires do not wobble.
-      for (let x = -48 + frame * 5.25; x < 180; x += 42) {
+      // Use the approved tire only as an alpha silhouette. Opaque rubber shading
+      // replaces its baked-in tread, so there is only ONE moving pattern.
+      const rubber = ctx.createLinearGradient(0, 0, 0, 78);
+      rubber.addColorStop(0, "#101c2c");
+      rubber.addColorStop(0.18, "#263d56");
+      rubber.addColorStop(0.45, "#3a536e");
+      rubber.addColorStop(0.8, "#21344b");
+      rubber.addColorStop(1, "#101b2b");
+      ctx.fillStyle = rubber;
+      ctx.fillRect(0, 0, 128, 78);
+      // Top surface moves toward +X (the nose). Sixteen phases keep forward
+      // travel smooth; edge shading stays fixed while tread crosses the tire.
+      for (let x = -48 + frame * (42 / 16); x < 180; x += 42) {
         ctx.beginPath();
-        ctx.moveTo(x - 9, 7);
+        ctx.moveTo(x - 9, 6);
         ctx.lineTo(x + 5, 39);
-        ctx.lineTo(x - 9, 71);
-        ctx.strokeStyle = "rgba(8,17,33,.45)";
-        ctx.lineWidth = 3;
+        ctx.lineTo(x - 9, 72);
+        ctx.strokeStyle = "#101c2e";
+        ctx.lineWidth = 10;
         ctx.stroke();
-        ctx.strokeStyle = "rgba(137,172,205,.22)";
-        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x - 5, 6);
+        ctx.lineTo(x + 9, 39);
+        ctx.lineTo(x - 5, 72);
+        ctx.strokeStyle = "rgba(144,176,202,.65)";
+        ctx.lineWidth = 4;
         ctx.stroke();
       }
+      const edge = ctx.createLinearGradient(0, 0, 128, 0);
+      edge.addColorStop(0, "rgba(4,12,24,.8)");
+      edge.addColorStop(0.18, "rgba(4,12,24,0)");
+      edge.addColorStop(0.82, "rgba(4,12,24,0)");
+      edge.addColorStop(1, "rgba(4,12,24,.8)");
+      ctx.fillStyle = edge;
+      ctx.fillRect(0, 0, 128, 78);
       ctx.globalCompositeOperation = "source-over";
       tex.add("trim", 0, 0, 0, 128, 78);
       tex.refresh();
@@ -370,6 +405,7 @@ export class World extends Phaser.Scene {
       this.liveEffects &&
       this.effectAge <= 500 &&
       this.state?.phase === "playing";
+    this.effectsActive = effectsActive;
     if (!effectsActive) {
       this.cameras?.main.shakeEffect?.reset();
       this.boostIndicators.clear();
@@ -381,6 +417,7 @@ export class World extends Phaser.Scene {
     const g = this.g;
     g.clear();
     this.cargoG.clear();
+    this.wheelG.clear();
     this.spriteIds.clear();
     const w = this.scale.width,
       h = this.scale.height;
@@ -446,6 +483,7 @@ export class World extends Phaser.Scene {
     g.setPosition(this.ox, this.oy);
     g.setScale(s);
     this.cargoG.setPosition(this.ox, this.oy).setScale(s);
+    this.wheelG.setPosition(this.ox, this.oy).setScale(s);
     const circle = (x: number, y: number, r: number, c: number, a = 1) => {
       g.fillStyle(c, a);
       g.fillCircle(x, y, r);
@@ -572,13 +610,13 @@ export class World extends Phaser.Scene {
     this.tireDust.step(delta, effectsActive && !this.reducedEffects);
     for (const p of this.tireDust.particles) {
       const life = 1 - p.age / p.life;
-      g.fillStyle(0xb8a78b, 0.3 * life).fillEllipse(
+      g.fillStyle(0xad916a, 0.55 * life).fillEllipse(
         p.x,
         p.y,
         p.size * (2 + p.age * 10),
         p.size * (1.3 + p.age * 5),
       );
-      g.fillStyle(0xfff1d1, 0.24 * life).fillEllipse(
+      g.fillStyle(0xfff1d1, 0.48 * life).fillEllipse(
         p.x - 1,
         p.y - 1,
         p.size * (1 + p.age * 8),
@@ -630,6 +668,12 @@ export class World extends Phaser.Scene {
         active: effectsActive && p.connected && p.stun <= 0,
         scale: vehicleScale,
       });
+      if (p.id === this.self)
+        this.vehicleSample = {
+          speed: wheels.speed,
+          frame: wheels.frame,
+          steer: wheels.steer,
+        };
       const layered =
         this.textures.exists("chassis") && this.textures.exists("tire-roll-0");
       if (layered) {
@@ -657,8 +701,8 @@ export class World extends Phaser.Scene {
               !front
             ) {
               this.tireDust.emit(
-                x,
-                y,
+                x - Math.cos(v.angle) * 17 * vehicleScale,
+                y - Math.sin(v.angle) * 17 * vehicleScale,
                 v.angle,
                 vehicleScale,
                 _time * 0.01 + side * 3,
@@ -832,6 +876,24 @@ export class World extends Phaser.Scene {
               side === 0 ? 0.38 : 0.75,
             ).lineBetween(a.x, a.y, b.x, b.y);
           }
+        }
+        // The approved design includes streaks ON the tires, not only the
+        // central exhaust. Draw above tires and below the chassis.
+        if (!this.reducedEffects) {
+          for (const axle of [-16.5, 11])
+            for (const side of [-1, 1]) {
+              for (const band of [-2.5, 0, 2.5]) {
+                const pulse = Math.sin(_time * 0.05 + band) * 2;
+                const a = rot(axle + 3 + pulse, side * 12.5 + band);
+                const b = rot(axle - 18 - pulse, side * 12.5 + band);
+                this.wheelG
+                  .lineStyle(2.6, 0x24cfff, 0.5)
+                  .lineBetween(a.x, a.y, b.x, b.y);
+                this.wheelG
+                  .lineStyle(0.9, 0xdcfbff, 0.95)
+                  .lineBetween(a.x, a.y, b.x, b.y);
+              }
+            }
         }
         const tail = -24;
         const length =

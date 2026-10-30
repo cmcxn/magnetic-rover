@@ -1,0 +1,142 @@
+{
+  "visuals": {
+    "revision": "wheels-2",
+    "effectsActive": true,
+    "snapshotAge": 0,
+    "assets": {
+      "chassis": true,
+      "tire": true,
+      "frames": true
+    },
+    "self": {
+      "speed": 841.8974076950499,
+      "frame": 1,
+      "steer": 0.025547378567226605
+    },
+    "dust": 14,
+    "wheelPlayers": 2,
+    "wheels": [
+      {
+        "id": "wheel-1-false--1",
+        "texture": "tire-roll-1",
+        "angle": 0,
+        "x": 379.0978260869565,
+        "y": 174.6195652173913
+      },
+      {
+        "id": "wheel-1-false-1",
+        "texture": "tire-roll-1",
+        "angle": 0,
+        "x": 379.0978260869565,
+        "y": 215.3804347826087
+      },
+      {
+        "id": "wheel-1-true--1",
+        "texture": "tire-roll-1",
+        "angle": 0.022481693139159376,
+        "x": 423.9347826086956,
+        "y": 174.6195652173913
+      },
+      {
+        "id": "wheel-1-true-1",
+        "texture": "tire-roll-1",
+        "angle": 0.028613063995294397,
+        "x": 423.9347826086956,
+        "y": 215.3804347826087
+      },
+      {
+        "id": "wheel-2-false--1",
+        "texture": "tire-roll-9",
+        "angle": -1.24194283981417,
+        "x": 267.2733709701471,
+        "y": 664.4670186567096
+      },
+      {
+        "id": "wheel-2-false-1",
+        "texture": "tire-roll-9",
+        "angle": -1.24194283981417,
+        "x": 305.8499976501197,
+        "y": 677.6310743276149
+      },
+      {
+        "id": "wheel-2-true--1",
+        "texture": "tire-roll-9",
+        "angle": -1.7123428398141707,
+        "x": 281.7538322081429,
+        "y": 622.0327293087397
+      },
+      {
+        "id": "wheel-2-true-1",
+        "texture": "tire-roll-9",
+        "angle": -1.6115428398141702,
+        "x": 320.33045888811546,
+        "y": 635.1967849796451
+      }
+    ],
+    "bodies": [
+      {
+        "id": "car-1",
+        "texture": "chassis-38bdf8",
+        "angle": 0,
+        "x": 406,
+        "y": 195
+      },
+      {
+        "id": "car-2",
+        "texture": "chassis-fb923c",
+        "angle": -1.24194283981417,
+        "x": 295.24996105293087,
+        "y": 645.5884728833803
+      }
+    ]
+  },
+  "audio": {
+    "enabled": true,
+    "backend": "wx.createInnerAudioContext",
+    "unlocked": true,
+    "active": true,
+    "contexts": 6,
+    "played": 4,
+    "lastPlayed": "pickup",
+    "error": ""
+  },
+  "pool": [
+    {
+      "src": "http://127.0.0.1:18084/art/audio/pickup.wav",
+      "loop": false,
+      "volume": 0.25,
+      "time": 0.194057
+    },
+    {
+      "src": "http://127.0.0.1:18084/art/audio/boost.wav",
+      "loop": false,
+      "volume": 0.7,
+      "time": 0
+    },
+    {
+      "src": "http://127.0.0.1:18084/art/audio/hit.wav",
+      "loop": false,
+      "volume": 0.24,
+      "time": 0
+    },
+    {
+      "src": "http://127.0.0.1:18084/art/audio/deposit.wav",
+      "loop": false,
+      "volume": 0.24,
+      "time": 0
+    },
+    {
+      "src": "http://127.0.0.1:18084/art/audio/countdown.wav",
+      "loop": false,
+      "volume": 0.24,
+      "time": 0
+    },
+    {
+      "src": "http://127.0.0.1:18084/art/audio/result.wav",
+      "loop": false,
+      "volume": 0.24,
+      "time": 0
+    }
+  ],
+  "errors": []
+}

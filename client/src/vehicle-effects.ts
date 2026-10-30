@@ -3,7 +3,7 @@ type Sample = { speed: number; phase: number; frame: number; steer: number };
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 /** Presentation only: no steering, collision or position authority is changed. */
 export class VehicleMotion {
-  private cars = new Map<string, Pose & Sample>();
+  private cars = new Map<string, Pose & Sample & { steerHold: number }>();
   reset() {
     this.cars.clear();
   }
@@ -32,18 +32,37 @@ export class VehicleMotion {
     const moving = speed > 5;
     const phase =
       (old?.phase ?? 0) +
-      (moving ? 42 * (1 - Math.exp(-speed / (1200 * options.scale))) * dt : 0);
+      (moving
+        ? Math.min(
+            3,
+            168 * (1 - Math.exp(-speed / (1200 * options.scale))) * dt,
+          )
+        : 0);
     const target = moving
       ? Math.max(
           -0.42,
           Math.min(0.42, (wrap(pose.angle - old!.angle) / dt) * 0.12),
         )
       : 0;
-    const steer = valid
-      ? (old?.steer ?? 0) + (target - (old?.steer ?? 0)) * Math.min(1, dt * 14)
-      : 0;
-    const result = { speed, phase, frame: Math.floor(phase) % 8, steer };
-    this.cars.set(id, { ...pose, ...result });
+    // Input headings can change in a single frame. Retain that steering gesture
+    // briefly instead of filtering it into a barely visible five-degree twitch.
+    const turning = moving && Math.abs(target) > 0.025;
+    const steerHold =
+      valid && moving
+        ? turning
+          ? 0.14
+          : Math.max(0, (old?.steerHold ?? 0) - dt)
+        : 0;
+    const steer =
+      !valid || !moving
+        ? 0
+        : turning
+          ? target
+          : steerHold > 0
+            ? old!.steer
+            : old!.steer * Math.exp(-dt * 12);
+    const result = { speed, phase, frame: Math.floor(phase) % 16, steer };
+    this.cars.set(id, { ...pose, ...result, steerHold });
     return result;
   }
 }

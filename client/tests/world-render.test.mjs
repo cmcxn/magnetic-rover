@@ -604,3 +604,38 @@ test("layered vehicle renders four independent wheels, reuses them, and removes 
   );
   assert.equal(w.wheelMotion.size, 0);
 });
+
+test("held boost draws speed streaks over all four tires and clears them on release", () => {
+  const { w } = renderCar(0, 0.3);
+  assert.ok(w.wheelG, "tires need a dedicated overlay above wheel sprites");
+  const lines = [];
+  const overlay = {
+    clear() {
+      lines.length = 0;
+      return this;
+    },
+    setPosition() {
+      return this;
+    },
+    setScale() {
+      return this;
+    },
+    lineStyle() {
+      return this;
+    },
+    lineBetween(...args) {
+      lines.push(args);
+      return this;
+    },
+  };
+  w.wheelG = overlay;
+  w.update(16, 16);
+  assert.equal(
+    lines.length,
+    24,
+    "three two-layer streaks at each of four wheels",
+  );
+  w.state.players[0].boost = 0;
+  w.update(32, 16);
+  assert.equal(lines.length, 0, "release removes wheel speed overlay");
+});

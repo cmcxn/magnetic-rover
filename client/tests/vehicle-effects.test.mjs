@@ -65,3 +65,62 @@ test("even quarter-size tires visibly accelerate further during sprint", () => {
     boost = b.sample("p", { x: 14.4, y: 0, angle: 0 }, 10, opts);
   assert.ok(boost.phase > normal.phase + 0.02);
 });
+
+test("an instantaneous joystick turn remains visibly steered before centering", () => {
+  const m = new VehicleMotion();
+  m.sample("p", { x: 0, y: 0, angle: 0 }, 16, active);
+  const turn = m.sample("p", { x: 4, y: 4, angle: Math.PI / 4 }, 16, active);
+  assert.ok(turn.steer > 0.3, `turn must be visible, got ${turn.steer}`);
+  let sample = turn;
+  for (let i = 1; i <= 6; i++)
+    sample = m.sample(
+      "p",
+      { x: 4 + i * 4, y: 4 + i * 4, angle: Math.PI / 4 },
+      16,
+      active,
+    );
+  assert.ok(sample.steer > 0.25, "turn must remain visible for at least 100ms");
+  for (let i = 7; i < 80; i++)
+    sample = m.sample(
+      "p",
+      { x: 4 + i * 4, y: 4 + i * 4, angle: Math.PI / 4 },
+      16,
+      active,
+    );
+  assert.ok(Math.abs(sample.steer) < 0.01, "straight driving recenters wheels");
+});
+
+test("tread uses sixteen phases and cannot jump backwards perceptually on slow frames", () => {
+  const m = new VehicleMotion();
+  let x = 0,
+    previous = m.sample("p", { x, y: 0, angle: 0 }, 16, active),
+    sawUpper = false;
+  for (let i = 0; i < 80; i++) {
+    x += 144;
+    const next = m.sample("p", { x, y: 0, angle: 0 }, 100, active);
+    assert.ok(
+      next.phase - previous.phase <= 3,
+      "limit phase advance on a slow frame",
+    );
+    if (next.frame >= 8) sawUpper = true;
+    previous = next;
+  }
+  assert.ok(sawUpper, "use the full sixteen-frame cycle");
+});
+
+test("normal and dash tread are one hundred percent faster than the prior sixteen-frame rate", () => {
+  for (const speed of [480, 1440]) {
+    const m = new VehicleMotion();
+    m.sample("p", { x: 0, y: 0, angle: 0 }, 16, active);
+    const sample = m.sample(
+      "p",
+      { x: speed * 0.016, y: 0, angle: 0 },
+      16,
+      active,
+    );
+    assert.ok(
+      Math.abs(sample.phase - 2 * 84 * (1 - Math.exp(-speed / 1200)) * 0.016) <
+        1e-9,
+    );
+  }
+});
