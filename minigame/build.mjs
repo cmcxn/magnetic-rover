@@ -1,4 +1,4 @@
-import { cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
@@ -8,6 +8,8 @@ process.chdir(resolve(dirname(fileURLToPath(import.meta.url)), ".."));
 execFileSync(process.execPath, ["--test", "minigame/tests/clock.test.mjs"], {
   stdio: "inherit",
 });
+const release = JSON.parse(await readFile("minigame/release.json", "utf8"));
+if (!/^\d+\.\d+\.\d+$/.test(release.version)) throw new Error("Invalid release version");
 const modules =
   process.env.ROVER_NODE_MODULES || resolve("client/node_modules");
 const { build } = await import(
@@ -41,7 +43,12 @@ await build({
   minify: true,
   define: {
     __ROVER_BUILD__: JSON.stringify(
-      "G1-" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15),
+      // Fixed UTC+8 build time, independent of the build machine timezone.
+      release.version + " · " +
+        new Date(Date.now() + 8 * 60 * 60 * 1000)
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", " "),
     ),
   },
   legalComments: "eof",

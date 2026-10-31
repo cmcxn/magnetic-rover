@@ -142,3 +142,5 @@ H5 与微信小游戏请求 v2；服务器继续兼容没有协议声明的 v1 �
 v2 保持 20Hz 权威逻辑与 10Hz 玩家动态，缓存静态资料并按 ID 更新电池，
 局外变化通知加 1Hz 心跳。协议与量化恢复规则见 [PROTOCOL.md](PROTOCOL.md)，
 实测及未完成的真机验收见 [verification/network-sync/README.md](verification/network-sync/README.md)。
+
+小游戏上传版本按第三位递增，最新上传及下一个版本号见 [minigame/RELEASES.md](minigame/RELEASES.md)。
