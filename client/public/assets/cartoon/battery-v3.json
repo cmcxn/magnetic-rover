@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "width": 256,
+  "height": 256,
+  "anchorX": 0.5000001788139343,
+  "anchorY": 0.7604096829891205,
+  "groundFootprintDiameterPx": 106.12363636363638,
+  "meshParts": 8,
+  "upAxis": "+Z",
+  "sourceReference": "Actual current client/public/assets/cartoon/battery.png: yellow cylinder, white bolt, graphite caps and silver positive terminal.",
+  "scope": "Runtime ground/pickup sprite replacement. Existing cargo cells and all gameplay remain unchanged.",
+  "cameraRotationXYZ": [
+    0.765677273273468,
+    -8.973237264342515e-09,
+    -0.6419384479522705
+  ],
+  "cameraOrthoScale": 1.649999976158142,
+  "shadow": "Transparent sprite, no ground cast-shadow baked.",
+  "texture": "battery-v3.png",
+  "visibleHeightPx": 198,
+  "alphaBounds": [
+    74,
+    34,
+    182,
+    232
+  ],
+  "worldVisibleHeight": 28,
+  "placement": "Uniform scale worldVisibleHeight/visibleHeightPx. Place ground anchor at (battery.x,battery.y+6-battery.z); original ground shadow stays at y+6. Do not rotate the image.",
+  "calibration": "Camera projection evaluated after resolution256x256 and view-layer update, matching the rendered PNG."
+}

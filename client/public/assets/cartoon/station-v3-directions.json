@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "frames": [
+    {
+      "key": "station-v3-0",
+      "image": "station-v3-0.png",
+      "screenAngle": 0.5880026035475675,
+      "modelYaw": 1.7533304553035836,
+      "width": 256,
+      "height": 256,
+      "anchorX": 0.5226148366928101,
+      "anchorY": 0.5660834312438965,
+      "groundFootprintDiameterPx": 167.4541176470588,
+      "entranceAnchorPx": [
+        215.6040496826172,
+        199.46046447753906
+      ],
+      "rootAnchorPx": [
+        133.78939819335938,
+        144.9173583984375
+      ],
+      "sourceStation": {
+        "x": -330,
+        "y": -220,
+        "r": 65
+      }
+    },
+    {
+      "key": "station-v3-1",
+      "image": "station-v3-1.png",
+      "screenAngle": 2.5535900500422257,
+      "modelYaw": 0.10438544229818293,
+      "width": 256,
+      "height": 256,
+      "anchorX": 0.5226148366928101,
+      "anchorY": 0.5660834312438965,
+      "groundFootprintDiameterPx": 167.4541176470588,
+      "entranceAnchorPx": [
+        51.97476577758789,
+        199.46047973632812
+      ],
+      "rootAnchorPx": [
+        133.78939819335938,
+        144.9173583984375
+      ],
+      "sourceStation": {
+        "x": 330,
+        "y": -220,
+        "r": 65
+      }
+    },
+    {
+      "key": "station-v3-2",
+      "image": "station-v3-2.png",
+      "screenAngle": -1.5707963267948966,
+      "modelYaw": -2.2127347800252193,
+      "width": 256,
+      "height": 256,
+      "anchorX": 0.5226148366928101,
+      "anchorY": 0.5660834312438965,
+      "groundFootprintDiameterPx": 167.4541176470588,
+      "entranceAnchorPx": [
+        133.7893829345703,
+        64.58219909667969
+      ],
+      "rootAnchorPx": [
+        133.78939819335938,
+        144.9173583984375
+      ],
+      "sourceStation": {
+        "x": 0,
+        "y": 380,
+        "r": 65
+      }
+    }
+  ],
+  "screenConvention": "Radians clockwise from screen-right (screenY down). Select nearest inward angle atan2(-station.y,-station.x), not index-only.",
+  "modelConvention": "Actual root localZ yaw. Canonical entrance is -X. Camera and lights fixed.",
+  "entranceAnchorDefinition": "Projection of model ground point(-1.85,0,0), beneath receiving ramp end. The physical ramp tip is0.025 above ground.",
+  "sourceBlend": "art/recycling-station-v3/recycling-station-v3.blend",
+  "sourceBlendSha256": "b556781f7b4ca9770eba66d6d3598c615c24f6333c8e1872f8f3b73cb8c5b861",
+  "camera": {
+    "rotationXYZ": [
+      0.765677273273468,
+      -8.973237264342515e-09,
+      -0.6419384479522705
+    ],
+    "orthoScale": 4.25
+  },
+  "groundGameplay": "Original centers/radii/deposit logic unchanged; ramp protrusion remains visual only."
+}

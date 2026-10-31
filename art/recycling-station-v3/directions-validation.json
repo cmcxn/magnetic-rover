@@ -1,0 +1,66 @@
+{
+  "assetTests": "3/3 passed",
+  "fallbackPngUnchanged": true,
+  "newFramesVisuallyInspected": true,
+  "no2DSpriteRotation": true,
+  "rootGroundAnchorRecalibratedWithSquareCanvas": true,
+  "frames": [
+    {
+      "file": "station-v3-0.png",
+      "alphaBounds": [
+        45,
+        34,
+        236,
+        214
+      ],
+      "screenDegrees": 33.690067525979785,
+      "modelYawDegrees": 100.45843518064636,
+      "rootAnchorPx": [
+        133.78939819335938,
+        144.9173583984375
+      ],
+      "entranceAnchorPx": [
+        215.6040496826172,
+        199.46046447753906
+      ]
+    },
+    {
+      "file": "station-v3-1.png",
+      "alphaBounds": [
+        31,
+        34,
+        222,
+        215
+      ],
+      "screenDegrees": 146.30993247402023,
+      "modelYawDegrees": 5.980845286292267,
+      "rootAnchorPx": [
+        133.78939819335938,
+        144.9173583984375
+      ],
+      "entranceAnchorPx": [
+        51.97476577758789,
+        199.46047973632812
+      ]
+    },
+    {
+      "file": "station-v3-2.png",
+      "alphaBounds": [
+        49,
+        34,
+        219,
+        206
+      ],
+      "screenDegrees": -90.0,
+      "modelYawDegrees": -126.78036407725368,
+      "rootAnchorPx": [
+        133.78939819335938,
+        144.9173583984375
+      ],
+      "entranceAnchorPx": [
+        133.7893829345703,
+        64.58219909667969
+      ]
+    }
+  ]
+}

@@ -1,5 +1,4 @@
 {
-  "sourceOnlyNoRuntimeReplacement": true,
   "spriteSize": [
     256,
     256
@@ -22,5 +21,8 @@
   ],
   "visuallyReviewed": true,
   "noClipping": true,
-  "whiteLightningAndPositiveTerminalLegible": true
+  "whiteLightningAndPositiveTerminalLegible": true,
+  "runtimePickupReplacement": true,
+  "cargoDisplayUnchanged": true,
+  "groundAnchorY": 0.7604096829891205
 }

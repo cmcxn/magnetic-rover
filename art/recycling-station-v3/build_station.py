@@ -71,6 +71,9 @@ for spec in REF['lights']:
 scene['reference']='Actual user gameplay screenshot1000088020.jpg, third guide panel; original game station.png. Back and underside inferred conservatively.'
 scene['scope']='Static prerendered station asset only; no changes to recycling radius/score/deposit logic.'
 from bpy_extras.object_utils import world_to_camera_view
+# Calibrate only after final square canvas and evaluated transforms, not startup16:9.
+scene.render.resolution_x=256;scene.render.resolution_y=256;scene.render.resolution_percentage=100
+bpy.context.view_layer.update()
 q=world_to_camera_view(scene,cam,Vector((0,0,0)));anchor=[q.x,1-q.y]
 # Main circular footprint, not projecting the ramp into the gameplay-radius definition.
 footprint_diameter=2*1.39/cam.data.ortho_scale*256

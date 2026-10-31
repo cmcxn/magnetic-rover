@@ -12,6 +12,8 @@ npm ci
 npm test
 npm run build
 cd ..
+python3 -m unittest discover -s art/battery-v3 -p test_runtime.py
+python3 -m unittest discover -s art/recycling-station-v3 -p test_directions.py
 python3 art/rover-v3/validate.py
 python3 -m unittest discover -s art/rover-v3 -p 'test_*.py'
 node --test minigame/tests/*.test.mjs
@@ -50,14 +52,14 @@ Import the existing `minigame` project in WeChat Developer Tools after building.
 - Real front vertical-axis steering poses and independent local-axle tread phases; signed longitudinal travel, reverse, stop/lateral guards, teleport/reset rebasing.
 - Four lookup phases span one repeated tread period rather than four90-degree whole-wheel rotations (which would alias repetitive geometry).
 - Existing cargo cell/count logic retained and registered to a projected roof plane. No new20-slot tray, capacity rules or battery gameplay.
-- User additionally requested a3D recycling station and battery model. Station artwork replaces the station sprite with ground-anchor metadata; deposit radius is unchanged. Battery source/preview is included only; existing runtime pickup/cargo battery artwork remains unchanged.
+- User additionally requested a3D recycling station and battery model. Three station views are now genuinely rerendered in 3D with entrances toward the arena center (33.69°,146.31°,−90° screen directions), selected by station position. The lower station’s inward door is naturally occluded by its body. Deposit radii are unchanged. The new battery now replaces ground/airborne pickup artwork with calibrated root and uniform aspect; existing cargo artwork/counts stay unchanged.
 
 ## Editable sources and reproducibility
 
 - `art/rover-v3/`: editable `.blend`, CLI renderer, packer, validator, schema and asset README.
 - `client/public/assets/cartoon/rover-v3/`: production PNG/JSON atlases and manifest.
 - `art/recycling-station-v3/`: station source/build script and provenance.
-- `art/battery-v3/`: standalone battery source/build script/preview.
+- `art/battery-v3/`: battery source/build script/preview plus reproducible runtime exporter.
 - `verification/prerendered-rover/`: actual production asset sheets, browser evidence and limitations.
 
 Keep generated dependency directories, `dist`, Blender backups and intermediate render batches out of Git. See asset READMEs for exact regeneration commands and measured download/texture footprints.
@@ -67,3 +69,15 @@ Keep generated dependency directories, `dist`, Blender backups and intermediate 
 Do not confuse WeChat mini-program and mini-game subpackage rules. Current engine-publisher guidance for mini-games lists a4M main package and30M total, without a separate cap on one ordinary subpackage: [Cocos3.8](https://docs.cocos.com/creator/3.8/manual/zh/editor/publish/subpackage.html#微信小游戏), [Galacean](https://galacean.antgroup.com/engine/docs/platform/wechatMiniGame/). Direct WeChat/account-specific validation remains a local Developer Tools check. The branch retains the existing resource-subpackage loader unless measured totals require a change; no speculative package splitting is introduced.
 
 Minor source-file caveat: the station/battery `.blend` files retain their original cloud output path. Opening/editing their geometry works; set a local Output path before a manual render/save. The supplied portable generators compute paths from their local location and are the recommended reproducible render route. The rover source uses a relative output path.
+
+## Station/battery follow-up
+
+The current branch includes the subsequently requested runtime battery replacement and three inward-facing stations. Run the focused real-World browser test while Vite is running:
+
+```sh
+BASE_URL=http://127.0.0.1:5173 BROWSER_EXECUTABLE=/path/to/chromium node client/tests/station-battery.browser.mjs
+```
+
+This checks all three stations together, new pickups, server-height/ground-shadow separation, station ordering/map scaling, legacy fallback and unchanged 20-cell cargo rendering using synthetic snapshots. See `verification/station-battery-v3/` for captured browser evidence. It does not substitute for live-server collection/deposit or native WeChat/phone acceptance.
+
+The four additional 256×256 PNGs total 306,698 bytes downloaded and 1 MiB decoded RGBA (before driver overhead; legacy fallbacks remain). The rebuilt mini-game reports 1,329 KiB main / 8,426 KiB art / 9,755 KiB total. The source generators now calibrate pivots after setting the square render aspect; this corrects the old station/battery metadata without changing model geometry.

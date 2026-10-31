@@ -1,0 +1,10 @@
+# Station entrances and runtime battery implementation plan
+
+**Goal:** Implement the user's explicit follow-up: actually replace world pickup batteries with the existing3D asset and make all three station entrances face into the arena. Existing feature branch; no rule, radius, scoring, collision, network or cargo redesign.
+**Baseline:** local7b6b4a6 (same tree as published bf8138f6). Preserve local commits; parent publishes a remote child of published head.
+**Design:** authoritative station positions are(-330,-220),(330,-220),(0,380), scaled uniformly by mapScale. Inward screen angles are33.690°,146.310°,-90°. Render three actual model-Z rotations by inverse fixed-camera projection of entrance model−X. Select nearest inward frame by station position, not array index. Each frame retains its own ground anchor/footprint. No2D image rotation. Promote the existing256RGBA battery; preserve aspect ratio, visibleheight28world units, ground anchor aligned with the existing shadow center, authoritative z subtracted once. Existing old art remains fallback; cargo graphics unchanged.
+
+1. Assets: write projected-angle/alpha assertions before outputs; render three256stationframes from existing source, validate inward doors/rootregistration. Promote existingbatteryPNG with explicit visibleheight/rootmetadata and provenance. Portable scripts retained.
+2. Pure prop helpers: REDtests for stationposition/mapScale/permutation/invalidmetadata and batteryaspect/anchor; implement finitevalidation and selection. No gameplay ownership.
+3. SharedWorld/H5/mini: REDrenderer/preloadtests, then dynamicstationframes and batteryasset loading; completevalidset readiness; noframe rotation; preservep.x/p.y/r andbatteryshadow/z/counts. Fallback oldsprites ifassets unavailable.
+4. Verify baseline185tests thenfullsuite/build/mini packagepaths/assets; actualChromium overview withALLTHREEstations,newbatteries,rover; airbornebattery/pivot/fallback checks. Independent review and testedfixes. Commit featurebranch only, handparentHEAD/tree/paths/evidence forpublication.

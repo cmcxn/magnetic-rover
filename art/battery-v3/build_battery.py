@@ -32,8 +32,10 @@ bpy.ops.object.camera_add();cam=bpy.context.object;cam.name='Rover_matched_batte
 for spec in REF['lights']:
  bpy.ops.object.light_add(type=spec['type'],location=spec['location']);o=bpy.context.object;o.name=spec['name'];o.rotation_euler=spec['rotation'];o.data.energy=spec['energy'];o.data.color=spec['color'];o.data.shape=spec['shape'];o.data.size=spec['size']
 from bpy_extras.object_utils import world_to_camera_view
+scene.render.resolution_x=256;scene.render.resolution_y=256;scene.render.resolution_percentage=100
+bpy.context.view_layer.update()
 q=world_to_camera_view(scene,cam,Vector((0,0,0)))
-meta={'version':1,'width':256,'height':256,'anchorX':q.x,'anchorY':1-q.y,'groundFootprintDiameterPx':.684/1.65*256,'meshParts':8,'upAxis':'+Z','sourceReference':'Actual current client/public/assets/cartoon/battery.png: yellow cylinder, white bolt, graphite caps and silver positive terminal.','scope':'Independent editable source and preview only. Existing ground pickup texture and cargo rendering are NOT replaced in this phase.','cameraRotationXYZ':list(cam.rotation_euler),'cameraOrthoScale':cam.data.ortho_scale,'shadow':'Transparent sprite, no ground cast-shadow baked.'}
+meta={'version':1,'width':256,'height':256,'anchorX':q.x,'anchorY':1-q.y,'groundFootprintDiameterPx':.684/1.65*256,'meshParts':8,'upAxis':'+Z','sourceReference':'Actual current client/public/assets/cartoon/battery.png: yellow cylinder, white bolt, graphite caps and silver positive terminal.','scope':'Editable model and source sprite; export_runtime.py promotes it to ground/pickup runtime artwork. Cargo remains unchanged.','cameraRotationXYZ':list(cam.rotation_euler),'cameraOrthoScale':cam.data.ortho_scale,'shadow':'Transparent sprite, no ground cast-shadow baked.'}
 scene['scope']=meta['scope'];scene['source_reference']=meta['sourceReference']
 scene.render.resolution_x=256;scene.render.resolution_y=256;scene.render.resolution_percentage=100;scene.render.filepath=P+'/battery-v3-256.png';bpy.ops.wm.save_as_mainfile(filepath=P+'/battery-v3.blend');bpy.ops.render.render(write_still=True)
 scene.render.resolution_x=1024;scene.render.resolution_y=1024;scene.cycles.samples=96;scene.render.filepath=P+'/battery-hero.png';bpy.ops.render.render(write_still=True)

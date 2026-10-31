@@ -4,18 +4,18 @@
   "width": 256,
   "height": 256,
   "anchorX": 0.5226148366928101,
-  "anchorY": 0.6174816787242889,
+  "anchorY": 0.5660834312438965,
   "anchor": {
     "x": 0.5226148366928101,
-    "y": 0.6174816787242889
+    "y": 0.5660834312438965
   },
   "groundAnchorNormalized": [
     0.5226148366928101,
-    0.6174816787242889
+    0.5660834312438965
   ],
   "groundAnchorPx": [
     133.78939819335938,
-    158.07530975341797
+    144.9173583984375
   ],
   "groundFootprintDiameterPx": 167.4541176470588,
   "mainGroundRadiusModel": 1.39,
@@ -36,5 +36,6 @@
   "placement": "Align ground anchor with unchanged station center; displayCanvasSize=(r+5)*2*256/groundFootprintDiameterPx. Do not change gameplay radius. Ramp can extend beyond circular footprint.",
   "entranceModelDirection": "-X",
   "shadow": "Transparent production sprite, no ground cast-shadow baked. Self-shadow only.",
-  "reference": "User gameplay guide third panel; conservative hidden geometry."
+  "reference": "User gameplay guide third panel; conservative hidden geometry.",
+  "anchorCalibration": "Recalibrated from saved blend with256x256 resolution and evaluated camera transforms before projection; corrects initial16:9 aspect-order error. PNG geometry unchanged."
 }

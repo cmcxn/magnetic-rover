@@ -5,6 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import { VehicleMotion, TireDust, wheelAngle } from "../src/vehicle-effects.ts";
 import { stepRoverVisual, resolveRoverLayers } from "../src/rover-visual.ts";
+import * as propVisual from "../src/prop-visual.ts";
 import { Motion } from "../src/motion.ts";
 import { cameraPolicy } from "../src/types.ts";
 const source = fs.readFileSync(
@@ -38,6 +39,7 @@ function harness() {
     );
   }
   const context = {
+    ...propVisual,
     cameraPolicy,
     stepRoverVisual,
     resolveRoverLayers,

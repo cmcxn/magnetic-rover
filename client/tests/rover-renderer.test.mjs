@@ -7,6 +7,7 @@ import { VehicleMotion, TireDust, wheelAngle } from "../src/vehicle-effects.ts";
 import { Motion } from "../src/motion.ts";
 import { cameraPolicy } from "../src/types.ts";
 import * as roverVisual from "../src/rover-visual.ts";
+import * as propVisual from "../src/prop-visual.ts";
 const source = fs.readFileSync(
   new URL("../src/world.ts", import.meta.url),
   "utf8",
@@ -22,10 +23,19 @@ const compiled = ts.transpileModule(
     },
   },
 ).outputText;
-function harness(manifest = null, missing = false, station = null) {
+function harness(
+  manifest = null,
+  missing = false,
+  station = null,
+  directions = null,
+  battery = null,
+) {
   const calls = [];
   const textures = new Set(manifest ? ["v3"] : []);
   if (station) textures.add("station-v3");
+  if (directions)
+    for (const frame of directions.frames) textures.add(frame.key);
+  if (battery) textures.add("battery-v3");
   function obj(kind) {
     const o = { texture: { key: "" }, frame: { name: "" } };
     return new Proxy(o, {
@@ -46,6 +56,7 @@ function harness(manifest = null, missing = false, station = null) {
   }
   const context = {
     ...roverVisual,
+    ...propVisual,
     VehicleMotion,
     TireDust,
     wheelAngle,
@@ -64,7 +75,16 @@ function harness(manifest = null, missing = false, station = null) {
   const w = new context.World();
   w.scale = { width: 1200, height: 800, on() {} };
   w.cache = {
-    json: { get: (key) => (key === "station-v3-meta" ? station : manifest) },
+    json: {
+      get: (key) =>
+        key === "station-v3-meta"
+          ? station
+          : key === "station-v3-directions"
+            ? directions
+            : key === "battery-v3-meta"
+              ? battery
+              : manifest,
+    },
   };
   w.textures = {
     exists: (k) => textures.has(k),
@@ -346,4 +366,121 @@ test("v3 boosted tire strips use the actual wheel mask above that wheel and are 
     [...w.sprites.keys()].filter((id) => id.startsWith("rover-boost-")).length,
     0,
   );
+});
+
+test("three stations choose baked inward entrances without rotating images or changing rules", () => {
+  const frames = [
+    Math.atan2(220, 330),
+    Math.atan2(220, -330),
+    -Math.PI / 2,
+  ].map((screenAngle, i) => ({
+    key: `station-v3-${i}`,
+    image: `station-v3-${i}.png`,
+    screenAngle,
+    modelYaw: i,
+    width: 256,
+    height: 256,
+    anchorX: 0.5,
+    anchorY: 0.62,
+    groundFootprintDiameterPx: 167,
+  }));
+  const { w, calls } = harness(null, false, null, { version: 1, frames });
+  w.state = state();
+  w.state.stations = [
+    { x: 0, y: 760, r: 65 },
+    { x: -660, y: -440, r: 65 },
+    { x: 660, y: -440, r: 65 },
+  ];
+  w.update(0, 16);
+  assert.deepEqual(
+    [0, 1, 2].map((i) => w.sprites.get(`station-${i}`)?.texture.key),
+    ["station-v3-2", "station-v3-0", "station-v3-1"],
+  );
+  assert.ok(
+    calls.filter((c) => c.key === "setRotation").every((c) => c.args[0] === 0),
+  );
+  assert.ok(w.state.stations.every((s) => s.r === 65));
+});
+test("new pickup battery preserves aspect, ground shadow and server airborne height", () => {
+  const metadata = {
+    version: 1,
+    width: 256,
+    height: 256,
+    anchorX: 0.5,
+    anchorY: 0.760409683,
+    groundFootprintDiameterPx: 106,
+    visibleHeightPx: 198,
+    worldVisibleHeight: 28,
+  };
+  const { w, calls } = harness(null, false, null, null, metadata);
+  w.state = state();
+  w.state.batteries = [
+    { id: "a", x: 80, y: 100, z: 0 },
+    { id: "b", x: 120, y: 100, z: 60 },
+  ];
+  w.update(0, 16);
+  assert.equal(w.sprites.get("battery-a")?.texture.key, "battery-v3");
+  assert.equal(w.sprites.get("battery-b")?.texture.key, "battery-v3");
+  const positions = calls.filter((c) => c.key === "setPosition");
+  assert.ok(
+    positions.some(
+      (c) => Math.abs(c.args[1] - (w.oy + 106 * w.worldScale)) < 1e-6,
+    ),
+  );
+  assert.ok(
+    positions.some(
+      (c) => Math.abs(c.args[1] - (w.oy + 46 * w.worldScale)) < 1e-6,
+    ),
+  );
+  const batterySize = ((256 * 28) / 198) * w.worldScale;
+  assert.ok(
+    calls.some(
+      (c) =>
+        c.key === "setDisplaySize" &&
+        Math.abs(c.args[0] - batterySize) < 1e-6 &&
+        c.args[0] === c.args[1],
+    ),
+  );
+  assert.ok(
+    calls.some((c) => c.key === "setOrigin" && c.args[1] === 0.760409683),
+  );
+  const shadows = calls.filter(
+    (c) => c.key === "fillEllipse" && (c.args[0] === 80 || c.args[0] === 120),
+  );
+  assert.ok(shadows.every((c) => c.args[1] === 106));
+  assert.equal(w.state.batteries[1].z, 60);
+});
+
+test("partial directional textures fall back as a complete set and malformed battery calibration is ignored", () => {
+  const station = {
+    version: 1,
+    width: 256,
+    height: 256,
+    anchorX: 0.52,
+    anchorY: 0.566,
+    groundFootprintDiameterPx: 167,
+  };
+  const frames = [0.588, 2.554, -Math.PI / 2].map((screenAngle, i) => ({
+    ...station,
+    key: `station-v3-${i}`,
+    image: `station-v3-${i}.png`,
+    screenAngle,
+    modelYaw: i,
+  }));
+  const { w } = harness(
+    null,
+    false,
+    station,
+    { version: 1, frames },
+    { ...station, visibleHeightPx: 0, worldVisibleHeight: 28 },
+  );
+  const exists = w.textures.exists;
+  w.textures.exists = (k) => k !== "station-v3-1" && exists(k);
+  w.create();
+  w.state = state();
+  w.state.stations = [{ x: -330, y: -220, r: 65 }];
+  w.state.batteries = [{ id: "bad", x: 0, y: 0, z: 0 }];
+  w.update(0, 16);
+  assert.equal(w.sprites.get("station-0")?.texture.key, "station-v3");
+  assert.notEqual(w.sprites.get("battery-bad")?.texture.key, "battery-v3");
 });

@@ -1,5 +1,10 @@
 import Phaser from "phaser";
 import {
+  selectStationFrame,
+  batteryDisplay,
+  type StationDirections,
+} from "./prop-visual";
+import {
   stepRoverVisual,
   resolveRoverLayers,
   type VisualState,
@@ -12,6 +17,8 @@ export class World extends Phaser.Scene {
   state: State | null = null;
   private motion = new Motion();
   private roverManifest: RoverManifest | null = null;
+  private stationDirections: StationDirections | null = null;
+  private batteryVisual: ReturnType<typeof batteryDisplay> = null;
   private stationVisual: {
     width: number;
     height: number;
@@ -171,7 +178,23 @@ export class World extends Phaser.Scene {
   boostFeedback() {
     if (!this.reducedEffects) this.cameras?.main.shake(100, 0.002);
   }
+  preloadBatteryAssets(base: string) {
+    this.load.image("battery-v3", `${base}/battery-v3.png`);
+    this.load.json("battery-v3-meta", `${base}/battery-v3.json`);
+  }
   preloadStationAssets(base: string) {
+    this.load.once(
+      "filecomplete-json-station-v3-directions",
+      (_key: string, _type: string, data: StationDirections) => {
+        if (!selectStationFrame(data, { x: -330, y: -220 })) return;
+        for (const frame of data.frames)
+          this.load.image(frame.key, `${base}/${frame.image}`);
+      },
+    );
+    this.load.json(
+      "station-v3-directions",
+      `${base}/station-v3-directions.json`,
+    );
     this.load.image("station-v3", `${base}/station-v3.png`);
     this.load.json("station-v3-meta", `${base}/station-v3.json`);
   }
@@ -201,6 +224,7 @@ export class World extends Phaser.Scene {
   preload() {
     this.preloadRoverAssets("/assets/cartoon/rover-v3");
     this.preloadStationAssets("/assets/cartoon");
+    this.preloadBatteryAssets("/assets/cartoon");
     this.load.image("chassis", "/assets/cartoon/rover-chassis.png");
     this.load.image("tire", "/assets/cartoon/rover-tire.png");
     this.load.image("rover", "/assets/cartoon/rover.png");
@@ -217,6 +241,10 @@ export class World extends Phaser.Scene {
       "battery",
       "station",
       "station-v3",
+      "station-v3-0",
+      "station-v3-1",
+      "station-v3-2",
+      "battery-v3",
     ]) {
       if (this.textures.exists(key)) {
         const source = this.textures
@@ -227,6 +255,17 @@ export class World extends Phaser.Scene {
           .add("trim", 0, 0, 0, source.width, source.height);
       }
     }
+    const directions = this.cache?.json?.get("station-v3-directions");
+    this.stationDirections =
+      selectStationFrame(directions, { x: -330, y: -220 }) &&
+      directions.frames.every((f: { key: string }) =>
+        this.textures.exists(f.key),
+      )
+        ? directions
+        : null;
+    this.batteryVisual = this.textures.exists("battery-v3")
+      ? batteryDisplay(this.cache?.json?.get("battery-v3-meta"))
+      : null;
     const station = this.cache?.json?.get("station-v3-meta");
     if (
       station?.version === 1 &&
@@ -657,12 +696,13 @@ export class World extends Phaser.Scene {
       { x: 0, y: 380, r: 65 },
     ];
     stations.forEach((p, i) => {
-      const art = this.stationVisual;
+      const direction = selectStationFrame(this.stationDirections, p);
+      const art = direction ?? this.stationVisual;
       if (
         art &&
         this.sprite(
           `station-${i}`,
-          "station-v3",
+          direction?.key ?? "station-v3",
           p.x,
           p.y,
           ((p.r + 5) * 2 * art.width) / art.groundFootprintDiameterPx,
@@ -715,6 +755,24 @@ export class World extends Phaser.Scene {
         y = b.y - z;
       g.fillStyle(0x796b4e, z > 0 ? 0.18 : 0.12);
       g.fillEllipse(b.x, b.y + 6, Math.max(7, 15 - z * 0.12), 7);
+      const art = this.batteryVisual;
+      if (
+        art &&
+        this.sprite(
+          `battery-${b.id}`,
+          "battery-v3",
+          b.x,
+          y + 6,
+          art.width,
+          art.height,
+          2,
+          0,
+          "trim",
+          art.anchorX,
+          art.anchorY,
+        )
+      )
+        continue;
       if (this.sprite(`battery-${b.id}`, "battery", b.x, y, 14, 28, 2))
         continue;
       g.fillStyle(0xd7aa33);

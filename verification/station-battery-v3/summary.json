@@ -1,0 +1,188 @@
+{
+  "status": "passed",
+  "method": "Actual production Phaser World in dedicated headless Chromium; synthetic authoritative-shaped snapshots, not backend/device proof",
+  "browserVersion": "155.0.8059.79",
+  "viewport": {
+    "width": 1200,
+    "height": 900
+  },
+  "started": "2026-10-31T22:18:34.660Z",
+  "finished": "2026-10-31T22:18:46.389Z",
+  "checks": [
+    {
+      "case": "all-three-stations-and-new-batteries",
+      "pass": true,
+      "centers": [
+        {
+          "x": -330,
+          "y": -220,
+          "r": 65
+        },
+        {
+          "x": 330,
+          "y": -220,
+          "r": 65
+        },
+        {
+          "x": 0,
+          "y": 380,
+          "r": 65
+        }
+      ],
+      "keys": [
+        "station-v3-0",
+        "station-v3-1",
+        "station-v3-2"
+      ]
+    },
+    {
+      "case": "server-z-and-ground-shadow",
+      "pass": true,
+      "z": 70
+    },
+    {
+      "case": "mapscale-consistency",
+      "pass": true,
+      "worldScales": [
+        0.7758620689655172,
+        0.5541871921182266
+      ],
+      "scaledAuthoritativeCenters": [
+        {
+          "x": -462,
+          "y": -308,
+          "r": 65
+        },
+        {
+          "x": 462,
+          "y": -308,
+          "r": 65
+        },
+        {
+          "x": 0,
+          "y": 532,
+          "r": 65
+        }
+      ]
+    },
+    {
+      "case": "missing-new-assets-fallback",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    {
+      "file": "arena-three-inward-stations-new-batteries.png",
+      "trackedInRepository": true
+    },
+    {
+      "file": "arena-airborne-battery.png",
+      "trackedInRepository": false
+    },
+    {
+      "file": "closeup-new-battery-airborne-and-ground-shadow.png",
+      "trackedInRepository": true
+    },
+    {
+      "file": "closeup-inward-station-0.png",
+      "trackedInRepository": false
+    },
+    {
+      "file": "closeup-inward-station-1.png",
+      "trackedInRepository": false
+    },
+    {
+      "file": "closeup-inward-station-2.png",
+      "trackedInRepository": false
+    },
+    {
+      "file": "mapscale-1-4-authoritative-roots.png",
+      "trackedInRepository": false
+    },
+    {
+      "file": "fallback-old-battery-and-station.png",
+      "trackedInRepository": false
+    }
+  ],
+  "fullCaptureDirectoryRelativeToRepository": "../docs/station-battery-browser-captures",
+  "allEightPngDimensionsVerified": true,
+  "stations": [
+    {
+      "authoritative": {
+        "x": -330,
+        "y": -220,
+        "r": 65
+      },
+      "texture": "station-v3-0",
+      "screenAngleDegrees": 33.690067525979785,
+      "rotation": 0,
+      "origin": [
+        0.5226148366928101,
+        0.5660834312438965
+      ]
+    },
+    {
+      "authoritative": {
+        "x": 330,
+        "y": -220,
+        "r": 65
+      },
+      "texture": "station-v3-1",
+      "screenAngleDegrees": 146.30993247402023,
+      "rotation": 0,
+      "origin": [
+        0.5226148366928101,
+        0.5660834312438965
+      ]
+    },
+    {
+      "authoritative": {
+        "x": 0,
+        "y": 380,
+        "r": 65
+      },
+      "texture": "station-v3-2",
+      "screenAngleDegrees": -90.0,
+      "rotation": 0,
+      "origin": [
+        0.5226148366928101,
+        0.5660834312438965
+      ]
+    }
+  ],
+  "battery": {
+    "count": 7,
+    "texture": "battery-v3",
+    "sourceSize": [
+      256,
+      256
+    ],
+    "origin": [
+      0.5000001788139343,
+      0.7604096829891205
+    ],
+    "displayWorldSize": [
+      36.2020202020202,
+      36.2020202020202
+    ],
+    "visibleWorldHeight": 28,
+    "serverZ": 70,
+    "observedLiftPixels": 54.31034482758622,
+    "expectedLiftPixels": 54.310344827586206,
+    "groundShadowWorld": [
+      0,
+      116
+    ]
+  },
+  "rover": {
+    "textureReady": true,
+    "layers": 9,
+    "cargoGoldCellDraws": 20
+  },
+  "limits": [
+    "Synthetic World replay, not live backend/deposit/pickup authority or native mini-game device proof",
+    "Entrance of bottom/rear-facing station is naturally occluded by the real3D roof/body from the fixed camera; projected entrance anchor verifies inward -90deg",
+    "Closeups use actual Phaser camera zoom, not image manipulation"
+  ]
+}
