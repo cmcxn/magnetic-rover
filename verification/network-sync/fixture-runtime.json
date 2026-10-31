@@ -1,0 +1,1 @@
+{"cpuSeconds":6.5204219999999999,"encoder":{"commits":1031,"delta":1009,"full":12,"heartbeat":10,"recovery":0,"suppressed":270},"note":"whole fixture simulation + both JSON encodings + file IO; not server capacity benchmark","peakLuaKiB":949.4833984375}

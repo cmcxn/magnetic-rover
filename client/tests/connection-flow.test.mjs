@@ -1,3 +1,4 @@
+import { StateDecoder } from "../src/state-codec.ts";
 import { EntryGuide, GUIDE_KEY } from "../src/onboarding.ts";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -132,6 +133,7 @@ function harness(search = "", options = {}) {
     }
   }
   const context = {
+    StateDecoder,
     EntryGuide,
     GUIDE_KEY,
     GuideOverlay: class {
@@ -147,6 +149,7 @@ function harness(search = "", options = {}) {
       }
     },
     World: class {
+      resetStateBaseline() {}
       smooth = new Map();
       inputSeq = 0;
       inputCommand(input) {
@@ -1550,4 +1553,52 @@ test("boost click accepts the same predicted recovery state shown by the button"
     socket.sent.filter((m) => m.type === "input").at(-1).boost,
     true,
   );
+});
+
+test("v2 heartbeat keeps H5 healthy for 20 seconds and gaps request one canonical full", () => {
+  const fixture = JSON.parse(
+    fs.readFileSync(
+      new URL("./fixtures/network-state.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const h = harness();
+  h.connect();
+  const socket = h.sockets.at(-1);
+  socket.onopen();
+  assert.equal(socket.sent[0].protocolVersion, 2);
+  socket.onmessage({
+    data: JSON.stringify({
+      type: "welcome",
+      id: "1",
+      token: "v2-test",
+      role: "player",
+      roomId: "000001",
+      protocolVersion: 2,
+    }),
+  });
+  const f = structuredClone(fixture[0].message);
+  f.frame.phase = "lobby";
+  socket.onmessage({ data: JSON.stringify(f) });
+  for (let i = 1; i <= 20; i++) {
+    h.tick(1000);
+    socket.onmessage({
+      data: JSON.stringify({
+        v: 2,
+        type: "state_heartbeat",
+        roomId: f.roomId,
+        roundId: f.roundId,
+        epoch: f.epoch,
+        seq: i,
+        baseSeq: i - 1,
+        metadataVer: f.metadataVer,
+        clock: { serverTime: i, remaining: 100000 },
+      }),
+    });
+  }
+  assert.equal(h.sockets.length, 1);
+  const m = { ...fixture[1].message, seq: 24, baseSeq: 23 };
+  socket.onmessage({ data: JSON.stringify(m) });
+  socket.onmessage({ data: JSON.stringify(m) });
+  assert.equal(socket.sent.filter((x) => x.type === "request_full").length, 1);
 });

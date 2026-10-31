@@ -1,0 +1,13 @@
+{
+  "uri": "ws://127.0.0.1:18086/ws",
+  "checks": [
+    "8 v2 player seats + v1/v2 spectators",
+    "metadata rename propagation",
+    "spectator full recovery + resync rate limit",
+    "discarded delta -> detected baseline gap -> canonical full -> resumed deltas",
+    "single connection reconnect preserves room epoch + canonical full"
+  ],
+  "errors": [],
+  "mode": "final-code smoke: mixed clients, resync, reconnect",
+  "seconds": 5.492
+}

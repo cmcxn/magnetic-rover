@@ -1,0 +1,346 @@
+{
+  "uri": "ws://127.0.0.1:18083/ws",
+  "seconds": 132.265,
+  "checks": [
+    "8 v2 player seats + v1/v2 spectators",
+    "metadata rename propagation",
+    "spectator full recovery + resync rate limit",
+    "single connection reconnect preserves room epoch + canonical full",
+    "same v1/v2 final scores",
+    "finished -> lobby new epoch and cleared results",
+    "20-second lobby healthy on <=1Hz updates",
+    "next round self-contained full"
+  ],
+  "errors": [],
+  "peers": [
+    {
+      "name": "Tester0",
+      "protocol": 2,
+      "bytes": 633231,
+      "websocketFrameBytes": 634095,
+      "byType": {
+        "welcome": {
+          "messages": 2,
+          "bytes": 348
+        },
+        "rooms": {
+          "messages": 1,
+          "bytes": 27
+        },
+        "state_full": {
+          "messages": 4,
+          "bytes": 41388
+        },
+        "state_delta": {
+          "messages": 209,
+          "bytes": 591415
+        },
+        "profile": {
+          "messages": 1,
+          "bytes": 53
+        }
+      },
+      "applied": 213,
+      "recovery": 1,
+      "ignored": 0
+    },
+    {
+      "name": "Tester1",
+      "protocol": 2,
+      "bytes": 3059838,
+      "websocketFrameBytes": 3063966,
+      "byType": {
+        "welcome": {
+          "messages": 2,
+          "bytes": 348
+        },
+        "rooms": {
+          "messages": 1,
+          "bytes": 282
+        },
+        "state_full": {
+          "messages": 14,
+          "bytes": 173741
+        },
+        "state_delta": {
+          "messages": 1005,
+          "bytes": 2883540
+        },
+        "state_heartbeat": {
+          "messages": 10,
+          "bytes": 1927
+        }
+      },
+      "applied": 1029,
+      "recovery": 1,
+      "ignored": 0
+    },
+    {
+      "name": "Tester2",
+      "protocol": 2,
+      "bytes": 3058297,
+      "websocketFrameBytes": 3062421,
+      "byType": {
+        "welcome": {
+          "messages": 2,
+          "bytes": 348
+        },
+        "rooms": {
+          "messages": 1,
+          "bytes": 283
+        },
+        "state_full": {
+          "messages": 14,
+          "bytes": 174059
+        },
+        "state_delta": {
+          "messages": 1004,
+          "bytes": 2881680
+        },
+        "state_heartbeat": {
+          "messages": 10,
+          "bytes": 1927
+        }
+      },
+      "applied": 1028,
+      "recovery": 1,
+      "ignored": 0
+    },
+    {
+      "name": "Tester3",
+      "protocol": 2,
+      "bytes": 3056437,
+      "websocketFrameBytes": 3060557,
+      "byType": {
+        "welcome": {
+          "messages": 2,
+          "bytes": 348
+        },
+        "rooms": {
+          "messages": 1,
+          "bytes": 283
+        },
+        "state_full": {
+          "messages": 14,
+          "bytes": 174382
+        },
+        "state_delta": {
+          "messages": 1003,
+          "bytes": 2879497
+        },
+        "state_heartbeat": {
+          "messages": 10,
+          "bytes": 1927
+        }
+      },
+      "applied": 1027,
+      "recovery": 1,
+      "ignored": 0
+    },
+    {
+      "name": "Tester4",
+      "protocol": 2,
+      "bytes": 3054254,
+      "websocketFrameBytes": 3058370,
+      "byType": {
+        "welcome": {
+          "messages": 2,
+          "bytes": 348
+        },
+        "rooms": {
+          "messages": 1,
+          "bytes": 283
+        },
+        "state_full": {
+          "messages": 14,
+          "bytes": 174701
+        },
+        "state_delta": {
+          "messages": 1002,
+          "bytes": 2876995
+        },
+        "state_heartbeat": {
+          "messages": 10,
+          "bytes": 1927
+        }
+      },
+      "applied": 1026,
+      "recovery": 1,
+      "ignored": 0
+    },
+    {
+      "name": "Tester5",
+      "protocol": 2,
+      "bytes": 3051752,
+      "websocketFrameBytes": 3055864,
+      "byType": {
+        "welcome": {
+          "messages": 2,
+          "bytes": 348
+        },
+        "rooms": {
+          "messages": 1,
+          "bytes": 283
+        },
+        "state_full": {
+          "messages": 14,
+          "bytes": 175025
+        },
+        "state_delta": {
+          "messages": 1001,
+          "bytes": 2874169
+        },
+        "state_heartbeat": {
+          "messages": 10,
+          "bytes": 1927
+        }
+      },
+      "applied": 1025,
+      "recovery": 1,
+      "ignored": 0
+    },
+    {
+      "name": "Tester6",
+      "protocol": 2,
+      "bytes": 3048926,
+      "websocketFrameBytes": 3053034,
+      "byType": {
+        "welcome": {
+          "messages": 2,
+          "bytes": 348
+        },
+        "rooms": {
+          "messages": 1,
+          "bytes": 283
+        },
+        "state_full": {
+          "messages": 14,
+          "bytes": 175344
+        },
+        "state_delta": {
+          "messages": 1000,
+          "bytes": 2871024
+        },
+        "state_heartbeat": {
+          "messages": 10,
+          "bytes": 1927
+        }
+      },
+      "applied": 1024,
+      "recovery": 1,
+      "ignored": 0
+    },
+    {
+      "name": "Tester7",
+      "protocol": 2,
+      "bytes": 3045781,
+      "websocketFrameBytes": 3049885,
+      "byType": {
+        "welcome": {
+          "messages": 2,
+          "bytes": 348
+        },
+        "rooms": {
+          "messages": 1,
+          "bytes": 283
+        },
+        "state_full": {
+          "messages": 14,
+          "bytes": 175667
+        },
+        "state_delta": {
+          "messages": 999,
+          "bytes": 2867556
+        },
+        "state_heartbeat": {
+          "messages": 10,
+          "bytes": 1927
+        }
+      },
+      "applied": 1023,
+      "recovery": 1,
+      "ignored": 0
+    },
+    {
+      "name": "LegacyObserver",
+      "protocol": 1,
+      "bytes": 21709246,
+      "websocketFrameBytes": 21714430,
+      "byType": {
+        "welcome": {
+          "messages": 2,
+          "bytes": 364
+        },
+        "rooms": {
+          "messages": 2,
+          "bytes": 568
+        },
+        "state": {
+          "messages": 1292,
+          "bytes": 21708314
+        }
+      },
+      "applied": 0,
+      "recovery": 0,
+      "ignored": 0
+    },
+    {
+      "name": "V2Observer",
+      "protocol": 2,
+      "bytes": 3044240,
+      "websocketFrameBytes": 3048340,
+      "byType": {
+        "welcome": {
+          "messages": 2,
+          "bytes": 356
+        },
+        "rooms": {
+          "messages": 1,
+          "bytes": 284
+        },
+        "state_full": {
+          "messages": 15,
+          "bytes": 179117
+        },
+        "state_delta": {
+          "messages": 997,
+          "bytes": 2862556
+        },
+        "state_heartbeat": {
+          "messages": 10,
+          "bytes": 1927
+        }
+      },
+      "applied": 1021,
+      "recovery": 1,
+      "ignored": 1
+    },
+    {
+      "name": "Changed",
+      "protocol": 2,
+      "bytes": 2430794,
+      "websocketFrameBytes": 2434054,
+      "byType": {
+        "welcome": {
+          "messages": 1,
+          "bytes": 175
+        },
+        "state_full": {
+          "messages": 11,
+          "bytes": 146444
+        },
+        "state_delta": {
+          "messages": 793,
+          "bytes": 2282248
+        },
+        "state_heartbeat": {
+          "messages": 10,
+          "bytes": 1927
+        }
+      },
+      "applied": 814,
+      "recovery": 1,
+      "ignored": 0
+    }
+  ]
+}

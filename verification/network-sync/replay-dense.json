@@ -1,0 +1,73 @@
+{
+  "source": "actual product Lua encoder -> JSON -> shared TS decoder; independent raw oracle and shared Motion",
+  "raw": 145016051,
+  "encoded": 15383330,
+  "websocket": 15387496,
+  "byType": {
+    "state_full": {
+      "messages": 12,
+      "bytes": 761093
+    },
+    "state_delta": {
+      "messages": 1009,
+      "bytes": 14620171
+    },
+    "state_heartbeat": {
+      "messages": 10,
+      "bytes": 2066
+    }
+  },
+  "metadataBytes": 11784,
+  "byPhase": {
+    "playing": {
+      "messages": 1000,
+      "bytes": 15221159
+    },
+    "finished": {
+      "messages": 11,
+      "bytes": 103977
+    },
+    "lobby": {
+      "messages": 20,
+      "bytes": 58194
+    }
+  },
+  "fullCauses": {
+    "bootstrap": {
+      "messages": 1,
+      "bytes": 12564
+    },
+    "keyframe": {
+      "messages": 9,
+      "bytes": 642761
+    },
+    "phase_change": {
+      "messages": 1,
+      "bytes": 101911
+    },
+    "phase_reset": {
+      "messages": 1,
+      "bytes": 3857
+    }
+  },
+  "firstFullBytes": 12564,
+  "applied": 1031,
+  "eventMatches": 8248,
+  "prediction": {
+    "maxWorldError": 0.0203712662697469,
+    "meanWorldError": 0.0032086707123364544,
+    "samples": 41240,
+    "correctionRaw": 896,
+    "correctionNew": 898,
+    "meaningfulRaw": 811,
+    "meaningfulNew": 811,
+    "maxCorrectionDifference": 0.02031488848973142,
+    "inputEvents": 0,
+    "arrival": "identical 70/77/84 ms plus fixed intra-frame sample offsets"
+  },
+  "messageSizes": {
+    "p50": 15870,
+    "p95": 19562,
+    "max": 109743
+  }
+}

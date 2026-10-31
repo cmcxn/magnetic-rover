@@ -234,3 +234,94 @@ skill charge/release indicators. The server remains authoritative.
 ### Held boost energy
 
 Player state includes normalized `energy` and boolean `boostHeld`. Clients send `input.boost=true` continuously while held, false on release. Release stops the dash and recharges at `1 / boostCooldown` per second. Holding consumes energy at `1 / boostDuration` per second while boosting. Partial energy may be reused; holding at zero never recharges. Disconnection, stale input and stun release the hold safely. `boost` remains active dash time for physics and collision slicing; clients with the new energy field do not use the legacy cooldown gate to prevent partial-energy reuse. Deploy server and both clients together.
+
+## Network state protocol v2 (2026-10-31)
+
+Join may include `protocolVersion: 2`; welcome echoes the negotiated version.
+Missing/unsupported declarations use v1, including unchanged full `state` messages.
+Inputs, pings, ready/profile/room operations keep their existing formats.
+
+Every v2 state packet has `v:2, type, roomId, roundId, epoch, seq, metadataVer`.
+A room owns one canonical committed stream. New epochs start at seq=0; new rounds
+and finished→lobby reset the epoch, while one connection reconnecting never does.
+An epoch includes a cryptographically random process prefix, room encoder identity
+and reset counter; it is unrelated to a session token.
+
+- `state_full`: cause, complete metadata, frame, players and batteries.
+  Causes: bootstrap/reconnect/resync/keyframe/phase_change/phase_reset.
+  Recovery reads the last committed DTO; it never reads newer Game state with
+  an old sequence or changes any other connection's differential baseline.
+- `state_delta`: baseSeq, frame, all dynamic players, batteryUpserts,
+  batteryRemoves and complete metadata when metadataVer changes.
+  seq must equal baseSeq+1. Upserts are complete absolute records, not dx/dy.
+  Omitted optional fields disappear; removed IDs cannot also be upserted.
+- `state_heartbeat`: baseSeq and clock (serverTime, remaining, optional returnIn).
+  It commits seq+1. In nonplaying stages pure clock changes are limited by the
+  encoder to 1 Hz; suppressed ticks advance neither seq nor canonical baseline.
+  Other changes are sent at the next broadcast (100 ms at most).
+
+Metadata replaces complete config/profiles/scales; profiles map IDs to
+name/color/isBot. Config includes stations, geometry, movement/boost/supply
+settings, room code and capacity. Frame replaces all dynamic global fields,
+including results/supply/counts/ready flags. Player dynamics retain all input,
+collision and pickup sequence/velocity/direction fields. Results keep their
+original complete unquantized records.
+
+### DTO units and projection
+
+Game and json.lua remain unchanged. Each encoder uses one fixed profile.
+Round to nearest integer, half away from zero, normalize negative zero.
+Only copied transport DTO values are rounded, before change comparison.
+
+| Fields | fine (default) | conservative |
+|---|---:|---:|
+| player x/y and battery x/y/z | ×100 | ×10 |
+| player angle | ×10000 | ×1000 |
+| kx/ky and battery vx/vy | ×100 | raw |
+| ix/iy/bx/by | ×10000 | raw |
+| energy | ×10000 | raw |
+| remaining/returnIn/supply.secondsToShrink, cooldown/boost/stun/unlock | ×1000 | raw |
+| serverTime and inputElapsed | **raw** | raw |
+| IDs, cargo, scores, input/event counters, booleans | lossless | lossless |
+
+Metadata.scales names position, playerPosition, angle, velocity, direction, energy,
+time, clock and inputTime. playerPosition currently equals position. Unit 1 means
+raw; larger units are integers on the wire, divided back by the shared decoder.
+
+**Predicate preservation:** a strictly positive stun/boost/energy value must never
+round to zero: clamp its rounded integer to at least 1. This matters for tiny
+floating-point stun tails that the existing prediction logic tests with `>0`.
+The usual error is half a unit; this positive-tail exception is less than one
+unit (1 ms for stun/boost, 0.0001 for energy). It does not alter authority floats.
+The same rules are implemented independently in the test oracle.
+
+### Recovery, rendering and health
+
+Clients confirm room membership through current-socket welcome before accepting
+v2. Old socket callbacks and old/retired room epochs are ignored. Delta/heartbeat
+gaps or invalid metadata request `{type:"request_full"}`, rate-limited to once
+per second by both ends. Players and spectators can request recovery.
+
+The shared StateDecoder validates a complete packet before atomically publishing
+a new State. It never mutates previously published State/entity objects. Baseline
+recovery resets Motion, pickup/effect and collision baselines silently. Continuous
+keyframes (every 10 seconds during play) retain history. Normal finish events
+retain phase feedback; a phase reset clears held mini-game input before replacing
+the previous phase. Heartbeats refresh the same state-health clocks as real frames.
+
+### Encoding, queue bounds and measurement
+
+Normal broadcasts encode once per room/protocol version, then send one copy per
+recipient. Optional `ROVER_NETWORK_STATS=1` logs queued JSON and WebSocket frame
+bytes, message types and fd/room/round/protocol streams every 10 seconds. It is
+diagnostic logging, not a public endpoint and not a TCP/TLS/cloud billing meter.
+
+The pinned runtime exposes `socket.warning(fd, callback)` with queued KiB.
+At >=1024 KiB the server closes that slow connection; it does not drop dependent
+deltas or append a supposed repair behind an unbounded stale TCP queue. The next
+connection starts from a self-contained canonical full. The fixed bound was
+verified with a real paused-reading TCP/WebSocket spectator.
+
+V2 clients fall back to v1 when welcome has no protocolVersion. V1 traffic does
+not gain the v2 byte savings. See verification/network-sync/README.md for measured
+budgets, protocol tests, prediction replay, stress limits and native-device gaps.

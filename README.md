@@ -135,3 +135,10 @@ ROVER_MAP_SCALE=2 ROVER_SUPPLY_SPEED=2 docker compose up -d --build
 H5 与微信小游戏共享独立车身和四轮渲染：胎纹按实际位移滚动，冲刺时加快；前轮随转向同向偏转，内轮角度稍大，后轮保持车身方向。轮胎后方带淡出的烟尘，冲刺显示队伍颜色外焰、橙色火焰和明亮内焰。停下、眩晕、断线和过期状态会停止新增运动效果；减少特效模式关闭烟尘并简化尾焰。
 
 声音开启时，按住冲刺播放原创电机循环声，松开、耗尽、后台或关闭声音时停止。微信原生音频在游戏声音开时不受系统静音拨片限制，仍受手机媒体音量控制。素材母版在 images/vehicle-motion-v1，游戏内只使用约100KiB的轻量车身与轮胎PNG；电机声音由 scripts/create-boost-engine.mjs 合成，不含外部采样。
+
+### 网络协议 v2（本地验证）
+
+H5 与微信小游戏请求 v2；服务器继续兼容没有协议声明的 v1 客户端。
+v2 保持 20Hz 权威逻辑与 10Hz 玩家动态，缓存静态资料并按 ID 更新电池，
+局外变化通知加 1Hz 心跳。协议与量化恢复规则见 [PROTOCOL.md](PROTOCOL.md)，
+实测及未完成的真机验收见 [verification/network-sync/README.md](verification/network-sync/README.md)。

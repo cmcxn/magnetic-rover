@@ -1,0 +1,22 @@
+# Local network-sync execution ledger
+- Base: main 28a1de2bee0c1c34c69f2d0456608b808aec79e1; branch codex/network-sync.
+- No staged/tracked changes at entry. Existing .codegraph/ and submission/ left intact.
+- No applicable AGENTS.md found in repository or parent directories.
+- Handoff extracted outside repository to /tmp/rover-network-handoff (no extracted directory found in Downloads).
+- Analysis base f7cd31c exists. Changes since it include vehicle effects, readiness deadlines (readyIn), tutorial, server loot-placement fix and new defaults 360/.8/3/1.3/1.5. All retained. New readyIn remains dynamic.
+- Ruling: use current checkout on a new local branch instead of a linked worktree: user explicitly requests this local workspace; existing tools/dependencies and local testing setup are here. No push/deploy.
+- Task 0 in progress: baseline and runtime interface verification.
+- Baseline: 193 frontend/mini tests + both TS checks passed. Existing Docker regression reproduced: test_tuning.lua was rerun under legacy environment; fixed in a740095 on this branch, cherry-picked as efc4c8c and pushed to main at user's explicit request. Only this build fix was pushed.
+- Full original Docker build attempted; Docker Hub base metadata timed out. Used locally available pinned Skynet runtime and dependency image for isolated integration (18083/18086), never replaced user's 18080 service.
+- Tasks 1-4 implemented: pure fixed-point DTO, room canonical commits, v1/v2 grouping, shared immutable decoder, recovery/effect baselines, heartbeat health in both entrypoints.
+- Ruling: retain named JSON fields rather than array tuples; fine DTO budget is already ~3 MB. Conservative profile stays supported for reproducible comparison.
+- Task 5: real 132.265-second WS test passed, including 8 player seats (scripted human-client inputs, not bots), mixed spectator protocols, rename, resync throttling, reconnect, results, 20-second lobby and next round. Slow raw TCP spectator closed by runtime at 1038 KiB queued; 45-second paused-read test used SO_RCVBUF=1024.
+- Task 6: independent raw oracle and product codec metrics running; enhanced replay to schedule every 20Hz control in chronological order with identical arrivals (no missing odd-tick inputs).
+
+- Precision ruling: keep serverTime/inputElapsed raw; preserve >0 for stun/boost/energy via minimum positive quantum. A real 20Hz replay exposed a tiny stun tail rounding to false and ~72-unit divergence; fixed predicate semantics, no Game changes or relaxed assertions.
+- Final three fine samples: 3.210292–3.230289 MB JSON per player versus 21.258392–21.435284 MB raw. Max display deviation <=0.030836 world units, >1-unit correction counts unchanged. Conservative ~4.139 MB. Artificial dense fixture ~15.383 MB, explicitly outside typical budget.
+- Final real run: 131.871 seconds on isolated 18089, all checks passed. Final smoke additionally discarded a delta and recovered through request_full/full without a sequence-chain error.
+- Final verification: 201 Node tests, two TS checks, H5 build, mini build + 4 clocks; mini 4093 KiB. All historical/new Lua tests passed; stream test proves two encodes for eight v2 plus one v1 recipients.
+- Read-only reviewer identified mini recovery phase replacement order; fixed + held keyboard reset regression. Final review re-ran 12 relevant tests with no important findings.
+- Browser H5 v2 real AI match + packaged mini wx-bridge lobby passed with no page errors. Native WeChat/phone/WAN/TLS capture not performed. Full original Docker build remains blocked by Docker Hub metadata timeout.
+- Task 7: report/protocol/commands updated; local implementation only, no network-feature push or deployment.

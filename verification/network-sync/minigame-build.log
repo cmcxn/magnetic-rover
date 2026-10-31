@@ -1,0 +1,15 @@
+✔ real adapter reports elapsed milliseconds for Phaser and motion interpolation (3.468083ms)
+✔ animation callback and performance.now share the same millisecond timeline (0.607708ms)
+✔ wall-clock corrections cannot move the animation clock backwards (0.736042ms)
+✔ shared motion advances between authoritative snapshots using adapter time (40.130334ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 88.081708
+WeChat main: 1319 KiB; total: 4093 KiB
+  art: 2775 KiB
+Built minigame/dist (local validation only)

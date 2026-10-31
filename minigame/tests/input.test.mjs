@@ -1,3 +1,4 @@
+import { StateDecoder } from "../../client/src/state-codec.ts";
 import { EntryGuide, GUIDE_KEY } from "../../client/src/onboarding.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -84,6 +85,7 @@ function harness() {
     }
   }
   const context = {
+    StateDecoder,
     EntryGuide,
     GUIDE_KEY,
     TutorialScene: class {
@@ -115,6 +117,7 @@ function harness() {
     },
     CartoonPanel: Panel,
     World: class {
+      resetStateBaseline() {}
       resetMotion() {}
       pickupFeedback() {}
       inputCommand(x) {
@@ -293,4 +296,90 @@ test("PC keys drive and hold space while mouse joystick stays available", () => 
   m = h.sent.filter((m) => m.type === "input").at(-1);
   assert.equal(m.x, 0);
   assert.equal(m.boost, false);
+});
+
+test("mini-game negotiates v2, shares decoder and heartbeat keeps lobby alive", () => {
+  const h = harness();
+  const fixture = JSON.parse(
+    fs.readFileSync(
+      new URL(
+        "../../client/tests/fixtures/network-state.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  assert.equal(h.sent.find((m) => m.type === "join").protocolVersion, 2);
+  h.deliver({
+    type: "welcome",
+    id: "1",
+    token: "v2",
+    roomId: "000001",
+    role: "player",
+    protocolVersion: 2,
+  });
+  const f = structuredClone(fixture[0].message);
+  f.frame.phase = "lobby";
+  h.deliver(f);
+  for (let i = 1; i <= 20; i++) {
+    for (let t = 0; t < 20; t++) h.tick();
+    h.deliver({
+      v: 2,
+      type: "state_heartbeat",
+      roomId: f.roomId,
+      roundId: f.roundId,
+      epoch: f.epoch,
+      seq: i,
+      baseSeq: i - 1,
+      metadataVer: f.metadataVer,
+      clock: { serverTime: i, remaining: 100000 },
+    });
+  }
+  assert.equal(h.model.state.phase, "lobby");
+  assert.equal(h.model.state.serverTime, 20);
+  const gap = { ...fixture[1].message, seq: 24, baseSeq: 23 };
+  h.deliver(gap);
+  h.deliver(gap);
+  assert.equal(h.sent.filter((m) => m.type === "request_full").length, 1);
+});
+
+test("new-epoch phase reset releases held keyboard controls before replacing state", () => {
+  const h = harness();
+  const rows = JSON.parse(
+    fs.readFileSync(
+      new URL(
+        "../../client/tests/fixtures/network-state.json",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  h.deliver({
+    type: "welcome",
+    id: "1",
+    token: "v2",
+    roomId: "000001",
+    role: "player",
+    protocolVersion: 2,
+  });
+  const f = structuredClone(rows[0].message);
+  h.deliver(f);
+  h.events.KeyDown({ code: "KeyD", key: "d" });
+  h.events.KeyDown({ code: "Space", key: " " });
+  h.tick();
+  assert.equal(h.sent.filter((m) => m.type === "input").at(-1).boost, true);
+  const lobby = structuredClone(f);
+  lobby.epoch = "reset-lobby";
+  lobby.cause = "phase_reset";
+  lobby.frame.phase = "lobby";
+  h.deliver(lobby);
+  const next = structuredClone(f);
+  next.epoch = "next-match";
+  next.roundId = 2;
+  next.cause = "phase_reset";
+  h.deliver(next);
+  h.tick();
+  const input = h.sent.filter((m) => m.type === "input").at(-1);
+  assert.equal(input.x, 0);
+  assert.equal(input.boost, false);
 });
