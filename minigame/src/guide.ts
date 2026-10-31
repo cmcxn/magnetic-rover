@@ -134,7 +134,7 @@ export class TutorialScene extends Phaser.Scene {
     if (m.ready !== undefined) {
       const warning =
         m.ready <= 10
-          ? `请准备，${m.ready} 秒后将被移出房间`
+          ? `请在 ${m.ready} 秒内准备`
           : `准备倒计时 ${m.ready} 秒`;
       g.fillStyle(m.ready <= 10 ? 0xb82f36 : 0x294966).fillRoundedRect(
         w - 270,

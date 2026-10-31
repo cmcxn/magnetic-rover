@@ -18,7 +18,7 @@ local function circleInterval(a,b,p,r)
  if leave<0 or enter>1 then return end
  return math.max(0,enter),math.min(1,leave)
 end
-local function pickupRadius(b) return b.source=='drop' and config.collisionRadius+10.001*config.vehicleScale or config.pickupRadius end
+local function pickupRadius(b) return b.source=='drop' and config.collisionRadius+config.droppedBatteryRadius+.001 or config.pickupRadius end
 local function along(a,b,t) return {x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t} end
 local function clamp(p) local d=math.sqrt(p.x*p.x+p.y*p.y);if d>config.arenaRadius then p.x=p.x*config.arenaRadius/d;p.y=p.y*config.arenaRadius/d end end
 function G.new(tokenfn)

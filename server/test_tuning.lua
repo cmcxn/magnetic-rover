@@ -1,7 +1,7 @@
 package.path='./?.lua;'..package.path
 local c=require 'game_config';local G=require 'game';local C=require 'vehicle_collision'
-local multiplier=tonumber(arg[4]) or 3
-local scale=tonumber(arg[1]) or 1;local cooldown=tonumber(arg[2]) or 4;local duration=tonumber(arg[3]) or .32
+local multiplier=tonumber(arg[4]) or 1.5
+local scale=tonumber(arg[1]) or .8;local cooldown=tonumber(arg[2]) or 3;local duration=tonumber(arg[3]) or 1.3
 assert(c.vehicleScale==scale);assert(c.collisionRadius==60*scale);assert(c.pickupRadius==56*scale)
 local g=G.new();local p=assert(g:join(1,'One','#38bdf8'));assert(g:join(2,'Two','#fb7185'));g:start();g:input(p,{x=1,y=0,boost=true})
 assert(p.cooldown==cooldown and p.boost==duration)

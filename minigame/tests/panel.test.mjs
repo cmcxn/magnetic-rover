@@ -217,8 +217,8 @@ test("room palette disables occupied colors and sends free color selection", () 
   const scale = p.menu.scaleX;
   const at = (i) =>
     p.press(
-      p.menu.x + (665 + (i % 4) * 31) * scale,
-      p.menu.y + (104 + Math.floor(i / 4) * 25) * scale,
+      p.menu.x + (658 + (i % 4) * 46) * scale,
+      p.menu.y + (76 + Math.floor(i / 4) * 46) * scale,
     );
   assert.equal(at(1), false);
   assert.equal(at(6), true);

@@ -73,7 +73,7 @@ const tutorial = new TutorialScene(
       state?.phase === "lobby" &&
       !spectator &&
       entryGuide.view(Date.now()).visible,
-    ready: state?.players.find((p) => p.id === self)?.readyIn,
+    ready: active && state?.phase === "lobby" && !spectator ? state.players.find((p) => p.id === self)?.readyIn : undefined,
   }),
   () => entryGuide.close(Date.now()),
 );

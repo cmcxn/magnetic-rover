@@ -19,7 +19,7 @@ ENV SKYNET_ROOT=/skynet/ ROVER_BIND=0.0.0.0 ROVER_SERVER=/app/server/ ROVER_CLIE
 # tests cover default/overridden arena, density, refill timing and motion tuning.
 RUN cd /app/server && sh test_base_speed.sh && sh test_tuning.sh && sh test_arena_supply.sh && \
     for test in test_*.lua; do \
-      if [ "$test" != test_base_speed.lua ]; then ROVER_MAP_SCALE=1 ROVER_SUPPLY_SPEED=1 ROVER_BASE_SPEED=240 /skynet/3rd/lua/lua "$test" || exit 1; fi; \
+      if [ "$test" != test_base_speed.lua ]; then ROVER_MAP_SCALE=1 ROVER_SUPPLY_SPEED=1 ROVER_BASE_SPEED=240 ROVER_VEHICLE_SCALE=1 ROVER_BOOST_MULTIPLIER=3 ROVER_BOOST_COOLDOWN=4 ROVER_BOOST_DURATION=.32 /skynet/3rd/lua/lua "$test" || exit 1; fi; \
     done
 USER 10001:10001
 EXPOSE 18080

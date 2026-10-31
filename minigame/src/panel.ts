@@ -507,22 +507,22 @@ export class CartoonPanel extends Phaser.Scene {
       );
       const selfColor = m.state.players.find((p) => p.id === m.self)?.color;
       COLORS.forEach((c, i) => {
-        const x = 665 + (i % 4) * 31,
-          y = 104 + Math.floor(i / 4) * 25;
+        const x = 658 + (i % 4) * 46,
+          y = 76 + Math.floor(i / 4) * 46;
         const taken = occupied.has(c);
         this.paint
           .fillStyle(parseInt(c.slice(1), 16), taken ? 0.25 : 1)
-          .fillCircle(x, y, 10);
+          .fillCircle(x, y, 20);
         if (c === selfColor)
-          this.paint.lineStyle(2, UI.navy).strokeCircle(x, y, 12);
+          this.paint.lineStyle(2, UI.navy).strokeCircle(x, y, 23);
         if (taken) this.text(x, y, "×", 15).setOrigin(0.5);
         if (!taken && !m.spectator) {
           const s = this.menu.scaleX;
           this.hits.push({
-            x: this.menu.x + (x - 12) * s,
-            y: this.menu.y + (y - 12) * s,
-            w: 24 * s,
-            h: 24 * s,
+            x: this.menu.x + (x - 23) * s,
+            y: this.menu.y + (y - 23) * s,
+            w: 46 * s,
+            h: 46 * s,
             action: () => this.actions.send({ type: "set_color", color: c }),
           });
         }
@@ -1079,7 +1079,7 @@ export class CartoonPanel extends Phaser.Scene {
           (!m.connected
             ? m.status
             : m.roomId
-              ? "全员准备后发车"
+              ? ""
               : "已连接 · 选择房间开始比赛"),
         12,
         "#fff8e7",
@@ -1112,17 +1112,15 @@ export class CartoonPanel extends Phaser.Scene {
         this.label("guide-link", x + 32, y + 15, "玩法", 13);
         this.guideHit = { x, y, w: 64, h: 30, action: this.actions.showGuide };
       }
-      if (me?.readyIn !== undefined)
-        this.label(
-          "ready-deadline",
-          w / 2,
-          h - 34,
-          me.readyIn <= 10
-            ? `请准备，${me.readyIn} 秒后将被移出房间`
-            : `请在 ${me.readyIn} 秒内准备`,
-          14,
-          me.readyIn <= 10 ? "#ffb3a5" : "#fff8e7",
-        ).setStroke("#19374c", 3);
+      if (me?.readyIn !== undefined) {
+        const s = this.menu.scaleX, x = this.menu.x + 30 * s, y = this.menu.y + 91 * s;
+        const urgent = me.readyIn <= 10;
+        g.fillStyle(urgent ? 0xffd5ca : 0xffe6ae, 0.92).fillRoundedRect(x, y, 230*s, 48*s, 18*s);
+        const color = urgent ? "#c1322b" : "#c46816";
+        this.label("ready-prefix", x+15*s, y+25*s, "请在", 19*s, color, 0);
+        this.label("ready-deadline", x+85*s, y+24*s, String(me.readyIn), 38*s, color);
+        this.label("ready-suffix", x+116*s, y+25*s, "秒内准备", 19*s, color, 0);
+      }
     }
     if (m.notice && playing)
       this.label(

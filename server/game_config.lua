@@ -1,14 +1,14 @@
 -- Shared server-owned round and natural-resource pacing.
 -- Read once at service startup; reject non-finite and unsupported values.
 local baseSpeed=tonumber(os.getenv('ROVER_BASE_SPEED'))
-if not baseSpeed or baseSpeed~=baseSpeed or baseSpeed<1 or baseSpeed>480 then baseSpeed=480 end
+if not baseSpeed or baseSpeed~=baseSpeed or baseSpeed<1 or baseSpeed>480 then baseSpeed=360 end
 local function setting(key,default,min,max)
  local v=tonumber(os.getenv(key));if not v or v~=v or v<min or v>max then return default end;return v
 end
-local scale=setting('ROVER_VEHICLE_SCALE',1,.25,1.5)
-local multiplier=setting('ROVER_BOOST_MULTIPLIER',3,1,10)
-local cooldown=setting('ROVER_BOOST_COOLDOWN',4,.1,60)
-local duration=setting('ROVER_BOOST_DURATION',.32,.01,10)
+local scale=setting('ROVER_VEHICLE_SCALE',.8,.25,1.5)
+local multiplier=setting('ROVER_BOOST_MULTIPLIER',1.5,1,10)
+local cooldown=setting('ROVER_BOOST_COOLDOWN',3,.1,60)
+local duration=setting('ROVER_BOOST_DURATION',1.3,.01,10)
 local mapScale=setting('ROVER_MAP_SCALE',2,1,4)
 local supplySpeed=setting('ROVER_SUPPLY_SPEED',2,.25,10)
 local function density(n) return math.floor(n*mapScale*mapScale+.5) end
@@ -18,6 +18,7 @@ return {
  vehicleScale=scale,boostMultiplier=multiplier,boostCooldown=cooldown,boostDuration=duration,
  matchDuration=100,
  collisionRadius=60*scale,
+ droppedBatteryRadius=10, -- Loot size is independent of vehicle scale; share placement and pickup geometry.
  vehicleBody={halfLength=49*scale,halfWidth=34*scale,releasePadding=2*scale},
  knockbackDecay=5,
  collision={frontDot=.65,minClosing=40,normalStun=.65,boostStun=1,protection=1.6,releaseGap=4*scale},

@@ -1,0 +1,34 @@
+/* Corner countdown leaves the two rows of cars at their existing height. */
+.lobby .card.garage { position: relative; }
+#ready-timeout { display:flex; align-items:center; gap:5px; justify-content:center; white-space:nowrap; background:#ffe6aeea; color:#c46816; border:1px solid #f7c978; border-radius:18px; padding:4px 10px; font-size:14px; }
+#ready-timeout[hidden] { display:none; }
+#ready-timeout strong { font-size:30px; line-height:1.1; font-variant-numeric:tabular-nums; }
+#ready-timeout.urgent { color:#c1322b; background:#ffd5ca; border-color:#eb6257; }
+.lobby .room-palette { display:grid; grid-template-columns:repeat(4, 40px); gap:5px; }
+.lobby .room-palette button { width:40px; height:40px; min-height:0; }
+@media (orientation:landscape) {
+  .lobby .card.garage { grid-template-areas:"logo logo logo logo logo logo" "roster roster roster roster roster roster" "slots start start start leave leave" "hint hint hint hint hint hint" "error error error error error error" "guide guide guide guide guide"; }
+  .lobby .race-logo { height:100px; align-self:start; }
+  .lobby .race-logo > strong { font-size:20px; }
+  .lobby .room-code { position:absolute; top:65px; left:50%; transform:translateX(-50%); margin:0; }
+  .lobby .room-palette { position:absolute; top:12px; right:16px; margin:0; grid-template-columns:repeat(4,28px); gap:6px; }
+  .lobby .room-palette button { width:28px; height:28px; }
+  #ready-timeout { position:absolute; left:14px; top:53px; }
+}
+@media (orientation:portrait) {
+  #ready-timeout { grid-column:1/-1; grid-row:2; justify-self:start; }
+}
+
+@media (orientation:landscape) {
+ .lobby .race-logo { height:90px; justify-self:center; }
+ .lobby .room-code { width:max-content; max-width:38%; white-space:nowrap; display:flex; flex-wrap:nowrap; font-size:13px; height:28px; min-height:0; top:61px; gap:4px; padding:0 8px; }
+ .lobby .room-code strong { font-size:18px; letter-spacing:1px; }
+ .lobby .room-code button { min-height:24px; padding:2px 7px; font-size:12px; }
+}
+@media (orientation:landscape) {
+ .lobby .card.garage > .race-logo { grid-column:1 / -1; grid-row:1; text-align:center; }
+}
+@media (orientation:portrait) {
+ .lobby .card.garage { grid-template-areas:"logo logo" "warning warning" "code code" "palette palette" "roster roster" "slots start" "hint hint" "error error" "guide guide" "leave leave"; }
+ #ready-timeout { grid-area:warning; }
+}

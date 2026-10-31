@@ -1,11 +1,17 @@
 -- Dropped units remain individual authoritative batteries, never visual-only loot.
 local config=require 'game_config'
 local B={}
-local radius=10
+local radius=config.droppedBatteryRadius
+-- Once loot is collectable, do not push it away from an eligible collector.
+-- Locked/airborne loot and full cars still use solid placement.
+local function blocks(g,b,p)
+ return not p.removed and not (p.connected and p.cargo<20 and
+  (b.unlock or 0)<=g.time and (b.z or 0)<=1 and not g:station(p))
+end
 local function allowed(g,b)
  if b.x*b.x+b.y*b.y>(config.arenaRadius-radius)^2+1e-6 then return false end
  for _,s in ipairs(g.stations) do if (b.x-s.x)^2+(b.y-s.y)^2<(s.r+radius)^2 then return false end end
- for _,p in ipairs(g.players) do if not p.removed and (b.x-p.x)^2+(b.y-p.y)^2<(config.collisionRadius+radius)^2-1e-5 then return false end end
+ for _,p in ipairs(g.players) do if blocks(g,b,p) and (b.x-p.x)^2+(b.y-p.y)^2<(config.collisionRadius+radius)^2-1e-5 then return false end end
  return true
 end
 function B.place(g,b)
@@ -17,7 +23,7 @@ function B.place(g,b)
    if d<r then if d<1e-8 then x=1;y=0;d=1 end;b.x=p.x+x/d*(r+1e-5);b.y=p.y+y/d*(r+1e-5) end
   end
   for _,s in ipairs(g.stations) do exclude(s,s.r+radius) end
-  for _,p in ipairs(g.players) do if not p.removed then exclude(p,config.collisionRadius+radius) end end
+  for _,p in ipairs(g.players) do if blocks(g,b,p) then exclude(p,config.collisionRadius+radius) end end
   if allowed(g,b) then return end
  end
  -- A dense wall pile still cannot delete cargo: find the nearest valid slot.
