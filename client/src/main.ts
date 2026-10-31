@@ -1,3 +1,4 @@
+import { StateDecoder } from "./state-codec";
 import { EntryGuide, GUIDE_KEY } from "./onboarding";
 import { GuideOverlay } from "./guide-overlay";
 import { Sounds } from "./audio";
@@ -346,6 +347,11 @@ function connect(automatic = false) {
     return;
   }
   const socket = ws;
+  const decoder = new StateDecoder();
+  let negotiated = 1,
+    welcomed = false,
+    fullRequestedAt = -Infinity;
+
   const tokenKey = tokenStorageKey(url);
   let received = false;
   const timeout = setTimeout(() => {
@@ -361,6 +367,7 @@ function connect(automatic = false) {
     socket.send(
       JSON.stringify({
         type: "join",
+        protocolVersion: 2,
         name,
         color: session!.color,
         token: localStorage.getItem(tokenKey) || undefined,
@@ -374,6 +381,22 @@ function connect(automatic = false) {
       data = JSON.parse(e.data);
     } catch {
       return;
+    }
+    let recovery = false;
+    if (["state_full", "state_delta", "state_heartbeat"].includes(data.type)) {
+      if (!welcomed || negotiated !== 2) return;
+      const result = decoder.apply(data);
+      if (result.status === "need_full") {
+        const now = Date.now();
+        if (now - fullRequestedAt >= 1000) {
+          fullRequestedAt = now;
+          send({ type: "request_full" });
+        }
+        return;
+      }
+      if (result.status !== "applied") return;
+      recovery = result.mode !== "continuous";
+      data = result.state;
     }
     if (data.type === "pong") {
       const now = performance.now();
@@ -408,6 +431,9 @@ function connect(automatic = false) {
       return;
     }
     if (data.type === "welcome") {
+      negotiated = data.protocolVersion ?? 1;
+      welcomed = true;
+      decoder.reset(typeof data.roomId === "string" ? data.roomId : undefined);
       rememberProfile(data);
       clearTimeout(leaveTimer);
       leaveTimer = undefined;
@@ -464,6 +490,12 @@ function connect(automatic = false) {
       }
     }
     if (data.type === "state") {
+      if (!welcomed || (data.roomId && data.roomId !== roomId)) return;
+      if (recovery) {
+        world.resetStateBaseline(data);
+        state = data;
+      }
+
       if (role === "directory" || (data.roomId && data.roomId !== roomId))
         return;
       // Keep HUD, effects and motion on the same authoritative timeline. Equal
@@ -1346,6 +1378,7 @@ setInterval(() => {
   if (warning) {
     (warning as HTMLElement).hidden = ready === undefined;
     warning.classList.toggle("urgent", ready !== undefined && ready <= 10);
-    warning.innerHTML = ready === undefined ? "" : `请在 <strong>${ready}</strong> 秒内准备`;
+    warning.innerHTML =
+      ready === undefined ? "" : `请在 <strong>${ready}</strong> 秒内准备`;
   }
 }, 100);

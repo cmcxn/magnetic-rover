@@ -1,0 +1,38 @@
+{
+  "source": "actual product Lua encoder -> JSON -> shared TS decoder; independent raw oracle and shared Motion",
+  "raw": 21352212,
+  "encoded": 3214783,
+  "websocket": 3218907,
+  "byType": {
+    "state_full": {
+      "messages": 12,
+      "bytes": 152230
+    },
+    "state_delta": {
+      "messages": 1009,
+      "bytes": 3060487
+    },
+    "state_heartbeat": {
+      "messages": 10,
+      "bytes": 2066
+    }
+  },
+  "metadataBytes": 11784,
+  "applied": 1031,
+  "eventMatches": 8248,
+  "prediction": {
+    "maxWorldError": 0.03083517377934547,
+    "meanWorldError": 0.003193532650540824,
+    "samples": 41240,
+    "correctionRaw": 279,
+    "correctionNew": 304,
+    "maxCorrectionDifference": 0.038178331995197025,
+    "inputEvents": 2000,
+    "arrival": "identical 70/77/84 ms plus fixed intra-frame sample offsets"
+  },
+  "messageSizes": {
+    "p50": 2983,
+    "p95": 3409,
+    "max": 14759
+  }
+}

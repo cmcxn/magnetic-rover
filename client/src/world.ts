@@ -22,6 +22,17 @@ export class World extends Phaser.Scene {
     this.motionRole = `${this.self}:${this.spectating}`;
     this.smooth.clear();
   }
+  resetStateBaseline(next: State) {
+    this.state = next;
+    this.resetMotion();
+    // Force receipt of the fresh authoritative frame on the next render.
+    this.motionSnapshot = null;
+    this.effectSnapshot = next;
+    this.pickupTrails = [];
+    this.effectAge = 0;
+    this.impactState.clear();
+    this.clearPickupFeedback();
+  }
   private syncMotion(now: number) {
     const role = `${this.self}:${this.spectating}`;
     if (

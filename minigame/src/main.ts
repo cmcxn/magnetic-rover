@@ -1,3 +1,4 @@
+import { StateDecoder } from "../../client/src/state-codec";
 import { EntryGuide, GUIDE_KEY } from "../../client/src/onboarding";
 import { TutorialScene } from "./guide";
 import { installCanvasDensity } from "./density";
@@ -73,7 +74,10 @@ const tutorial = new TutorialScene(
       state?.phase === "lobby" &&
       !spectator &&
       entryGuide.view(Date.now()).visible,
-    ready: active && state?.phase === "lobby" && !spectator ? state.players.find((p) => p.id === self)?.readyIn : undefined,
+    ready:
+      active && state?.phase === "lobby" && !spectator
+        ? state.players.find((p) => p.id === self)?.readyIn
+        : undefined,
   }),
   () => entryGuide.close(Date.now()),
 );
@@ -173,12 +177,18 @@ function connect() {
     },
   });
   socket = current;
+  const decoder = new StateDecoder();
+  let negotiated = 1,
+    welcomed = false,
+    fullRequestedAt = -Infinity;
+
   current.onOpen(() => {
     if (socket !== current) return;
     connected = true;
     status = "已连接，正在进入大厅";
     send({
       type: "join",
+      protocolVersion: 2,
       name,
       color,
       token: wx.getStorageSync(tokenKey) || undefined,
@@ -192,9 +202,28 @@ function connect() {
     } catch {
       return;
     }
+    let recovery = false;
+    if (["state_full", "state_delta", "state_heartbeat"].includes(data.type)) {
+      if (!welcomed || negotiated !== 2) return;
+      const result = decoder.apply(data);
+      if (result.status === "need_full") {
+        const now = Date.now();
+        if (now - fullRequestedAt >= 1000) {
+          fullRequestedAt = now;
+          send({ type: "request_full" });
+        }
+        return;
+      }
+      if (result.status !== "applied") return;
+      recovery = result.mode !== "continuous";
+      data = result.state;
+    }
     if (data.type === "profile") {
       rememberProfile(data);
     } else if (data.type === "welcome") {
+      negotiated = data.protocolVersion ?? 1;
+      welcomed = true;
+      decoder.reset(typeof data.roomId === "string" ? data.roomId : undefined);
       rememberProfile(data);
       wx.setStorageSync(tokenKey, data.token);
       self = data.id;
@@ -213,7 +242,12 @@ function connect() {
       rooms = data.rooms || [];
       uiKey = "";
     } else if (data.type === "state") {
+      if (!welcomed || (data.roomId && data.roomId !== roomId)) return;
       if (state?.phase !== data.phase) resetInput();
+      if (recovery) {
+        world.resetStateBaseline(data);
+        state = data;
+      }
       if (active) sounds.update(state, data, self);
       const gained = pickupCount(state, data, self);
       if (gained) world.pickupFeedback(gained);

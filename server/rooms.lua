@@ -2,9 +2,10 @@
 local Game=require 'game'
 local Clock=require 'game_clock'
 local json=require 'json'
+local Codec=require 'state_codec'
 local R={};R.__index=R
-function R.new(tokenfn,now,array)
- return setmetatable({tokenfn=tokenfn,now=now or 0,array=array or function(t)return t or {} end,rooms={},sessions={},connections={},nextRoom=0,outbox={}},R)
+function R.new(tokenfn,now,array,options)
+ return setmetatable({tokenfn=tokenfn,codecOptions=options or {},now=now or 0,array=array or function(t)return t or {} end,rooms={},sessions={},connections={},nextRoom=0,outbox={}},R)
 end
 function R:emit(fd,message) self.outbox[#self.outbox+1]={fd=fd,message=message} end
 function R:drain() local out=self.outbox;self.outbox={};return out end
@@ -86,7 +87,7 @@ function R:directory(fd)
  self:emit(fd,{type='rooms',rooms=list})
 end
 function R:welcome(s)
- self:emit(s.fd,{type='welcome',id=s.player and s.player.id or '',token=s.token,roomId=s.room and s.room.id or json.null,role=s.role,name=s.name,color=s.color})
+ self:emit(s.fd,{type='welcome',id=s.player and s.player.id or '',token=s.token,roomId=s.room and s.room.id or json.null,role=s.role,name=s.name,color=s.color,protocolVersion=s.protocolVersion or 1})
 end
 function R:snapshot(room)
  local out=room.game:snapshot(self.array);local summary=self:summary(room)
@@ -96,7 +97,27 @@ function R:snapshot(room)
  for _,p in ipairs(out.players) do p.ready=room.ready[p.id]==true;local d=room.readyDeadlines[p.id];if d then p.readyIn=math.max(0,math.ceil(d-self.now)) end end
  return out
 end
-function R:sendState(s) if s.room then self:emit(s.fd,self:snapshot(s.room)) else self:directory(s.fd) end end
+-- Only this room producer commits. Per-connection full reads the committed DTO.
+function R:publishRoom(room)
+ room.encoder=room.encoder or Codec.new(self.codecOptions)
+ local raw=self:snapshot(room)
+ local m=room.encoder:publish(raw,self.now)
+ if m then
+  local encoded=json.encode(m)
+  for fd,s in pairs(self.connections) do
+   if s.room==room and s.protocolVersion==2 and s.baseline then self:emit(fd,m);self.outbox[#self.outbox].encoded=encoded end
+  end
+ end
+ return raw
+end
+function R:sendState(s,cause)
+ if not s.room then return self:directory(s.fd) end
+ if s.protocolVersion~=2 then return self:emit(s.fd,self:snapshot(s.room)) end
+ if not s.room.encoder then self:publishRoom(s.room) end
+ local m=s.room.encoder:full(cause or 'bootstrap')
+ self:emit(s.fd,m);self.outbox[#self.outbox].encoded=json.encode(m)
+ s.baseline=true
+end
 function R:detach(s,explicit)
  local room=s.room
  if room and s.player then
@@ -106,7 +127,7 @@ function R:detach(s,explicit)
    if room.game.phase=='lobby' then for i,p in ipairs(room.game.players) do if p==s.player then table.remove(room.game.players,i);break end end end
   end
  end
- s.room=nil;s.player=nil;s.role='directory'
+ s.room=nil;s.player=nil;s.role='directory';s.baseline=false
 end
 function R:enter(s,room,role)
  if s.room then return self:error(s.fd,'Leave your current room first') end
@@ -121,7 +142,7 @@ function R:enter(s,room,role)
   if humans>=2 and bots>0 then self:removeBots(room) end
  end
  self:syncReady(room)
- room.emptySince=nil;self:welcome(s);self:sendState(s)
+ room.emptySince=nil;s.baseline=false;self:welcome(s);self:publishRoom(room);self:sendState(s)
 end
 function R:tryStart(room)
  if room.game.phase~='lobby' then return end
@@ -138,7 +159,7 @@ function R:join(fd,m)
    if not p then return self:error(fd,e) end
    s.name=p.name;s.color=p.color;if s.player then s.player.name=p.name end
   end
-  s.fd=fd;s.last=self.now;self.connections[fd]=s
+  s.fd=fd;s.last=self.now;s.protocolVersion=m.protocolVersion==2 and 2 or 1;s.baseline=false;s.lastResync=nil;self.connections[fd]=s
   if s.room and s.player then
    local p=s.room.game:join(fd,s.name,s.color,s.token)
    if p then p.token=s.token;s.player=p;s.room.ready[p.id]=false else self:detach(s,true) end
@@ -146,12 +167,12 @@ function R:join(fd,m)
    local _,_,count=self:counts(s.room)
    if count>16 then self:detach(s,true) end
   end
-  self:welcome(s);self:sendState(s);return
+  self:welcome(s);if s.room then self:publishRoom(s.room) end;self:sendState(s,'reconnect');return
  end
  -- Reuse core nickname/color validation without adding a directory user to a room.
  local validation=Game.new(self.tokenfn);local p,e=validation:join(fd,m.name,m.color)
  if not p then return self:error(fd,e) end
- s={token=p.token,name=p.name,color=p.color,fd=fd,role='directory',last=self.now}
+ s={protocolVersion=m.protocolVersion==2 and 2 or 1,token=p.token,name=p.name,color=p.color,fd=fd,role='directory',last=self.now}
  self.sessions[s.token]=s;self.connections[fd]=s;self:welcome(s);self:directory(fd)
 end
 function R:handle(fd,m,now)
@@ -181,6 +202,12 @@ function R:handle(fd,m,now)
   s.name=p.name;if s.player then s.player.name=p.name end
   self:emit(fd,{type='profile',name=s.name,color=s.color});return
  end
+ if m.type=='request_full' then
+  if s.room and s.protocolVersion==2 and (not s.lastResync or self.now-s.lastResync>=1) then
+   s.lastResync=self.now;self:sendState(s,'resync')
+  end
+  return
+ end
  if not s.room or s.role~='player' or not s.player then return self:error(fd,'Only room players can perform this action') end
  local room=s.room;local g=room.game
  if m.type=='add_bot' or m.type=='remove_bot' then
@@ -193,7 +220,7 @@ function R:handle(fd,m,now)
    if not bot then return self:error(fd,e) end
    bot.isBot=true;bot.token=nil;self:resetReady(room)
   end
-  self:sendState(s);return
+  self:publishRoom(room);self:sendState(s);return
  elseif m.type=='set_color' then
   if g.phase~='lobby' then return self:error(fd,'Not in lobby') end
   local allowed={['#38bdf8']=true,['#fb7185']=true,['#a78bfa']=true,['#facc15']=true,['#34d399']=true,['#fb923c']=true,['#e879f9']=true,['#cbd5e1']=true}
@@ -230,17 +257,20 @@ function R:advance(now)
   local occupied=false
   for _,s in pairs(self.sessions) do if s.room==room and (s.fd or self.now-s.last<10) then occupied=true;break end end
   if not occupied then
-   for _,s in pairs(self.sessions) do if s.room==room then s.room=nil;s.player=nil;s.role='directory' end end
+   for _,s in pairs(self.sessions) do if s.room==room then s.room=nil;s.player=nil;s.role='directory';s.baseline=false end end
    self.rooms[id]=nil
   end
  end
  for token,s in pairs(self.sessions) do if not s.fd and not s.room and self.now-s.last>=600 then self.sessions[token]=nil end end
 end
 function R:broadcastStates()
- local cache={}
- for fd,s in pairs(self.connections) do if s.room then
-  local id=s.room.id;cache[id]=cache[id] or self:snapshot(s.room);self:emit(fd,cache[id])
- end end
+ for _,room in pairs(self.rooms) do
+  local raw=self:publishRoom(room)
+  local encoded
+  for fd,s in pairs(self.connections) do if s.room==room and s.protocolVersion~=2 then
+   encoded=encoded or json.encode(raw);self:emit(fd,raw);self.outbox[#self.outbox].encoded=encoded
+  end end
+ end
 end
 function R:broadcastRooms() for fd,s in pairs(self.connections) do if s.role=='directory' then self:directory(fd) end end end
 return R

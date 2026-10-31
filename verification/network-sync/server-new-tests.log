@@ -1,0 +1,3 @@
+PASS codec: pure DTO, rounding, heartbeat throttling, canonical recovery, metadata, epochs, upsert/remove
+PASS stream mixed protocols, viewer resync/rate limit, canonical join, stable room epoch
+PASS shared encoding: 8 v2 + 1 v1 recipients, two JSON encodings
