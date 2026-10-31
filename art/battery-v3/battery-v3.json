@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "width": 256,
+  "height": 256,
+  "anchorX": 0.5000001788139343,
+  "anchorY": 0.9629505537450314,
+  "groundFootprintDiameterPx": 106.12363636363638,
+  "meshParts": 8,
+  "upAxis": "+Z",
+  "sourceReference": "Actual current client/public/assets/cartoon/battery.png: yellow cylinder, white bolt, graphite caps and silver positive terminal.",
+  "scope": "Independent editable source and preview only. Existing ground pickup texture and cargo rendering are NOT replaced in this phase.",
+  "cameraRotationXYZ": [
+    0.765677273273468,
+    -8.973237264342515e-09,
+    -0.6419384479522705
+  ],
+  "cameraOrthoScale": 1.649999976158142,
+  "shadow": "Transparent sprite, no ground cast-shadow baked."
+}

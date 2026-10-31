@@ -1,0 +1,3364 @@
+{
+  "method": "Actual production Phaser World via authorized cloud CDP DOM controls; fixed canvases not browser viewport emulation",
+  "headings": 16,
+  "palettes": 8,
+  "checks": [
+    {
+      "case": "forward",
+      "canvas": [
+        390,
+        844
+      ],
+      "pass": true,
+      "phaseDelta": 10.735789179666611,
+      "samples": [
+        {
+          "frame": 0,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 1,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 2,
+          "state": {
+            "id": "p0",
+            "x": 4.493750000023283,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0.6977971813613258,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 3,
+          "state": {
+            "id": "p0",
+            "x": 9.625,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 1.4945864524212435,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 4,
+          "state": {
+            "id": "p0",
+            "x": 13.174999999988358,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 2.045836520585193,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 5,
+          "state": {
+            "id": "p0",
+            "x": 18.98876562502877,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 2.948607984557943,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 6,
+          "state": {
+            "id": "p0",
+            "x": 23.40625,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 3.6345625092971146,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 7,
+          "state": {
+            "id": "p0",
+            "x": 28.413187499978143,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 4.412048322864617,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 8,
+          "state": {
+            "id": "p0",
+            "x": 35,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 5.434859826986339,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 9,
+          "state": {
+            "id": "p0",
+            "x": 37.42499999998836,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 5.811417972140013,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 10,
+          "state": {
+            "id": "p0",
+            "x": 43.80703125000218,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 6.8024306937192005,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 11,
+          "state": {
+            "id": "p0",
+            "x": 49.73749999998836,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 7.723324018419137,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 12,
+          "state": {
+            "id": "p0",
+            "x": 55,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 8.540494013835678,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 13,
+          "state": {
+            "id": "p0",
+            "x": 57.168749999953434,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 8.877261220964922,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 14,
+          "state": {
+            "id": "p0",
+            "x": 63.82265624998399,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 9.91049115727419,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 15,
+          "state": {
+            "id": "p0",
+            "x": 69.13750000001164,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 10.735789179666611,
+            "steer": 0,
+            "active": true
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "case": "reverse",
+      "canvas": [
+        390,
+        844
+      ],
+      "pass": true,
+      "phaseDelta": -10.760067717550253,
+      "samples": [
+        {
+          "frame": 0,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 1,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 2,
+          "state": {
+            "id": "p0",
+            "x": -4.5625,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -0.708472798875005,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 3,
+          "state": {
+            "id": "p0",
+            "x": -10,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -1.5528170934246688,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 4,
+          "state": {
+            "id": "p0",
+            "x": -13.106250000011642,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -2.035160903071514,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 5,
+          "state": {
+            "id": "p0",
+            "x": -17.693578124960897,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -2.7474890556284075,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 6,
+          "state": {
+            "id": "p0",
+            "x": -24.122147949219723,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -3.74572836656672,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 7,
+          "state": {
+            "id": "p0",
+            "x": -30,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -4.658451280274005,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 8,
+          "state": {
+            "id": "p0",
+            "x": -31.993750000023283,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -4.968044188279164,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 9,
+          "state": {
+            "id": "p0",
+            "x": -39.66750000000102,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -6.159637205342462,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 10,
+          "state": {
+            "id": "p0",
+            "x": -43.09375,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -6.691671161976932,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 11,
+          "state": {
+            "id": "p0",
+            "x": -49.03681249998257,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -7.61452006570334,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 12,
+          "state": {
+            "id": "p0",
+            "x": -54.79999999998836,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -8.50943767196538,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 13,
+          "state": {
+            "id": "p0",
+            "x": -59.70000000001164,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -9.27031804774708,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 14,
+          "state": {
+            "id": "p0",
+            "x": -62.03749999997672,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -9.633289043329672,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 15,
+          "state": {
+            "id": "p0",
+            "x": -69.29385156251344,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": -10.760067717550253,
+            "steer": 0,
+            "active": true
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "case": "idle",
+      "canvas": [
+        390,
+        844
+      ],
+      "pass": true,
+      "phaseDelta": 0,
+      "samples": [
+        {
+          "frame": 0,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 1,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 2,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 3,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 4,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 5,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 6,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 7,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 8,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 9,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 10,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 11,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 12,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 13,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 14,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 15,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "case": "lateral",
+      "canvas": [
+        390,
+        844
+      ],
+      "pass": true,
+      "phaseDelta": 0,
+      "samples": [
+        {
+          "frame": 0,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 1,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 2,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 4.46875,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 3,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 7.9874999999883585,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 4,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 14.034140625003783,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 5,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 19.13750000001164,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 6,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 23.98749999998836,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 7,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 29.71106250002206,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 8,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 33.28125,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 9,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 38.9537500000406,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 10,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 44.16875000001164,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 11,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 49.21875,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 12,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 55,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 13,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 58.49375000002328,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 14,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 60.8125,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 15,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 69.26664062500204,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "case": "steer",
+      "canvas": [
+        390,
+        844
+      ],
+      "pass": true,
+      "phaseDelta": 0,
+      "samples": [
+        {
+          "frame": 0,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 1,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0,
+            "heading": 0,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 2,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.033975000000209546,
+            "heading": 0,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 3,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.08231512499990884,
+            "heading": 0,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 4,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.12712500000000004,
+            "heading": 0,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 5,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.17263125000020954,
+            "heading": 0,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 6,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.2192062500001047,
+            "heading": 0,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 7,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.25081875000020953,
+            "heading": 1,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 8,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.3060838828122594,
+            "heading": 1,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 9,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.3523499999996857,
+            "heading": 1,
+            "phase": 0,
+            "steer": 0,
+            "active": true
+          }
+        },
+        {
+          "frame": 10,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.3973499999996856,
+            "heading": 1,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 11,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.4484250000001047,
+            "heading": 1,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 12,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.47818124999979045,
+            "heading": 1,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 13,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.5312093906247732,
+            "heading": 1,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 14,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.5818499999996857,
+            "heading": 1,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        },
+        {
+          "frame": 15,
+          "state": {
+            "id": "p0",
+            "x": 0,
+            "y": 0,
+            "angle": 0.6222937499998952,
+            "heading": 1,
+            "phase": 0,
+            "steer": 1,
+            "active": true
+          }
+        }
+      ],
+      "errors": []
+    },
+    {
+      "case": "canvas-cargo",
+      "canvas": [
+        390,
+        844
+      ],
+      "cargo": 0,
+      "ready": true,
+      "body": [
+        {
+          "id": "rover-v3-p0-0",
+          "texture": "rover-v3-0",
+          "frame": "b-0-38bdf8",
+          "pixelWidth": 134,
+          "pixelHeight": 68,
+          "displayWidth": 70.24193548387098,
+          "displayHeight": 35.645161290322584,
+          "x": 164.63867141129032,
+          "y": 409.07970161290325,
+          "depth": 4,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": false,
+          "cropWidth": 0,
+          "cropHeight": 0
+        }
+      ],
+      "rasterRgbaBytes": 40896008,
+      "rasterTextures": [
+        {
+          "keys": [
+            "station-v3",
+            "scene-child-2"
+          ],
+          "width": 256,
+          "height": 256,
+          "rgbaBytes": 262144
+        },
+        {
+          "keys": [
+            "chassis"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "tire"
+          ],
+          "width": 128,
+          "height": 78,
+          "rgbaBytes": 39936
+        },
+        {
+          "keys": [
+            "rover"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "battery"
+          ],
+          "width": 191,
+          "height": 384,
+          "rgbaBytes": 293376
+        },
+        {
+          "keys": [
+            "station"
+          ],
+          "width": 384,
+          "height": 384,
+          "rgbaBytes": 589824
+        },
+        {
+          "keys": [
+            "island",
+            "scene-child-0"
+          ],
+          "width": 1140,
+          "height": 1152,
+          "rgbaBytes": 5253120
+        },
+        {
+          "keys": [
+            "rover-v3-0",
+            "scene-child-4",
+            "scene-child-5",
+            "scene-child-6",
+            "scene-child-7",
+            "scene-child-8",
+            "scene-child-9",
+            "scene-child-10",
+            "scene-child-11",
+            "scene-child-12"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "rover-v3-1"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "b9b2256c-d1cd-4377-883f-a9e2b04917ff",
+            "scene-child-14"
+          ],
+          "width": 113,
+          "height": 34,
+          "rgbaBytes": 15368
+        }
+      ],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "case": "canvas-cargo",
+      "canvas": [
+        390,
+        844
+      ],
+      "cargo": 10,
+      "ready": true,
+      "body": [
+        {
+          "id": "rover-v3-p0-0",
+          "texture": "rover-v3-0",
+          "frame": "b-0-38bdf8",
+          "pixelWidth": 134,
+          "pixelHeight": 68,
+          "displayWidth": 70.24193548387098,
+          "displayHeight": 35.645161290322584,
+          "x": 164.63867141129032,
+          "y": 409.07970161290325,
+          "depth": 4,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": false,
+          "cropWidth": 0,
+          "cropHeight": 0
+        }
+      ],
+      "rasterRgbaBytes": 40896960,
+      "rasterTextures": [
+        {
+          "keys": [
+            "station-v3",
+            "scene-child-2"
+          ],
+          "width": 256,
+          "height": 256,
+          "rgbaBytes": 262144
+        },
+        {
+          "keys": [
+            "chassis"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "tire"
+          ],
+          "width": 128,
+          "height": 78,
+          "rgbaBytes": 39936
+        },
+        {
+          "keys": [
+            "rover"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "battery"
+          ],
+          "width": 191,
+          "height": 384,
+          "rgbaBytes": 293376
+        },
+        {
+          "keys": [
+            "station"
+          ],
+          "width": 384,
+          "height": 384,
+          "rgbaBytes": 589824
+        },
+        {
+          "keys": [
+            "island",
+            "scene-child-0"
+          ],
+          "width": 1140,
+          "height": 1152,
+          "rgbaBytes": 5253120
+        },
+        {
+          "keys": [
+            "rover-v3-0",
+            "scene-child-4",
+            "scene-child-5",
+            "scene-child-6",
+            "scene-child-7",
+            "scene-child-8",
+            "scene-child-9",
+            "scene-child-10",
+            "scene-child-11",
+            "scene-child-12"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "rover-v3-1"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "b9b2256c-d1cd-4377-883f-a9e2b04917ff",
+            "scene-child-14"
+          ],
+          "width": 120,
+          "height": 34,
+          "rgbaBytes": 16320
+        }
+      ],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "case": "canvas-cargo",
+      "canvas": [
+        390,
+        844
+      ],
+      "cargo": 20,
+      "ready": true,
+      "body": [
+        {
+          "id": "rover-v3-p0-0",
+          "texture": "rover-v3-0",
+          "frame": "b-0-38bdf8",
+          "pixelWidth": 134,
+          "pixelHeight": 68,
+          "displayWidth": 70.24193548387098,
+          "displayHeight": 35.645161290322584,
+          "x": 164.63867141129032,
+          "y": 409.07970161290325,
+          "depth": 4,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": false,
+          "cropWidth": 0,
+          "cropHeight": 0
+        }
+      ],
+      "rasterRgbaBytes": 40897640,
+      "rasterTextures": [
+        {
+          "keys": [
+            "station-v3",
+            "scene-child-2"
+          ],
+          "width": 256,
+          "height": 256,
+          "rgbaBytes": 262144
+        },
+        {
+          "keys": [
+            "chassis"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "tire"
+          ],
+          "width": 128,
+          "height": 78,
+          "rgbaBytes": 39936
+        },
+        {
+          "keys": [
+            "rover"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "battery"
+          ],
+          "width": 191,
+          "height": 384,
+          "rgbaBytes": 293376
+        },
+        {
+          "keys": [
+            "station"
+          ],
+          "width": 384,
+          "height": 384,
+          "rgbaBytes": 589824
+        },
+        {
+          "keys": [
+            "island",
+            "scene-child-0"
+          ],
+          "width": 1140,
+          "height": 1152,
+          "rgbaBytes": 5253120
+        },
+        {
+          "keys": [
+            "rover-v3-0",
+            "scene-child-4",
+            "scene-child-5",
+            "scene-child-6",
+            "scene-child-7",
+            "scene-child-8",
+            "scene-child-9",
+            "scene-child-10",
+            "scene-child-11",
+            "scene-child-12"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "rover-v3-1"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "b9b2256c-d1cd-4377-883f-a9e2b04917ff",
+            "scene-child-14"
+          ],
+          "width": 125,
+          "height": 34,
+          "rgbaBytes": 17000
+        }
+      ],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "case": "removal-reconnect",
+      "canvas": [
+        390,
+        844
+      ],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "case": "canvas-cargo",
+      "canvas": [
+        844,
+        390
+      ],
+      "cargo": 0,
+      "ready": true,
+      "body": [
+        {
+          "id": "rover-v3-p0-0",
+          "texture": "rover-v3-0",
+          "frame": "b-0-38bdf8",
+          "pixelWidth": 134,
+          "pixelHeight": 68,
+          "displayWidth": 94.67391304347827,
+          "displayHeight": 48.04347826086957,
+          "x": 381.07820929347827,
+          "y": 162.63438043478263,
+          "depth": 4,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": false,
+          "cropWidth": 0,
+          "cropHeight": 0
+        }
+      ],
+      "rasterRgbaBytes": 40896008,
+      "rasterTextures": [
+        {
+          "keys": [
+            "station-v3",
+            "scene-child-2"
+          ],
+          "width": 256,
+          "height": 256,
+          "rgbaBytes": 262144
+        },
+        {
+          "keys": [
+            "chassis"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "tire"
+          ],
+          "width": 128,
+          "height": 78,
+          "rgbaBytes": 39936
+        },
+        {
+          "keys": [
+            "battery"
+          ],
+          "width": 191,
+          "height": 384,
+          "rgbaBytes": 293376
+        },
+        {
+          "keys": [
+            "rover"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "station"
+          ],
+          "width": 384,
+          "height": 384,
+          "rgbaBytes": 589824
+        },
+        {
+          "keys": [
+            "island",
+            "scene-child-0"
+          ],
+          "width": 1140,
+          "height": 1152,
+          "rgbaBytes": 5253120
+        },
+        {
+          "keys": [
+            "rover-v3-1"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "rover-v3-0",
+            "scene-child-4",
+            "scene-child-5",
+            "scene-child-6",
+            "scene-child-7",
+            "scene-child-8",
+            "scene-child-9",
+            "scene-child-10",
+            "scene-child-11",
+            "scene-child-12"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "c9e60007-ea65-485f-8796-312dac12d658",
+            "scene-child-14"
+          ],
+          "width": 113,
+          "height": 34,
+          "rgbaBytes": 15368
+        }
+      ],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "case": "canvas-cargo",
+      "canvas": [
+        844,
+        390
+      ],
+      "cargo": 10,
+      "ready": true,
+      "body": [
+        {
+          "id": "rover-v3-p0-0",
+          "texture": "rover-v3-0",
+          "frame": "b-0-38bdf8",
+          "pixelWidth": 134,
+          "pixelHeight": 68,
+          "displayWidth": 94.67391304347827,
+          "displayHeight": 48.04347826086957,
+          "x": 381.07820929347827,
+          "y": 162.63438043478263,
+          "depth": 4,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": false,
+          "cropWidth": 0,
+          "cropHeight": 0
+        }
+      ],
+      "rasterRgbaBytes": 40896960,
+      "rasterTextures": [
+        {
+          "keys": [
+            "station-v3",
+            "scene-child-2"
+          ],
+          "width": 256,
+          "height": 256,
+          "rgbaBytes": 262144
+        },
+        {
+          "keys": [
+            "chassis"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "tire"
+          ],
+          "width": 128,
+          "height": 78,
+          "rgbaBytes": 39936
+        },
+        {
+          "keys": [
+            "battery"
+          ],
+          "width": 191,
+          "height": 384,
+          "rgbaBytes": 293376
+        },
+        {
+          "keys": [
+            "rover"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "station"
+          ],
+          "width": 384,
+          "height": 384,
+          "rgbaBytes": 589824
+        },
+        {
+          "keys": [
+            "island",
+            "scene-child-0"
+          ],
+          "width": 1140,
+          "height": 1152,
+          "rgbaBytes": 5253120
+        },
+        {
+          "keys": [
+            "rover-v3-1"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "rover-v3-0",
+            "scene-child-4",
+            "scene-child-5",
+            "scene-child-6",
+            "scene-child-7",
+            "scene-child-8",
+            "scene-child-9",
+            "scene-child-10",
+            "scene-child-11",
+            "scene-child-12"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "c9e60007-ea65-485f-8796-312dac12d658",
+            "scene-child-14"
+          ],
+          "width": 120,
+          "height": 34,
+          "rgbaBytes": 16320
+        }
+      ],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "case": "canvas-cargo",
+      "canvas": [
+        844,
+        390
+      ],
+      "cargo": 20,
+      "ready": true,
+      "body": [
+        {
+          "id": "rover-v3-p0-0",
+          "texture": "rover-v3-0",
+          "frame": "b-0-38bdf8",
+          "pixelWidth": 134,
+          "pixelHeight": 68,
+          "displayWidth": 94.67391304347827,
+          "displayHeight": 48.04347826086957,
+          "x": 381.07820929347827,
+          "y": 162.63438043478263,
+          "depth": 4,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": false,
+          "cropWidth": 0,
+          "cropHeight": 0
+        }
+      ],
+      "rasterRgbaBytes": 40897640,
+      "rasterTextures": [
+        {
+          "keys": [
+            "station-v3",
+            "scene-child-2"
+          ],
+          "width": 256,
+          "height": 256,
+          "rgbaBytes": 262144
+        },
+        {
+          "keys": [
+            "chassis"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "tire"
+          ],
+          "width": 128,
+          "height": 78,
+          "rgbaBytes": 39936
+        },
+        {
+          "keys": [
+            "battery"
+          ],
+          "width": 191,
+          "height": 384,
+          "rgbaBytes": 293376
+        },
+        {
+          "keys": [
+            "rover"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "station"
+          ],
+          "width": 384,
+          "height": 384,
+          "rgbaBytes": 589824
+        },
+        {
+          "keys": [
+            "island",
+            "scene-child-0"
+          ],
+          "width": 1140,
+          "height": 1152,
+          "rgbaBytes": 5253120
+        },
+        {
+          "keys": [
+            "rover-v3-1"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "rover-v3-0",
+            "scene-child-4",
+            "scene-child-5",
+            "scene-child-6",
+            "scene-child-7",
+            "scene-child-8",
+            "scene-child-9",
+            "scene-child-10",
+            "scene-child-11",
+            "scene-child-12"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "c9e60007-ea65-485f-8796-312dac12d658",
+            "scene-child-14"
+          ],
+          "width": 125,
+          "height": 34,
+          "rgbaBytes": 17000
+        }
+      ],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "case": "removal-reconnect",
+      "canvas": [
+        844,
+        390
+      ],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "case": "canvas-cargo",
+      "canvas": [
+        1200,
+        800
+      ],
+      "cargo": 0,
+      "ready": true,
+      "body": [
+        {
+          "id": "rover-v3-p0-0",
+          "texture": "rover-v3-0",
+          "frame": "b-0-38bdf8",
+          "pixelWidth": 134,
+          "pixelHeight": 68,
+          "displayWidth": 74.0495137046861,
+          "displayHeight": 37.577365163572054,
+          "x": 567.9928862732096,
+          "y": 390.58432802829356,
+          "depth": 4,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": false,
+          "cropWidth": 0,
+          "cropHeight": 0
+        }
+      ],
+      "rasterRgbaBytes": 40896008,
+      "rasterTextures": [
+        {
+          "keys": [
+            "station-v3",
+            "scene-child-2"
+          ],
+          "width": 256,
+          "height": 256,
+          "rgbaBytes": 262144
+        },
+        {
+          "keys": [
+            "chassis"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "tire"
+          ],
+          "width": 128,
+          "height": 78,
+          "rgbaBytes": 39936
+        },
+        {
+          "keys": [
+            "rover"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "battery"
+          ],
+          "width": 191,
+          "height": 384,
+          "rgbaBytes": 293376
+        },
+        {
+          "keys": [
+            "station"
+          ],
+          "width": 384,
+          "height": 384,
+          "rgbaBytes": 589824
+        },
+        {
+          "keys": [
+            "island",
+            "scene-child-0"
+          ],
+          "width": 1140,
+          "height": 1152,
+          "rgbaBytes": 5253120
+        },
+        {
+          "keys": [
+            "rover-v3-0",
+            "scene-child-4",
+            "scene-child-5",
+            "scene-child-6",
+            "scene-child-7",
+            "scene-child-8",
+            "scene-child-9",
+            "scene-child-10",
+            "scene-child-11",
+            "scene-child-12"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "rover-v3-1"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "b9b066e1-f0b2-4a3b-8011-8024d70bb33f",
+            "scene-child-14"
+          ],
+          "width": 113,
+          "height": 34,
+          "rgbaBytes": 15368
+        }
+      ],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "case": "canvas-cargo",
+      "canvas": [
+        1200,
+        800
+      ],
+      "cargo": 10,
+      "ready": true,
+      "body": [
+        {
+          "id": "rover-v3-p0-0",
+          "texture": "rover-v3-0",
+          "frame": "b-0-38bdf8",
+          "pixelWidth": 134,
+          "pixelHeight": 68,
+          "displayWidth": 74.0495137046861,
+          "displayHeight": 37.577365163572054,
+          "x": 567.9928862732096,
+          "y": 390.58432802829356,
+          "depth": 4,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": false,
+          "cropWidth": 0,
+          "cropHeight": 0
+        }
+      ],
+      "rasterRgbaBytes": 40896960,
+      "rasterTextures": [
+        {
+          "keys": [
+            "station-v3",
+            "scene-child-2"
+          ],
+          "width": 256,
+          "height": 256,
+          "rgbaBytes": 262144
+        },
+        {
+          "keys": [
+            "chassis"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "tire"
+          ],
+          "width": 128,
+          "height": 78,
+          "rgbaBytes": 39936
+        },
+        {
+          "keys": [
+            "rover"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "battery"
+          ],
+          "width": 191,
+          "height": 384,
+          "rgbaBytes": 293376
+        },
+        {
+          "keys": [
+            "station"
+          ],
+          "width": 384,
+          "height": 384,
+          "rgbaBytes": 589824
+        },
+        {
+          "keys": [
+            "island",
+            "scene-child-0"
+          ],
+          "width": 1140,
+          "height": 1152,
+          "rgbaBytes": 5253120
+        },
+        {
+          "keys": [
+            "rover-v3-0",
+            "scene-child-4",
+            "scene-child-5",
+            "scene-child-6",
+            "scene-child-7",
+            "scene-child-8",
+            "scene-child-9",
+            "scene-child-10",
+            "scene-child-11",
+            "scene-child-12"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "rover-v3-1"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "b9b066e1-f0b2-4a3b-8011-8024d70bb33f",
+            "scene-child-14"
+          ],
+          "width": 120,
+          "height": 34,
+          "rgbaBytes": 16320
+        }
+      ],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "case": "canvas-cargo",
+      "canvas": [
+        1200,
+        800
+      ],
+      "cargo": 20,
+      "ready": true,
+      "body": [
+        {
+          "id": "rover-v3-p0-0",
+          "texture": "rover-v3-0",
+          "frame": "b-0-38bdf8",
+          "pixelWidth": 134,
+          "pixelHeight": 68,
+          "displayWidth": 74.0495137046861,
+          "displayHeight": 37.577365163572054,
+          "x": 567.9928862732096,
+          "y": 390.58432802829356,
+          "depth": 4,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": false,
+          "cropWidth": 0,
+          "cropHeight": 0
+        }
+      ],
+      "rasterRgbaBytes": 40897640,
+      "rasterTextures": [
+        {
+          "keys": [
+            "station-v3",
+            "scene-child-2"
+          ],
+          "width": 256,
+          "height": 256,
+          "rgbaBytes": 262144
+        },
+        {
+          "keys": [
+            "chassis"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "tire"
+          ],
+          "width": 128,
+          "height": 78,
+          "rgbaBytes": 39936
+        },
+        {
+          "keys": [
+            "rover"
+          ],
+          "width": 384,
+          "height": 289,
+          "rgbaBytes": 443904
+        },
+        {
+          "keys": [
+            "battery"
+          ],
+          "width": 191,
+          "height": 384,
+          "rgbaBytes": 293376
+        },
+        {
+          "keys": [
+            "station"
+          ],
+          "width": 384,
+          "height": 384,
+          "rgbaBytes": 589824
+        },
+        {
+          "keys": [
+            "island",
+            "scene-child-0"
+          ],
+          "width": 1140,
+          "height": 1152,
+          "rgbaBytes": 5253120
+        },
+        {
+          "keys": [
+            "rover-v3-0",
+            "scene-child-4",
+            "scene-child-5",
+            "scene-child-6",
+            "scene-child-7",
+            "scene-child-8",
+            "scene-child-9",
+            "scene-child-10",
+            "scene-child-11",
+            "scene-child-12"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "rover-v3-1"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "rgbaBytes": 16777216
+        },
+        {
+          "keys": [
+            "b9b066e1-f0b2-4a3b-8011-8024d70bb33f",
+            "scene-child-14"
+          ],
+          "width": 125,
+          "height": 34,
+          "rgbaBytes": 17000
+        }
+      ],
+      "errors": [],
+      "pass": true
+    },
+    {
+      "case": "removal-reconnect",
+      "canvas": [
+        1200,
+        800
+      ],
+      "pass": true,
+      "errors": []
+    },
+    {
+      "case": "overlap",
+      "canvas": [
+        1200,
+        800
+      ],
+      "pass": true,
+      "upperDepths": [
+        4,
+        4.001,
+        4.001001,
+        4.00102,
+        4.001021,
+        4.00104,
+        4.001041,
+        4.00106,
+        4.001061
+      ],
+      "lowerDepths": [
+        4.375,
+        4.376,
+        4.376001,
+        4.37602,
+        4.376021,
+        4.37604,
+        4.376041,
+        4.37606,
+        4.376061
+      ],
+      "errors": []
+    },
+    {
+      "case": "browser-raf-intervals",
+      "canvas": [
+        1200,
+        800
+      ],
+      "pass": true,
+      "samples": [
+        6.199999999626016,
+        16.700000000000728,
+        16.600000000002183,
+        16.69999999999709,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.600000000002183,
+        16.69999999999709,
+        16.600000000002183,
+        16.799999999999272,
+        16.5,
+        16.700000000000728,
+        16.700000000000728,
+        16.69999999999709,
+        16.600000000002183,
+        16.700000000000728,
+        16.69999999999709,
+        16.700000000000728,
+        16.600000000002183,
+        16.599999999998545,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.599999999998545,
+        16.80000000000291,
+        16.5,
+        16.799999999999272,
+        16.599999999998545,
+        16.600000000002183,
+        16.69999999999709,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.600000000002183,
+        16.700000000000728,
+        16.69999999999709,
+        16.700000000000728,
+        16.600000000002183,
+        16.69999999999709,
+        16.700000000000728,
+        16.600000000002183,
+        16.69999999999709,
+        16.600000000002183,
+        16.700000000000728,
+        16.69999999999709,
+        16.600000000002183,
+        16.700000000000728,
+        16.69999999999709,
+        16.600000000002183,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.700000000000728,
+        16.599999999998545,
+        16.700000000000728,
+        16.599999999998545
+      ],
+      "medianMs": 16.700000000000728,
+      "p95Ms": 16.700000000000728,
+      "maxMs": 16.80000000000291,
+      "limitation": "Desktop browser RAF intervals only, not physical phone FPS"
+    },
+    {
+      "case": "missing-manifest-atlas-fallback",
+      "canvas": [
+        844,
+        390
+      ],
+      "pass": true,
+      "body": {
+        "id": "car-p0",
+        "texture": "chassis-38bdf8",
+        "frame": "trim",
+        "pixelWidth": 192,
+        "pixelHeight": 134,
+        "displayWidth": 83.08695652173913,
+        "displayHeight": 57.65217391304348,
+        "x": 422,
+        "y": 202.8,
+        "depth": 4,
+        "angle": 0,
+        "visible": true,
+        "hasMask": false,
+        "isCropped": false,
+        "cropWidth": 0,
+        "cropHeight": 0
+      },
+      "errors": [],
+      "method": "Verification-only subclass suppresses manifest preload, production fallback selector unchanged"
+    },
+    {
+      "case": "repeated-navigation",
+      "iteration": 0,
+      "pass": true,
+      "errors": []
+    },
+    {
+      "case": "repeated-navigation",
+      "iteration": 1,
+      "pass": true,
+      "errors": []
+    },
+    {
+      "case": "repeated-navigation",
+      "iteration": 2,
+      "pass": true,
+      "errors": []
+    },
+    {
+      "case": "cropped-wheel-boost-reduced-cleanup",
+      "pass": true,
+      "strips": [
+        {
+          "id": "rover-boost-p0-1-0",
+          "texture": "rover-v3-0",
+          "frame": "w-0-front-left-0-0",
+          "pixelWidth": 43,
+          "pixelHeight": 31,
+          "displayWidth": 22.540322580645164,
+          "displayHeight": 16.25,
+          "x": 202.3806068951613,
+          "y": 404.8861532258064,
+          "depth": 4.0010004,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 43,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-1-1",
+          "texture": "rover-v3-0",
+          "frame": "w-0-front-left-0-0",
+          "pixelWidth": 43,
+          "pixelHeight": 31,
+          "displayWidth": 22.540322580645164,
+          "displayHeight": 16.25,
+          "x": 202.3806068951613,
+          "y": 404.8861532258064,
+          "depth": 4.0010004,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 43,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-1-2",
+          "texture": "rover-v3-0",
+          "frame": "w-0-front-left-0-0",
+          "pixelWidth": 43,
+          "pixelHeight": 31,
+          "displayWidth": 22.540322580645164,
+          "displayHeight": 16.25,
+          "x": 202.3806068951613,
+          "y": 404.8861532258064,
+          "depth": 4.0010004,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 43,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-3-0",
+          "texture": "rover-v3-0",
+          "frame": "w-0-front-right-0-0",
+          "pixelWidth": 48,
+          "pixelHeight": 43,
+          "displayWidth": 25.161290322580644,
+          "displayHeight": 22.540322580645164,
+          "x": 199.7596391532258,
+          "y": 434.24099193548386,
+          "depth": 4.0010204,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 48,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-3-1",
+          "texture": "rover-v3-0",
+          "frame": "w-0-front-right-0-0",
+          "pixelWidth": 48,
+          "pixelHeight": 43,
+          "displayWidth": 25.161290322580644,
+          "displayHeight": 22.540322580645164,
+          "x": 199.7596391532258,
+          "y": 434.24099193548386,
+          "depth": 4.0010204,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 48,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-3-2",
+          "texture": "rover-v3-0",
+          "frame": "w-0-front-right-0-0",
+          "pixelWidth": 48,
+          "pixelHeight": 43,
+          "displayWidth": 25.161290322580644,
+          "displayHeight": 22.540322580645164,
+          "x": 199.7596391532258,
+          "y": 434.24099193548386,
+          "depth": 4.0010204,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 48,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-5-0",
+          "texture": "rover-v3-0",
+          "frame": "w-0-rear-left-0-0",
+          "pixelWidth": 43,
+          "pixelHeight": 31,
+          "displayWidth": 22.540322580645164,
+          "displayHeight": 16.25,
+          "x": 164.63867141129032,
+          "y": 404.8861532258064,
+          "depth": 4.0010404,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 43,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-5-1",
+          "texture": "rover-v3-0",
+          "frame": "w-0-rear-left-0-0",
+          "pixelWidth": 43,
+          "pixelHeight": 31,
+          "displayWidth": 22.540322580645164,
+          "displayHeight": 16.25,
+          "x": 164.63867141129032,
+          "y": 404.8861532258064,
+          "depth": 4.0010404,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 43,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-5-2",
+          "texture": "rover-v3-0",
+          "frame": "w-0-rear-left-0-0",
+          "pixelWidth": 43,
+          "pixelHeight": 31,
+          "displayWidth": 22.540322580645164,
+          "displayHeight": 16.25,
+          "x": 164.63867141129032,
+          "y": 404.8861532258064,
+          "depth": 4.0010404,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 43,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-7-0",
+          "texture": "rover-v3-0",
+          "frame": "w-0-rear-right-0-0",
+          "pixelWidth": 48,
+          "pixelHeight": 43,
+          "displayWidth": 25.161290322580644,
+          "displayHeight": 22.540322580645164,
+          "x": 164.63867141129032,
+          "y": 434.24099193548386,
+          "depth": 4.0010604,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 48,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-7-1",
+          "texture": "rover-v3-0",
+          "frame": "w-0-rear-right-0-0",
+          "pixelWidth": 48,
+          "pixelHeight": 43,
+          "displayWidth": 25.161290322580644,
+          "displayHeight": 22.540322580645164,
+          "x": 164.63867141129032,
+          "y": 434.24099193548386,
+          "depth": 4.0010604,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 48,
+          "cropHeight": 2
+        },
+        {
+          "id": "rover-boost-p0-7-2",
+          "texture": "rover-v3-0",
+          "frame": "w-0-rear-right-0-0",
+          "pixelWidth": 48,
+          "pixelHeight": 43,
+          "displayWidth": 25.161290322580644,
+          "displayHeight": 22.540322580645164,
+          "x": 164.63867141129032,
+          "y": 434.24099193548386,
+          "depth": 4.0010604,
+          "angle": 0,
+          "visible": true,
+          "hasMask": false,
+          "isCropped": true,
+          "cropWidth": 48,
+          "cropHeight": 2
+        }
+      ],
+      "reducedCount": 0,
+      "errors": []
+    }
+  ],
+  "pixelMotionSequence": [
+    {
+      "file": "forward-0.jpg",
+      "states": [
+        {
+          "id": "p0",
+          "x": 3.0874999999650754,
+          "y": 0,
+          "angle": 0,
+          "heading": 0,
+          "phase": 0.47943227758944323,
+          "steer": 0,
+          "active": true
+        }
+      ],
+      "wheelFrames": [
+        "w-0-front-left-0-1",
+        "w-0-front-right-0-1",
+        "w-0-rear-left-0-1",
+        "w-0-rear-right-0-1"
+      ]
+    },
+    {
+      "file": "forward-1.jpg",
+      "states": [
+        {
+          "id": "p0",
+          "x": 6.40625,
+          "y": 0,
+          "angle": 0,
+          "heading": 0,
+          "phase": 0.9947734504751783,
+          "steer": 0,
+          "active": true
+        }
+      ],
+      "wheelFrames": [
+        "w-0-front-left-0-3",
+        "w-0-front-right-0-3",
+        "w-0-rear-left-0-3",
+        "w-0-rear-right-0-3"
+      ]
+    },
+    {
+      "file": "forward-2.jpg",
+      "states": [
+        {
+          "id": "p0",
+          "x": 17.17499999998836,
+          "y": 0,
+          "angle": 0,
+          "heading": 0,
+          "phase": 2.6669633579550607,
+          "steer": 0,
+          "active": true
+        }
+      ],
+      "wheelFrames": [
+        "w-0-front-left-0-2",
+        "w-0-front-right-0-2",
+        "w-0-rear-left-0-2",
+        "w-0-rear-right-0-2"
+      ]
+    },
+    {
+      "file": "forward-3.jpg",
+      "states": [
+        {
+          "id": "p0",
+          "x": 24.839242187468756,
+          "y": 0,
+          "angle": 0,
+          "heading": 0,
+          "phase": 3.8570799856416644,
+          "steer": 0,
+          "active": true
+        }
+      ],
+      "wheelFrames": [
+        "w-0-front-left-0-3",
+        "w-0-front-right-0-3",
+        "w-0-rear-left-0-3",
+        "w-0-rear-right-0-3"
+      ]
+    },
+    {
+      "file": "forward-4.jpg",
+      "states": [
+        {
+          "id": "p0",
+          "x": 31.006250000034925,
+          "y": 0,
+          "angle": 0,
+          "heading": 0,
+          "phase": 4.814703500305287,
+          "steer": 0,
+          "active": true
+        }
+      ],
+      "wheelFrames": [
+        "w-0-front-left-0-3",
+        "w-0-front-right-0-3",
+        "w-0-rear-left-0-3",
+        "w-0-rear-right-0-3"
+      ]
+    },
+    {
+      "file": "forward-5.jpg",
+      "states": [
+        {
+          "id": "p0",
+          "x": 45.77500000002328,
+          "y": 0,
+          "angle": 0,
+          "heading": 0,
+          "phase": 7.1080202451550365,
+          "steer": 0,
+          "active": true
+        }
+      ],
+      "wheelFrames": [
+        "w-0-front-left-0-0",
+        "w-0-front-right-0-0",
+        "w-0-rear-left-0-0",
+        "w-0-rear-right-0-0"
+      ]
+    },
+    {
+      "file": "forward-6.jpg",
+      "states": [
+        {
+          "id": "p0",
+          "x": 56.600000000034925,
+          "y": 0,
+          "angle": 0,
+          "heading": 0,
+          "phase": 8.788944748789048,
+          "steer": 0,
+          "active": true
+        }
+      ],
+      "wheelFrames": [
+        "w-0-front-left-0-3",
+        "w-0-front-right-0-3",
+        "w-0-rear-left-0-3",
+        "w-0-rear-right-0-3"
+      ]
+    },
+    {
+      "file": "forward-7.jpg",
+      "states": [
+        {
+          "id": "p0",
+          "x": 70,
+          "y": 0,
+          "angle": 0,
+          "heading": 0,
+          "phase": 10.86971965397268,
+          "steer": 0,
+          "active": true
+        }
+      ],
+      "wheelFrames": [
+        "w-0-front-left-0-3",
+        "w-0-front-right-0-3",
+        "w-0-rear-left-0-3",
+        "w-0-rear-right-0-3"
+      ]
+    }
+  ],
+  "memory": {
+    "atlasTextures": [
+      {
+        "key": "rover-v3-0",
+        "width": 2048,
+        "height": 2048,
+        "rgbaBytes": 16777216
+      },
+      {
+        "key": "rover-v3-1",
+        "width": 2048,
+        "height": 2048,
+        "rgbaBytes": 16777216
+      }
+    ],
+    "atlasRgbaBytes": 33554432,
+    "allRasterTextures": [
+      {
+        "keys": [
+          "station-v3",
+          "scene-child-2"
+        ],
+        "width": 256,
+        "height": 256,
+        "rgbaBytes": 262144
+      },
+      {
+        "keys": [
+          "chassis"
+        ],
+        "width": 384,
+        "height": 289,
+        "rgbaBytes": 443904
+      },
+      {
+        "keys": [
+          "tire"
+        ],
+        "width": 128,
+        "height": 78,
+        "rgbaBytes": 39936
+      },
+      {
+        "keys": [
+          "rover"
+        ],
+        "width": 384,
+        "height": 289,
+        "rgbaBytes": 443904
+      },
+      {
+        "keys": [
+          "battery"
+        ],
+        "width": 191,
+        "height": 384,
+        "rgbaBytes": 293376
+      },
+      {
+        "keys": [
+          "station"
+        ],
+        "width": 384,
+        "height": 384,
+        "rgbaBytes": 589824
+      },
+      {
+        "keys": [
+          "island",
+          "scene-child-0"
+        ],
+        "width": 1140,
+        "height": 1152,
+        "rgbaBytes": 5253120
+      },
+      {
+        "keys": [
+          "rover-v3-0",
+          "scene-child-4",
+          "scene-child-5",
+          "scene-child-6",
+          "scene-child-7",
+          "scene-child-8",
+          "scene-child-9",
+          "scene-child-10",
+          "scene-child-11",
+          "scene-child-12",
+          "scene-child-13",
+          "scene-child-14",
+          "scene-child-15",
+          "scene-child-16",
+          "scene-child-17",
+          "scene-child-18",
+          "scene-child-19",
+          "scene-child-20",
+          "scene-child-21",
+          "scene-child-22",
+          "scene-child-23",
+          "scene-child-24",
+          "scene-child-25",
+          "scene-child-26",
+          "scene-child-27",
+          "scene-child-28",
+          "scene-child-29",
+          "scene-child-30",
+          "scene-child-31",
+          "scene-child-32",
+          "scene-child-33",
+          "scene-child-34",
+          "scene-child-35",
+          "scene-child-36",
+          "scene-child-37",
+          "scene-child-38",
+          "scene-child-39",
+          "scene-child-40",
+          "scene-child-41",
+          "scene-child-42",
+          "scene-child-43",
+          "scene-child-44",
+          "scene-child-45",
+          "scene-child-46",
+          "scene-child-47",
+          "scene-child-48",
+          "scene-child-49",
+          "scene-child-50",
+          "scene-child-51",
+          "scene-child-52",
+          "scene-child-53",
+          "scene-child-54",
+          "scene-child-55",
+          "scene-child-56",
+          "scene-child-57",
+          "scene-child-58",
+          "scene-child-59",
+          "scene-child-60",
+          "scene-child-61",
+          "scene-child-62",
+          "scene-child-63",
+          "scene-child-64",
+          "scene-child-65",
+          "scene-child-66",
+          "scene-child-67",
+          "scene-child-68",
+          "scene-child-69",
+          "scene-child-70",
+          "scene-child-71",
+          "scene-child-72",
+          "scene-child-73",
+          "scene-child-74",
+          "scene-child-75"
+        ],
+        "width": 2048,
+        "height": 2048,
+        "rgbaBytes": 16777216
+      },
+      {
+        "keys": [
+          "rover-v3-1"
+        ],
+        "width": 2048,
+        "height": 2048,
+        "rgbaBytes": 16777216
+      },
+      {
+        "keys": [
+          "15b08316-99f3-48e5-8e9f-9ad99e40c3ae",
+          "scene-child-77"
+        ],
+        "width": 125,
+        "height": 34,
+        "rgbaBytes": 17000
+      },
+      {
+        "keys": [
+          "9850586f-2a1f-4909-bb28-d18b7566dfff",
+          "scene-child-78"
+        ],
+        "width": 60,
+        "height": 20,
+        "rgbaBytes": 4800
+      },
+      {
+        "keys": [
+          "be2dc665-4c44-4e9d-97e4-6e2580c5b3d3",
+          "scene-child-79"
+        ],
+        "width": 60,
+        "height": 20,
+        "rgbaBytes": 4800
+      },
+      {
+        "keys": [
+          "2aee3f4c-d461-4e03-8c49-34a5ad07be1f",
+          "scene-child-80"
+        ],
+        "width": 60,
+        "height": 20,
+        "rgbaBytes": 4800
+      },
+      {
+        "keys": [
+          "e1d776aa-e7da-4335-bd25-712b2095b2f7",
+          "scene-child-81"
+        ],
+        "width": 60,
+        "height": 20,
+        "rgbaBytes": 4800
+      },
+      {
+        "keys": [
+          "29c89eda-4315-45cf-8730-4bd581af7d1f",
+          "scene-child-82"
+        ],
+        "width": 60,
+        "height": 20,
+        "rgbaBytes": 4800
+      },
+      {
+        "keys": [
+          "15736c9e-be58-421a-9ff7-709de112a9d5",
+          "scene-child-83"
+        ],
+        "width": 60,
+        "height": 20,
+        "rgbaBytes": 4800
+      },
+      {
+        "keys": [
+          "78159e8f-f2b2-4d35-86d7-a888f09394a2",
+          "scene-child-84"
+        ],
+        "width": 60,
+        "height": 20,
+        "rgbaBytes": 4800
+      }
+    ],
+    "allRasterRgbaBytes": 40931240,
+    "method": "Unique texture-manager and scene-child source image/canvas object width*height*4; excludes driver/mipmap allocations and decoded CPU copies"
+  },
+  "headingsChecks": [
+    {
+      "requested": 0,
+      "states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 1,
+      "states": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 2,
+      "states": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 3,
+      "states": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 4,
+      "states": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 5,
+      "states": [
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 6,
+      "states": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 7,
+      "states": [
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 8,
+      "states": [
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 9,
+      "states": [
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9,
+        9
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 10,
+      "states": [
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10,
+        10
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 11,
+      "states": [
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11,
+        11
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 12,
+      "states": [
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 13,
+      "states": [
+        13,
+        13,
+        13,
+        13,
+        13,
+        13,
+        13,
+        13
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 14,
+      "states": [
+        14,
+        14,
+        14,
+        14,
+        14,
+        14,
+        14,
+        14
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    },
+    {
+      "requested": 15,
+      "states": [
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15,
+        15
+      ],
+      "layers": 72,
+      "errors": [],
+      "pixelGeometryPass": true
+    }
+  ],
+  "browserViewport": [
+    1188,
+    761
+  ],
+  "canvasSizes": [
+    [
+      390,
+      844
+    ],
+    [
+      844,
+      390
+    ],
+    [
+      1200,
+      800
+    ]
+  ],
+  "status": "passed-authorized-canvas-replay",
+  "limits": [
+    "Fixed Phaser canvases, NOT true mobile browser viewport emulation",
+    "No live server, native mini-game simulator, physical phone FPS, or authoritative deposit/reconnect proof",
+    "Headless true-viewport sweep not executed in this environment"
+  ]
+}

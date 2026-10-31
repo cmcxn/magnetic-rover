@@ -1,0 +1,19 @@
+{
+  "runtimeSize": [
+    256,
+    256
+  ],
+  "alphaBounds": [
+    26,
+    34,
+    220,
+    209
+  ],
+  "noClipping": true,
+  "rgba": true,
+  "anchorContractValid": true,
+  "cameraMatchesApprovedRover": true,
+  "standardRecycleEmblem": true,
+  "referenceVisuallyInspected": true,
+  "runtimeGameplayUnchangedByAssetWorker": true
+}

@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "texture": "station-v3.png",
+  "width": 256,
+  "height": 256,
+  "anchorX": 0.5226148366928101,
+  "anchorY": 0.6174816787242889,
+  "anchor": {
+    "x": 0.5226148366928101,
+    "y": 0.6174816787242889
+  },
+  "groundAnchorNormalized": [
+    0.5226148366928101,
+    0.6174816787242889
+  ],
+  "groundAnchorPx": [
+    133.78939819335938,
+    158.07530975341797
+  ],
+  "groundFootprintDiameterPx": 167.4541176470588,
+  "mainGroundRadiusModel": 1.39,
+  "camera": {
+    "projection": "ORTHO",
+    "orthoScale": 4.25,
+    "rotationXYZ": [
+      0.765677273273468,
+      -8.973237264342515e-09,
+      -0.6419384479522705
+    ],
+    "location": [
+      -6.344225883483887,
+      -8.326041221618652,
+      11.293697357177734
+    ]
+  },
+  "placement": "Align ground anchor with unchanged station center; displayCanvasSize=(r+5)*2*256/groundFootprintDiameterPx. Do not change gameplay radius. Ramp can extend beyond circular footprint.",
+  "entranceModelDirection": "-X",
+  "shadow": "Transparent production sprite, no ground cast-shadow baked. Self-shadow only.",
+  "reference": "User gameplay guide third panel; conservative hidden geometry."
+}

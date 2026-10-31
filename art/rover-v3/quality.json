@@ -1,0 +1,54 @@
+{
+  "representative": "screen heading0 near front-right wheel, steering0",
+  "phaseDegrees": [
+    0,
+    5,
+    10,
+    15
+  ],
+  "rgbMetric": "premultiplied RGB; fully transparent colour excluded",
+  "transitions": [
+    {
+      "visiblePixels": 1615,
+      "rgbChangedPixels": 875,
+      "rgbMax": 30,
+      "rgbRMS": 5.0433415626593305,
+      "alphaChangedPixels": 179,
+      "alphaDifferenceOver16": 31,
+      "alphaMax": 63,
+      "alphaRMS": 5.335377575202062
+    },
+    {
+      "visiblePixels": 1615,
+      "rgbChangedPixels": 885,
+      "rgbMax": 38,
+      "rgbRMS": 4.941076956096526,
+      "alphaChangedPixels": 174,
+      "alphaDifferenceOver16": 29,
+      "alphaMax": 59,
+      "alphaRMS": 5.367140015917639
+    },
+    {
+      "visiblePixels": 1611,
+      "rgbChangedPixels": 866,
+      "rgbMax": 34,
+      "rgbRMS": 5.066064683765416,
+      "alphaChangedPixels": 179,
+      "alphaDifferenceOver16": 31,
+      "alphaMax": 63,
+      "alphaRMS": 5.4756954100336594
+    }
+  ],
+  "interpretation": "Tread change is subtle at gameplay scale; alpha silhouette differences demonstrate geometry change, not only shaded RGB noise.",
+  "identicalPoseRepeat": {
+    "visiblePixels": 1607,
+    "rgbChangedPixels": 0,
+    "rgbMax": 0,
+    "rgbRMS": 0.0,
+    "alphaChangedPixels": 0,
+    "alphaDifferenceOver16": 0,
+    "alphaMax": 0,
+    "alphaRMS": 0.0,
+    "decodedRGBAEqual": true
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "meshObjects": 49,
+  "cameraRotationMatchesApprovedRover": true,
+  "sourceSavedProductionResolution": [
+    256,
+    256
+  ],
+  "externalTextureDependencies": false,
+  "editableMeshSource": true,
+  "backgroundRenderingOnly": true
+}

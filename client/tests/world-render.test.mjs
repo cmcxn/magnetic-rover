@@ -4,6 +4,7 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 import { VehicleMotion, TireDust, wheelAngle } from "../src/vehicle-effects.ts";
+import { stepRoverVisual, resolveRoverLayers } from "../src/rover-visual.ts";
 import { Motion } from "../src/motion.ts";
 import { cameraPolicy } from "../src/types.ts";
 const source = fs.readFileSync(
@@ -12,7 +13,7 @@ const source = fs.readFileSync(
 );
 const compiled = ts.transpileModule(
   source
-    .replace(/^import .*;$/gm, "")
+    .replace(/^import[\s\S]*?from ["\'][^"\']+["\'];/gm, "")
     .replace("export class World", "class World"),
   {
     compilerOptions: {
@@ -38,6 +39,8 @@ function harness() {
   }
   const context = {
     cameraPolicy,
+    stepRoverVisual,
+    resolveRoverLayers,
     VehicleMotion,
     TireDust,
     wheelAngle,

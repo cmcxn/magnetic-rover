@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "angleUnits": "radians, clockwise screen-right zero",
+  "referenceSize": 192,
+  "worldWidth": 160,
+  "worldWidthMeaning": "full uncropped 192px reference canvas",
+  "palettes": [
+    "38bdf8",
+    "fb7185",
+    "a78bfa",
+    "facc15",
+    "34d399",
+    "fb923c",
+    "e879f9",
+    "cbd5e1"
+  ],
+  "atlases": [
+    {
+      "key": "rover-v3-0",
+      "image": "atlas-0.png",
+      "data": "atlas-0.json"
+    }
+  ],
+  "headingType": {
+    "screenAngle": "number",
+    "modelYaw": "number",
+    "body": {
+      "hex": "LayerRecord[]"
+    },
+    "wheels": [
+      {
+        "id": "front-left|front-right|rear-left|rear-right",
+        "front": "boolean",
+        "poses": {
+          "steer": {
+            "phase": "LayerRecord[]"
+          }
+        },
+        "accents": {
+          "hex": {
+            "steer": {
+              "phase": "LayerRecord[]"
+            }
+          }
+        },
+        "groundAnchor": "[root-relative px x,y] pivot ground XY"
+      }
+    ],
+    "wheelTravelPerCycle": "per-heading projected world travel per20deg tread cycle",
+    "cargoProjection": {
+      "origin": "root-relative px at modelz1.55",
+      "xAxis": "projected +X source unit",
+      "yAxis": "projected +Y source unit",
+      "legacyXScale": 0.046,
+      "legacyXOffset": 0.481,
+      "legacyYScale": 0.042
+    }
+  },
+  "LayerRecord": {
+    "texture": "atlas key",
+    "frame": "frame key",
+    "width": "crop px",
+    "height": "crop px",
+    "anchorX": 0,
+    "anchorY": 0,
+    "offsetX": "crop left - root x (reference px)",
+    "offsetY": "crop top - root y (reference px)",
+    "depthOrder": "body 0, wheel base and hub >0; hub immediately after own base"
+  },
+  "composition": "draw body then masked wheel bases and selected palette hub overlays. Do not tint. All records use same reference pixel scale.",
+  "steeringSign": -1,
+  "wheelRadiusModel": 0.565,
+  "rollPeriodRadians": 0.3490658503988659,
+  "wheelTravelPerCycle": "mean projected world travel per20deg tread cycle"
+}

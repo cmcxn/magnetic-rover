@@ -96,6 +96,8 @@ const world = new (class extends World {
     this.load.on("loaderror", (file: any) =>
       console.error("[rover] asset failed", file.key, file.src),
     );
+    this.preloadRoverAssets("art/cartoon/rover-v3");
+    this.preloadStationAssets("art/cartoon");
     this.load.image("chassis", "art/cartoon/rover-chassis.png");
     this.load.image("tire", "art/cartoon/rover-tire.png");
     this.load.image("rover", "art/cartoon/rover.png");

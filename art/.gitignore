@@ -1,0 +1,5 @@
+# Blender backups and Python caches are reproducible intermediates.
+*.blend1
+*.blend2
+__pycache__/
+*.pyc

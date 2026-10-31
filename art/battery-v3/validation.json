@@ -1,0 +1,26 @@
+{
+  "sourceOnlyNoRuntimeReplacement": true,
+  "spriteSize": [
+    256,
+    256
+  ],
+  "alphaBounds": [
+    74,
+    34,
+    182,
+    232
+  ],
+  "heroSize": [
+    1024,
+    1024
+  ],
+  "heroAlphaBounds": [
+    298,
+    138,
+    726,
+    925
+  ],
+  "visuallyReviewed": true,
+  "noClipping": true,
+  "whiteLightningAndPositiveTerminalLegible": true
+}

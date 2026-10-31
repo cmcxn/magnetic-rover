@@ -1,10 +1,25 @@
 import Phaser from "phaser";
+import {
+  stepRoverVisual,
+  resolveRoverLayers,
+  type VisualState,
+  type RoverManifest,
+} from "./rover-visual";
 import { VehicleMotion, TireDust, wheelAngle } from "./vehicle-effects";
 import { Motion, type Control } from "./motion";
 import { cameraPolicy, type State } from "./types";
 export class World extends Phaser.Scene {
   state: State | null = null;
   private motion = new Motion();
+  private roverManifest: RoverManifest | null = null;
+  private stationVisual: {
+    width: number;
+    height: number;
+    anchorX: number;
+    anchorY: number;
+    groundFootprintDiameterPx: number;
+  } | null = null;
+  private roverVisuals = new Map<string, VisualState>();
   private wheelMotion = new VehicleMotion();
   private tireDust = new TireDust();
   private dustAt = new Map<string, number>();
@@ -15,6 +30,7 @@ export class World extends Phaser.Scene {
   resetMotion() {
     this.motion.reset();
     this.wheelMotion.reset();
+    this.roverVisuals.clear();
     this.tireDust.clear();
     this.dustAt.clear();
     // Wait for a fresh snapshot after a focus/session reset.
@@ -86,7 +102,23 @@ export class World extends Phaser.Scene {
   spriteIds = new Set<string>();
   get vehicleDiagnostics() {
     return {
-      revision: "wheels-2",
+      revision: "prerendered-rover-v3",
+      roverV3: {
+        ready: this.roverManifest !== null,
+        players: this.roverVisuals.size,
+        states: [...this.roverVisuals].map(([id, state]) => ({ id, ...state })),
+        layers: [...this.sprites]
+          .filter(([id]) => id.startsWith("rover-v3-"))
+          .map(([id, s]) => ({
+            id,
+            texture: s.texture.key,
+            frame: s.frame.name,
+            x: s.x,
+            y: s.y,
+            width: s.displayWidth,
+            height: s.displayHeight,
+          })),
+      },
       effectsActive: this.effectsActive,
       snapshotAge: this.effectAge,
       assets: {
@@ -139,7 +171,36 @@ export class World extends Phaser.Scene {
   boostFeedback() {
     if (!this.reducedEffects) this.cameras?.main.shake(100, 0.002);
   }
+  preloadStationAssets(base: string) {
+    this.load.image("station-v3", `${base}/station-v3.png`);
+    this.load.json("station-v3-meta", `${base}/station-v3.json`);
+  }
+  preloadRoverAssets(base: string) {
+    this.load.once(
+      "filecomplete-json-rover-v3-manifest",
+      (_key: string, _type: string, data: RoverManifest) => {
+        if (!Array.isArray(data?.atlases)) return;
+        for (const atlas of data.atlases) {
+          if (
+            !atlas ||
+            typeof atlas.key !== "string" ||
+            !/^atlas-\d+\.png$/.test(atlas.image) ||
+            !/^atlas-\d+\.json$/.test(atlas.data)
+          )
+            continue;
+          this.load.atlas(
+            atlas.key,
+            `${base}/${atlas.image}`,
+            `${base}/${atlas.data}`,
+          );
+        }
+      },
+    );
+    this.load.json("rover-v3-manifest", `${base}/manifest.json`);
+  }
   preload() {
+    this.preloadRoverAssets("/assets/cartoon/rover-v3");
+    this.preloadStationAssets("/assets/cartoon");
     this.load.image("chassis", "/assets/cartoon/rover-chassis.png");
     this.load.image("tire", "/assets/cartoon/rover-tire.png");
     this.load.image("rover", "/assets/cartoon/rover.png");
@@ -149,7 +210,14 @@ export class World extends Phaser.Scene {
   }
   create() {
     // Production PNGs are alpha-trimmed at export, retaining their original sources.
-    for (const key of ["rover", "chassis", "tire", "battery", "station"]) {
+    for (const key of [
+      "rover",
+      "chassis",
+      "tire",
+      "battery",
+      "station",
+      "station-v3",
+    ]) {
       if (this.textures.exists(key)) {
         const source = this.textures
           .get(key)
@@ -159,8 +227,61 @@ export class World extends Phaser.Scene {
           .add("trim", 0, 0, 0, source.width, source.height);
       }
     }
-    this.createRoverColors();
-    this.createWheelFrames();
+    const station = this.cache?.json?.get("station-v3-meta");
+    if (
+      station?.version === 1 &&
+      this.textures.exists("station-v3") &&
+      [
+        station.width,
+        station.height,
+        station.anchorX,
+        station.anchorY,
+        station.groundFootprintDiameterPx,
+      ].every(Number.isFinite) &&
+      station.width > 0 &&
+      station.height > 0 &&
+      station.groundFootprintDiameterPx > 0 &&
+      station.anchorX >= 0 &&
+      station.anchorX <= 1 &&
+      station.anchorY >= 0 &&
+      station.anchorY <= 1
+    )
+      this.stationVisual = station;
+    const candidate = this.cache?.json?.get("rover-v3-manifest") as
+      RoverManifest | undefined;
+    if (
+      candidate &&
+      candidate.palettes?.length === 8 &&
+      candidate.headings?.length === 16 &&
+      candidate.palettes?.every((palette) =>
+        candidate.headings?.every((_heading, heading) =>
+          [-1, 0, 1].every((steer) =>
+            [0, 1, 2, 3].every((phase) => {
+              const layers = resolveRoverLayers(candidate, palette, {
+                x: 0,
+                y: 0,
+                angle: 0,
+                heading,
+                phase: phase / 4,
+                steer: steer as -1 | 0 | 1,
+              });
+              return (
+                layers.length > 0 &&
+                layers.every(
+                  (layer) =>
+                    this.textures.exists(layer.texture) &&
+                    this.textures.get(layer.texture).has(layer.frame),
+                )
+              );
+            }),
+          ),
+        ),
+      )
+    )
+      this.roverManifest = candidate;
+    // Legacy generated textures are only needed for the atomic fallback.
+    if (!this.roverManifest) this.createRoverColors();
+    if (!this.roverManifest) this.createWheelFrames();
     this.createBackground();
     this.g = this.add.graphics();
     this.cargoG = this.add.graphics().setDepth(5);
@@ -333,16 +454,21 @@ export class World extends Phaser.Scene {
     height: number,
     depth: number,
     angle = 0,
+    frame = "trim",
+    originX = 0.5,
+    originY = 0.5,
   ) {
     if (!this.textures.exists(key)) return false;
     this.spriteIds.add(id);
     let image = this.sprites.get(id);
     if (!image) {
-      image = this.add.image(0, 0, key, "trim");
+      image = this.add.image(0, 0, key, frame);
       this.sprites.set(id, image);
     }
-    if (image.texture?.key !== key) image.setTexture(key, "trim");
+    if (image.texture?.key !== key) image.setTexture(key, frame);
+    else if (image.frame?.name !== frame) image.setFrame(frame);
     image
+      .setOrigin(originX, originY)
       .setPosition(this.ox + x * this.worldScale, this.oy + y * this.worldScale)
       .setDisplaySize(width * this.worldScale, height * this.worldScale)
       .setRotation(angle)
@@ -374,6 +500,7 @@ export class World extends Phaser.Scene {
       ) {
         this.impactState.clear();
         this.wheelMotion.reset();
+        this.roverVisuals.clear();
         this.tireDust.clear();
         this.dustAt.clear();
       }
@@ -530,6 +657,24 @@ export class World extends Phaser.Scene {
       { x: 0, y: 380, r: 65 },
     ];
     stations.forEach((p, i) => {
+      const art = this.stationVisual;
+      if (
+        art &&
+        this.sprite(
+          `station-${i}`,
+          "station-v3",
+          p.x,
+          p.y,
+          ((p.r + 5) * 2 * art.width) / art.groundFootprintDiameterPx,
+          ((p.r + 5) * 2 * art.height) / art.groundFootprintDiameterPx,
+          1,
+          0,
+          "trim",
+          art.anchorX,
+          art.anchorY,
+        )
+      )
+        return;
       if (
         this.sprite(
           `station-${i}`,
@@ -634,6 +779,16 @@ export class World extends Phaser.Scene {
         p.size * (0.8 + p.age * 4),
       );
     }
+    // Keep each complete rover group together when cars overlap.
+    const drawOrder = new Map(
+      [...(this.state?.players ?? [])]
+        .sort(
+          (a, b) =>
+            (this.smooth.get(a.id)?.y ?? a.y) -
+              (this.smooth.get(b.id)?.y ?? b.y) || a.id.localeCompare(b.id),
+        )
+        .map((player, index) => [player.id, index]),
+    );
     const present = new Set<string>();
     for (const p of this.state?.players ?? []) {
       present.add(p.id);
@@ -685,25 +840,92 @@ export class World extends Phaser.Scene {
           frame: wheels.frame,
           steer: wheels.steer,
         };
+      const visualState = stepRoverVisual(this.roverVisuals.get(p.id) ?? null, {
+        ...v,
+        dtMs: delta,
+        active: effectsActive && p.connected && p.stun <= 0,
+        reset: false,
+        worldUnitsPerTurn:
+          (this.roverManifest?.headings[
+            this.roverVisuals.get(p.id)?.heading ?? 0
+          ]?.wheelTravelPerCycle ??
+            this.roverManifest?.wheelTravelPerCycle ??
+            60) * vehicleScale,
+      });
+      const layers = resolveRoverLayers(
+        this.roverManifest,
+        p.color,
+        visualState,
+      );
+      const prerendered =
+        layers.length > 0 &&
+        layers.every(
+          (layer) =>
+            this.textures.exists(layer.texture) &&
+            this.textures.get(layer.texture).has(layer.frame),
+        );
+      if (prerendered) {
+        this.roverVisuals.set(p.id, visualState);
+        const scale =
+          (this.roverManifest!.worldWidth / this.roverManifest!.referenceSize) *
+          vehicleScale;
+        layers.forEach((layer, index) =>
+          this.sprite(
+            `rover-v3-${p.id}-${index}`,
+            layer.texture,
+            v.x + layer.offsetX * scale,
+            v.y + layer.offsetY * scale,
+            layer.width * scale,
+            layer.height * scale,
+            4 +
+              ((drawOrder.get(p.id) ?? 0) / Math.max(1, drawOrder.size)) *
+                0.75 +
+              layer.depthOrder * 0.001,
+            0,
+            layer.frame,
+            layer.anchorX,
+            layer.anchorY,
+          ),
+        );
+      } else this.roverVisuals.delete(p.id);
       const layered =
-        this.textures.exists("chassis") && this.textures.exists("tire-roll-0");
-      if (layered) {
+        !prerendered &&
+        this.textures.exists("chassis") &&
+        this.textures.exists("tire-roll-0");
+      if (layered || prerendered) {
         for (const front of [false, true])
           for (const side of [-1, 1]) {
             const lx = (front ? 22 : -33) * vehicleScale,
               ly = side * 25 * vehicleScale;
-            const x = v.x + lx * Math.cos(v.angle) - ly * Math.sin(v.angle),
-              y = v.y + lx * Math.sin(v.angle) + ly * Math.cos(v.angle);
-            this.sprite(
-              `wheel-${p.id}-${front}-${side}`,
-              `tire-roll-${wheels.frame}`,
-              x,
-              y,
-              30 * vehicleScale,
-              18 * vehicleScale,
-              3,
-              v.angle + wheelAngle(wheels.steer, side, front),
-            );
+            const contact = prerendered
+              ? this.roverManifest?.headings[visualState.heading].wheels.find(
+                  (w) =>
+                    w.id ===
+                    `${front ? "front" : "rear"}-${side > 0 ? "left" : "right"}`,
+                )?.groundAnchor
+              : undefined;
+            const unit = this.roverManifest
+              ? (this.roverManifest.worldWidth /
+                  this.roverManifest.referenceSize) *
+                vehicleScale
+              : 1;
+            const x = contact
+                ? v.x + contact[0] * unit
+                : v.x + lx * Math.cos(v.angle) - ly * Math.sin(v.angle),
+              y = contact
+                ? v.y + contact[1] * unit
+                : v.y + lx * Math.sin(v.angle) + ly * Math.cos(v.angle);
+            if (layered)
+              this.sprite(
+                `wheel-${p.id}-${front}-${side}`,
+                `tire-roll-${wheels.frame}`,
+                x,
+                y,
+                30 * vehicleScale,
+                18 * vehicleScale,
+                3,
+                v.angle + wheelAngle(wheels.steer, side, front),
+              );
             if (
               effectsActive &&
               !this.reducedEffects &&
@@ -724,30 +946,59 @@ export class World extends Phaser.Scene {
           this.dustAt.set(p.id, _time);
       }
       const bodyKey = layered ? "chassis" : "rover";
-      const hasSprite = this.sprite(
-        `car-${p.id}`,
-        this.textures.exists(bodyKey + "-" + p.color.slice(1))
-          ? bodyKey + "-" + p.color.slice(1)
-          : bodyKey,
-        v.x,
-        v.y,
-        49 * roverScale,
-        34 * roverScale,
-        4,
-        v.angle,
-      );
+      const hasSprite =
+        prerendered ||
+        this.sprite(
+          `car-${p.id}`,
+          this.textures.exists(bodyKey + "-" + p.color.slice(1))
+            ? bodyKey + "-" + p.color.slice(1)
+            : bodyKey,
+          v.x,
+          v.y,
+          49 * roverScale,
+          34 * roverScale,
+          4,
+          v.angle,
+        );
       if (p.id === this.self) {
         g.lineStyle(2, 0x376e60, 0.65);
         g.strokeCircle(v.x, v.y, boundaryRadius);
       }
       if (!p.connected) circle(v.x, v.y, 25 * roverScale, 0xffffff, 0.5);
       // Car points along +X. Four tires, windscreen, headlights and roof arrow.
-      const rot = (x: number, y: number) => ({
-        x:
-          v!.x + roverScale * (x * Math.cos(v!.angle) - y * Math.sin(v!.angle)),
-        y:
-          v!.y + roverScale * (x * Math.sin(v!.angle) + y * Math.cos(v!.angle)),
-      });
+      const deck = prerendered
+        ? this.roverManifest?.headings[visualState.heading].cargoProjection
+        : undefined;
+      const deckScale = this.roverManifest
+        ? (this.roverManifest.worldWidth / this.roverManifest.referenceSize) *
+          vehicleScale
+        : 1;
+      const rot = (x: number, y: number, onDeck = false) =>
+        onDeck && deck
+          ? {
+              x:
+                v.x +
+                deckScale *
+                  (deck.origin[0] +
+                    deck.xAxis[0] *
+                      (x * deck.legacyXScale + deck.legacyXOffset) +
+                    deck.yAxis[0] * y * deck.legacyYScale),
+              y:
+                v.y +
+                deckScale *
+                  (deck.origin[1] +
+                    deck.xAxis[1] *
+                      (x * deck.legacyXScale + deck.legacyXOffset) +
+                    deck.yAxis[1] * y * deck.legacyYScale),
+            }
+          : {
+              x:
+                v!.x +
+                roverScale * (x * Math.cos(v!.angle) - y * Math.sin(v!.angle)),
+              y:
+                v!.y +
+                roverScale * (x * Math.sin(v!.angle) + y * Math.cos(v!.angle)),
+            };
       const box = (
         x: number,
         y: number,
@@ -755,12 +1006,13 @@ export class World extends Phaser.Scene {
         h: number,
         col: number,
         layer = g,
+        onDeck = false,
       ) => {
         const pts = [
-          rot(x - w / 2, y - h / 2),
-          rot(x + w / 2, y - h / 2),
-          rot(x + w / 2, y + h / 2),
-          rot(x - w / 2, y + h / 2),
+          rot(x - w / 2, y - h / 2, onDeck),
+          rot(x + w / 2, y - h / 2, onDeck),
+          rot(x + w / 2, y + h / 2, onDeck),
+          rot(x - w / 2, y + h / 2, onDeck),
         ];
         layer.fillStyle(
           col,
@@ -789,12 +1041,12 @@ export class World extends Phaser.Scene {
       // Twenty visible cells on the rear deck, wholly inside the solid radius60.
       const cargo = Math.min(20, Math.max(0, Math.floor(p.cargo)));
       if (cargo > 0) {
-        box(-11, 0, 25, 24, 0x476355, this.cargoG);
+        box(-11, 0, 25, 24, 0x476355, this.cargoG, true);
         for (let k = 0; k < cargo; k++) {
           const x = -1 - Math.floor(k / 4) * 5;
           const y = -9 + (k % 4) * 6;
-          box(x, y, 4, 5, 0xedc34f, this.cargoG);
-          box(x + 0.8, y - 1, 1, 2.5, 0xfff8d4, this.cargoG);
+          box(x, y, 4, 5, 0xedc34f, this.cargoG, true);
+          box(x + 0.8, y - 1, 1, 2.5, 0xfff8d4, this.cargoG, true);
         }
       }
       // Permanent driver-color badge on the hood, independent of boost state.
@@ -890,7 +1142,46 @@ export class World extends Phaser.Scene {
         }
         // The approved design includes streaks ON the tires, not only the
         // central exhaust. Draw above tires and below the chassis.
-        if (!this.reducedEffects) {
+        if (!this.reducedEffects && prerendered) {
+          // Reuse the actual occlusion-masked wheel frame for thin bright strips.
+          // Cropping retains its source alpha, so a strip cannot paint the body,
+          // a hidden tire region, or a nearer rover. No canvas/mask is generated.
+          const unit =
+            (this.roverManifest!.worldWidth /
+              this.roverManifest!.referenceSize) *
+            vehicleScale;
+          const groupDepth =
+            4 +
+            ((drawOrder.get(p.id) ?? 0) / Math.max(1, drawOrder.size)) * 0.75;
+          layers.forEach((layer, index) => {
+            if (layer.role !== "wheel" || layer.height < 3) return;
+            for (let band = 0; band < 3; band++) {
+              const id = `rover-boost-${p.id}-${index}-${band}`;
+              this.sprite(
+                id,
+                layer.texture,
+                v.x + layer.offsetX * unit,
+                v.y + layer.offsetY * unit,
+                layer.width * unit,
+                layer.height * unit,
+                groupDepth + (layer.depthOrder + 0.0004) * 0.001,
+                0,
+                layer.frame,
+                layer.anchorX,
+                layer.anchorY,
+              );
+              const y = Math.floor(
+                ((layer.height * (band + 1)) / 4 + _time * 0.035) %
+                  (layer.height - 2),
+              );
+              this.sprites
+                .get(id)!
+                .setTintFill(0x53edfa)
+                .setAlpha(0.75)
+                .setCrop(0, y, layer.width, 2);
+            }
+          });
+        } else if (!this.reducedEffects) {
           for (const axle of [-16.5, 11])
             for (const side of [-1, 1]) {
               for (const band of [-2.5, 0, 2.5]) {
@@ -972,6 +1263,8 @@ export class World extends Phaser.Scene {
       label.setVisible(this.state?.phase === "playing");
     }
     this.wheelMotion.retain(present);
+    for (const id of this.roverVisuals.keys())
+      if (!present.has(id)) this.roverVisuals.delete(id);
     for (const id of this.dustAt.keys())
       if (!present.has(id)) this.dustAt.delete(id);
     for (const id of this.impactState.keys())

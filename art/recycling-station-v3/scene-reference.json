@@ -1,0 +1,93 @@
+{
+  "source": "User-approved magnetic_rover_v3_direction_source.blend",
+  "camera_rotation_xyz": [
+    0.765677273273468,
+    -8.973237264342515e-09,
+    -0.6419384479522705
+  ],
+  "camera_location_original": [
+    -6.0,
+    -8.199999809265137,
+    11.300000190734863
+  ],
+  "camera_ortho_original": 4.900000095367432,
+  "view_transform": "Standard",
+  "look": "Medium High Contrast",
+  "exposure": -0.5,
+  "gamma": 1.0,
+  "lights": [
+    {
+      "name": "Cool_fill",
+      "location": [
+        2.0,
+        -1.0,
+        5.0
+      ],
+      "rotation": [
+        0.47018396854400635,
+        -8.91049012352596e-08,
+        1.1071490049362183
+      ],
+      "type": "AREA",
+      "energy": 220.0,
+      "color": [
+        0.6800000071525574,
+        0.8199999928474426,
+        1.0
+      ],
+      "shape": "DISK",
+      "size": 3.0
+    },
+    {
+      "name": "Rim",
+      "location": [
+        2.0,
+        4.0,
+        6.0
+      ],
+      "rotation": [
+        0.6916853785514832,
+        -7.195415463456811e-08,
+        2.677945137023926
+      ],
+      "type": "AREA",
+      "energy": 500.0,
+      "color": [
+        1.0,
+        0.9399999976158142,
+        0.8199999928474426
+      ],
+      "shape": "DISK",
+      "size": 3.0
+    },
+    {
+      "name": "Warm_key",
+      "location": [
+        -3.0,
+        -4.0,
+        7.0
+      ],
+      "rotation": [
+        0.6632028818130493,
+        3.3617357786397406e-09,
+        -0.6435011625289917
+      ],
+      "type": "AREA",
+      "energy": 650.0,
+      "color": [
+        1.0,
+        0.8700000047683716,
+        0.699999988079071
+      ],
+      "shape": "DISK",
+      "size": 4.0
+    }
+  ],
+  "world_color": [
+    0.6200000047683716,
+    0.7200000286102295,
+    1.0,
+    1.0
+  ],
+  "world_strength": 0.2199999988079071
+}

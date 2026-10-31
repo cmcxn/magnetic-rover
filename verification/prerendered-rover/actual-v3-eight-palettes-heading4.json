@@ -1,0 +1,1948 @@
+{
+  "method": "Actual production World, synthetic states; fixed Phaser canvas dimensions, not browser viewport emulation",
+  "width": 1200,
+  "height": 800,
+  "fallback": false,
+  "motion": [],
+  "raf": [],
+  "errors": [],
+  "rasterTextures": [
+    {
+      "keys": [
+        "station-v3"
+      ],
+      "width": 256,
+      "height": 256,
+      "rgbaBytes": 262144
+    },
+    {
+      "keys": [
+        "station"
+      ],
+      "width": 384,
+      "height": 384,
+      "rgbaBytes": 589824
+    },
+    {
+      "keys": [
+        "battery"
+      ],
+      "width": 191,
+      "height": 384,
+      "rgbaBytes": 293376
+    },
+    {
+      "keys": [
+        "chassis"
+      ],
+      "width": 384,
+      "height": 289,
+      "rgbaBytes": 443904
+    },
+    {
+      "keys": [
+        "tire"
+      ],
+      "width": 128,
+      "height": 78,
+      "rgbaBytes": 39936
+    },
+    {
+      "keys": [
+        "rover"
+      ],
+      "width": 384,
+      "height": 289,
+      "rgbaBytes": 443904
+    },
+    {
+      "keys": [
+        "island"
+      ],
+      "width": 1140,
+      "height": 1152,
+      "rgbaBytes": 5253120
+    },
+    {
+      "keys": [
+        "rover-v3-0"
+      ],
+      "width": 2048,
+      "height": 2048,
+      "rgbaBytes": 16777216
+    },
+    {
+      "keys": [
+        "rover-v3-1"
+      ],
+      "width": 2048,
+      "height": 2048,
+      "rgbaBytes": 16777216
+    },
+    {
+      "keys": [
+        "700ba706-d6b3-4690-a952-68e28de01b84"
+      ],
+      "width": 120,
+      "height": 34,
+      "rgbaBytes": 16320
+    },
+    {
+      "keys": [
+        "da41fd31-b668-468b-a0cd-f609416c6608"
+      ],
+      "width": 60,
+      "height": 20,
+      "rgbaBytes": 4800
+    },
+    {
+      "keys": [
+        "321e114a-2124-4abb-9fe0-6a0ad3b38bc3"
+      ],
+      "width": 60,
+      "height": 20,
+      "rgbaBytes": 4800
+    },
+    {
+      "keys": [
+        "244af01d-e3b4-487f-a803-5f3e9feeb0b0"
+      ],
+      "width": 60,
+      "height": 20,
+      "rgbaBytes": 4800
+    },
+    {
+      "keys": [
+        "1c2ef6b6-f3a1-4cce-beb4-640997ce1c8f"
+      ],
+      "width": 60,
+      "height": 20,
+      "rgbaBytes": 4800
+    },
+    {
+      "keys": [
+        "1e5a60d1-83f2-47bf-92c7-bf9a18df3b39"
+      ],
+      "width": 60,
+      "height": 20,
+      "rgbaBytes": 4800
+    },
+    {
+      "keys": [
+        "5820c20e-cfa1-454e-ba05-8131d4979ccc"
+      ],
+      "width": 60,
+      "height": 20,
+      "rgbaBytes": 4800
+    },
+    {
+      "keys": [
+        "ff03a87d-7a1e-4bd1-9de6-c3a00f780135"
+      ],
+      "width": 60,
+      "height": 20,
+      "rgbaBytes": 4800
+    }
+  ],
+  "heading": 4,
+  "palette": 0,
+  "cargo": 10,
+  "grid": true,
+  "overlap": false,
+  "removed": false,
+  "stationRadius": 65,
+  "reducedEffects": false,
+  "diagnostics": {
+    "revision": "prerendered-rover-v3",
+    "roverV3": {
+      "ready": true,
+      "players": 8,
+      "states": [
+        {
+          "id": "p0",
+          "x": -285,
+          "y": -115,
+          "angle": 1.5707963267948966,
+          "heading": 4,
+          "phase": 0,
+          "steer": 0,
+          "active": true
+        },
+        {
+          "id": "p1",
+          "x": -95,
+          "y": -115,
+          "angle": 1.5707963267948966,
+          "heading": 4,
+          "phase": 0,
+          "steer": 0,
+          "active": true
+        },
+        {
+          "id": "p2",
+          "x": 95,
+          "y": -115,
+          "angle": 1.5707963267948966,
+          "heading": 4,
+          "phase": 0,
+          "steer": 0,
+          "active": true
+        },
+        {
+          "id": "p3",
+          "x": 285,
+          "y": -115,
+          "angle": 1.5707963267948966,
+          "heading": 4,
+          "phase": 0,
+          "steer": 0,
+          "active": true
+        },
+        {
+          "id": "p4",
+          "x": -285,
+          "y": 115,
+          "angle": 1.5707963267948966,
+          "heading": 4,
+          "phase": 0,
+          "steer": 0,
+          "active": true
+        },
+        {
+          "id": "p5",
+          "x": -95,
+          "y": 115,
+          "angle": 1.5707963267948966,
+          "heading": 4,
+          "phase": 0,
+          "steer": 0,
+          "active": true
+        },
+        {
+          "id": "p6",
+          "x": 95,
+          "y": 115,
+          "angle": 1.5707963267948966,
+          "heading": 4,
+          "phase": 0,
+          "steer": 0,
+          "active": true
+        },
+        {
+          "id": "p7",
+          "x": 285,
+          "y": 115,
+          "angle": 1.5707963267948966,
+          "heading": 4,
+          "phase": 0,
+          "steer": 0,
+          "active": true
+        }
+      ],
+      "layers": [
+        {
+          "id": "rover-v3-p0-0",
+          "texture": "rover-v3-0",
+          "frame": "b-4-38bdf8",
+          "x": 390.0530100574713,
+          "y": 308.24568965517244,
+          "width": 41.44562334217506,
+          "height": 54.70822281167108
+        },
+        {
+          "id": "rover-v3-p0-1",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-left-0-0",
+          "x": 424.31472535366936,
+          "y": 337.53393015030946,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p0-2",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-left-0-0-38bdf8",
+          "x": 424.31472535366936,
+          "y": 344.1652298850575,
+          "width": 17.130857648099028,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p0-3",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-right-0-0",
+          "x": 380.6586687665783,
+          "y": 337.53393015030946,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p0-4",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-right-0-0-38bdf8",
+          "x": 381.21127707780727,
+          "y": 344.1652298850575,
+          "width": 16.578249336870023,
+          "height": 13.262599469496019
+        },
+        {
+          "id": "rover-v3-p0-5",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-left-0-0",
+          "x": 425.97255028735634,
+          "y": 310.4561229000884,
+          "width": 15.473032714412025,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p0-6",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-left-0-0-38bdf8",
+          "x": 438.6825414456234,
+          "y": 317.64003094606545,
+          "width": 2.763041556145004,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p0-7",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-right-0-0",
+          "x": 380.6586687665783,
+          "y": 310.4561229000884,
+          "width": 14.920424403183022,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p0-8",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-right-0-0-38bdf8",
+          "x": 381.21127707780727,
+          "y": 317.64003094606545,
+          "width": 2.210433244916003,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p1-0",
+          "texture": "rover-v3-0",
+          "frame": "b-4-fb7185",
+          "x": 516.0477050176835,
+          "y": 308.24568965517244,
+          "width": 41.44562334217506,
+          "height": 54.70822281167108
+        },
+        {
+          "id": "rover-v3-p1-1",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-left-0-0",
+          "x": 550.3094203138816,
+          "y": 337.53393015030946,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p1-2",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-left-0-0-fb7185",
+          "x": 550.3094203138816,
+          "y": 344.1652298850575,
+          "width": 17.130857648099028,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p1-3",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-right-0-0",
+          "x": 506.6533637267905,
+          "y": 337.53393015030946,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p1-4",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-right-0-0-fb7185",
+          "x": 507.20597203801947,
+          "y": 344.1652298850575,
+          "width": 16.578249336870023,
+          "height": 13.262599469496019
+        },
+        {
+          "id": "rover-v3-p1-5",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-left-0-0",
+          "x": 551.9672452475685,
+          "y": 310.4561229000884,
+          "width": 15.473032714412025,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p1-6",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-left-0-0-fb7185",
+          "x": 564.6772364058355,
+          "y": 317.64003094606545,
+          "width": 2.763041556145004,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p1-7",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-right-0-0",
+          "x": 506.6533637267905,
+          "y": 310.4561229000884,
+          "width": 14.920424403183022,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p1-8",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-right-0-0-fb7185",
+          "x": 507.20597203801947,
+          "y": 317.64003094606545,
+          "width": 2.210433244916003,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p2-0",
+          "texture": "rover-v3-0",
+          "frame": "b-4-a78bfa",
+          "x": 642.0423999778957,
+          "y": 308.24568965517244,
+          "width": 41.44562334217506,
+          "height": 54.70822281167108
+        },
+        {
+          "id": "rover-v3-p2-1",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-left-0-0",
+          "x": 676.3041152740938,
+          "y": 337.53393015030946,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p2-2",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-left-0-0-a78bfa",
+          "x": 676.3041152740938,
+          "y": 344.1652298850575,
+          "width": 17.130857648099028,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p2-3",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-right-0-0",
+          "x": 632.6480586870026,
+          "y": 337.53393015030946,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p2-4",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-right-0-0-a78bfa",
+          "x": 633.2006669982317,
+          "y": 344.1652298850575,
+          "width": 16.578249336870023,
+          "height": 13.262599469496019
+        },
+        {
+          "id": "rover-v3-p2-5",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-left-0-0",
+          "x": 677.9619402077807,
+          "y": 310.4561229000884,
+          "width": 15.473032714412025,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p2-6",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-left-0-0-a78bfa",
+          "x": 690.6719313660477,
+          "y": 317.64003094606545,
+          "width": 2.763041556145004,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p2-7",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-right-0-0",
+          "x": 632.6480586870026,
+          "y": 310.4561229000884,
+          "width": 14.920424403183022,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p2-8",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-right-0-0-a78bfa",
+          "x": 633.2006669982317,
+          "y": 317.64003094606545,
+          "width": 2.210433244916003,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p3-0",
+          "texture": "rover-v3-0",
+          "frame": "b-4-facc15",
+          "x": 768.0370949381079,
+          "y": 308.24568965517244,
+          "width": 41.44562334217506,
+          "height": 54.70822281167108
+        },
+        {
+          "id": "rover-v3-p3-1",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-left-0-0",
+          "x": 802.2988102343058,
+          "y": 337.53393015030946,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p3-2",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-left-0-0-facc15",
+          "x": 802.2988102343058,
+          "y": 344.1652298850575,
+          "width": 17.130857648099028,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p3-3",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-right-0-0",
+          "x": 758.6427536472148,
+          "y": 337.53393015030946,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p3-4",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-right-0-0-facc15",
+          "x": 759.1953619584438,
+          "y": 344.1652298850575,
+          "width": 16.578249336870023,
+          "height": 13.262599469496019
+        },
+        {
+          "id": "rover-v3-p3-5",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-left-0-0",
+          "x": 803.9566351679929,
+          "y": 310.4561229000884,
+          "width": 15.473032714412025,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p3-6",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-left-0-0-facc15",
+          "x": 816.6666263262599,
+          "y": 317.64003094606545,
+          "width": 2.763041556145004,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p3-7",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-right-0-0",
+          "x": 758.6427536472148,
+          "y": 310.4561229000884,
+          "width": 14.920424403183022,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p3-8",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-right-0-0-facc15",
+          "x": 759.1953619584438,
+          "y": 317.64003094606545,
+          "width": 2.210433244916003,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p4-0",
+          "texture": "rover-v3-0",
+          "frame": "b-4-34d399",
+          "x": 390.0530100574713,
+          "y": 460.76558355437663,
+          "width": 41.44562334217506,
+          "height": 54.70822281167108
+        },
+        {
+          "id": "rover-v3-p4-1",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-left-0-0",
+          "x": 424.31472535366936,
+          "y": 490.0538240495137,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p4-2",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-left-0-0-34d399",
+          "x": 424.31472535366936,
+          "y": 496.6851237842617,
+          "width": 17.130857648099028,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p4-3",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-right-0-0",
+          "x": 380.6586687665783,
+          "y": 490.0538240495137,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p4-4",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-right-0-0-34d399",
+          "x": 381.21127707780727,
+          "y": 496.6851237842617,
+          "width": 16.578249336870023,
+          "height": 13.262599469496019
+        },
+        {
+          "id": "rover-v3-p4-5",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-left-0-0",
+          "x": 425.97255028735634,
+          "y": 462.97601679929267,
+          "width": 15.473032714412025,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p4-6",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-left-0-0-34d399",
+          "x": 438.6825414456234,
+          "y": 470.15992484526964,
+          "width": 2.763041556145004,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p4-7",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-right-0-0",
+          "x": 380.6586687665783,
+          "y": 462.97601679929267,
+          "width": 14.920424403183022,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p4-8",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-right-0-0-34d399",
+          "x": 381.21127707780727,
+          "y": 470.15992484526964,
+          "width": 2.210433244916003,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p5-0",
+          "texture": "rover-v3-0",
+          "frame": "b-4-fb923c",
+          "x": 516.0477050176835,
+          "y": 460.76558355437663,
+          "width": 41.44562334217506,
+          "height": 54.70822281167108
+        },
+        {
+          "id": "rover-v3-p5-1",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-left-0-0",
+          "x": 550.3094203138816,
+          "y": 490.0538240495137,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p5-2",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-left-0-0-fb923c",
+          "x": 550.3094203138816,
+          "y": 496.6851237842617,
+          "width": 17.130857648099028,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p5-3",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-right-0-0",
+          "x": 506.6533637267905,
+          "y": 490.0538240495137,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p5-4",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-right-0-0-fb923c",
+          "x": 507.20597203801947,
+          "y": 496.6851237842617,
+          "width": 16.578249336870023,
+          "height": 13.262599469496019
+        },
+        {
+          "id": "rover-v3-p5-5",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-left-0-0",
+          "x": 551.9672452475685,
+          "y": 462.97601679929267,
+          "width": 15.473032714412025,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p5-6",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-left-0-0-fb923c",
+          "x": 564.6772364058355,
+          "y": 470.15992484526964,
+          "width": 2.763041556145004,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p5-7",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-right-0-0",
+          "x": 506.6533637267905,
+          "y": 462.97601679929267,
+          "width": 14.920424403183022,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p5-8",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-right-0-0-fb923c",
+          "x": 507.20597203801947,
+          "y": 470.15992484526964,
+          "width": 2.210433244916003,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p6-0",
+          "texture": "rover-v3-0",
+          "frame": "b-4-e879f9",
+          "x": 642.0423999778957,
+          "y": 460.76558355437663,
+          "width": 41.44562334217506,
+          "height": 54.70822281167108
+        },
+        {
+          "id": "rover-v3-p6-1",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-left-0-0",
+          "x": 676.3041152740938,
+          "y": 490.0538240495137,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p6-2",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-left-0-0-e879f9",
+          "x": 676.3041152740938,
+          "y": 496.6851237842617,
+          "width": 17.130857648099028,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p6-3",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-right-0-0",
+          "x": 632.6480586870026,
+          "y": 490.0538240495137,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p6-4",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-right-0-0-e879f9",
+          "x": 633.2006669982317,
+          "y": 496.6851237842617,
+          "width": 16.578249336870023,
+          "height": 13.262599469496019
+        },
+        {
+          "id": "rover-v3-p6-5",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-left-0-0",
+          "x": 677.9619402077807,
+          "y": 462.97601679929267,
+          "width": 15.473032714412025,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p6-6",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-left-0-0-e879f9",
+          "x": 690.6719313660477,
+          "y": 470.15992484526964,
+          "width": 2.763041556145004,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p6-7",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-right-0-0",
+          "x": 632.6480586870026,
+          "y": 462.97601679929267,
+          "width": 14.920424403183022,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p6-8",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-right-0-0-e879f9",
+          "x": 633.2006669982317,
+          "y": 470.15992484526964,
+          "width": 2.210433244916003,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p7-0",
+          "texture": "rover-v3-0",
+          "frame": "b-4-cbd5e1",
+          "x": 768.0370949381079,
+          "y": 460.76558355437663,
+          "width": 41.44562334217506,
+          "height": 54.70822281167108
+        },
+        {
+          "id": "rover-v3-p7-1",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-left-0-0",
+          "x": 802.2988102343058,
+          "y": 490.0538240495137,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p7-2",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-left-0-0-cbd5e1",
+          "x": 802.2988102343058,
+          "y": 496.6851237842617,
+          "width": 17.130857648099028,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p7-3",
+          "texture": "rover-v3-0",
+          "frame": "w-4-front-right-0-0",
+          "x": 758.6427536472148,
+          "y": 490.0538240495137,
+          "width": 17.130857648099028,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p7-4",
+          "texture": "rover-v3-0",
+          "frame": "h-4-front-right-0-0-cbd5e1",
+          "x": 759.1953619584438,
+          "y": 496.6851237842617,
+          "width": 16.578249336870023,
+          "height": 13.262599469496019
+        },
+        {
+          "id": "rover-v3-p7-5",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-left-0-0",
+          "x": 803.9566351679929,
+          "y": 462.97601679929267,
+          "width": 15.473032714412025,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p7-6",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-left-0-0-cbd5e1",
+          "x": 816.6666263262599,
+          "y": 470.15992484526964,
+          "width": 2.763041556145004,
+          "height": 12.709991158267021
+        },
+        {
+          "id": "rover-v3-p7-7",
+          "texture": "rover-v3-0",
+          "frame": "w-4-rear-right-0-0",
+          "x": 758.6427536472148,
+          "y": 462.97601679929267,
+          "width": 14.920424403183022,
+          "height": 26.525198938992038
+        },
+        {
+          "id": "rover-v3-p7-8",
+          "texture": "rover-v3-0",
+          "frame": "h-4-rear-right-0-0-cbd5e1",
+          "x": 759.1953619584438,
+          "y": 470.15992484526964,
+          "width": 2.210433244916003,
+          "height": 12.709991158267021
+        }
+      ]
+    },
+    "effectsActive": true,
+    "snapshotAge": 39.98000000000011,
+    "assets": {
+      "chassis": true,
+      "tire": true,
+      "frames": false
+    },
+    "self": {
+      "speed": 0,
+      "frame": 0,
+      "steer": 0
+    },
+    "dust": 0,
+    "wheelPlayers": 8,
+    "wheels": [],
+    "bodies": []
+  },
+  "sprites": [
+    {
+      "id": "station-0",
+      "texture": "station-v3",
+      "frame": "trim",
+      "pixelWidth": 256,
+      "pixelHeight": 256,
+      "displayWidth": 141.92889720054194,
+      "displayHeight": 141.92889720054194,
+      "x": 798.9389920424403,
+      "y": 620.9389920424403,
+      "depth": 1,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p0-0",
+      "texture": "rover-v3-0",
+      "frame": "b-4-38bdf8",
+      "pixelWidth": 75,
+      "pixelHeight": 99,
+      "displayWidth": 41.44562334217506,
+      "displayHeight": 54.70822281167108,
+      "x": 390.0530100574713,
+      "y": 308.24568965517244,
+      "depth": 4,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p0-1",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-left-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 424.31472535366936,
+      "y": 337.53393015030946,
+      "depth": 4.001,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p0-2",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-left-0-0-38bdf8",
+      "pixelWidth": 31,
+      "pixelHeight": 23,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 12.709991158267021,
+      "x": 424.31472535366936,
+      "y": 344.1652298850575,
+      "depth": 4.001001,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p0-3",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-right-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 380.6586687665783,
+      "y": 337.53393015030946,
+      "depth": 4.00102,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p0-4",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-right-0-0-38bdf8",
+      "pixelWidth": 30,
+      "pixelHeight": 24,
+      "displayWidth": 16.578249336870023,
+      "displayHeight": 13.262599469496019,
+      "x": 381.21127707780727,
+      "y": 344.1652298850575,
+      "depth": 4.001021,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p0-5",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-left-0-0",
+      "pixelWidth": 28,
+      "pixelHeight": 48,
+      "displayWidth": 15.473032714412025,
+      "displayHeight": 26.525198938992038,
+      "x": 425.97255028735634,
+      "y": 310.4561229000884,
+      "depth": 4.00104,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p0-6",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-left-0-0-38bdf8",
+      "pixelWidth": 5,
+      "pixelHeight": 23,
+      "displayWidth": 2.763041556145004,
+      "displayHeight": 12.709991158267021,
+      "x": 438.6825414456234,
+      "y": 317.64003094606545,
+      "depth": 4.001041,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p0-7",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-right-0-0",
+      "pixelWidth": 27,
+      "pixelHeight": 48,
+      "displayWidth": 14.920424403183022,
+      "displayHeight": 26.525198938992038,
+      "x": 380.6586687665783,
+      "y": 310.4561229000884,
+      "depth": 4.00106,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p0-8",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-right-0-0-38bdf8",
+      "pixelWidth": 4,
+      "pixelHeight": 23,
+      "displayWidth": 2.210433244916003,
+      "displayHeight": 12.709991158267021,
+      "x": 381.21127707780727,
+      "y": 317.64003094606545,
+      "depth": 4.001061,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p1-0",
+      "texture": "rover-v3-0",
+      "frame": "b-4-fb7185",
+      "pixelWidth": 75,
+      "pixelHeight": 99,
+      "displayWidth": 41.44562334217506,
+      "displayHeight": 54.70822281167108,
+      "x": 516.0477050176835,
+      "y": 308.24568965517244,
+      "depth": 4.09375,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p1-1",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-left-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 550.3094203138816,
+      "y": 337.53393015030946,
+      "depth": 4.09475,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p1-2",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-left-0-0-fb7185",
+      "pixelWidth": 31,
+      "pixelHeight": 23,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 12.709991158267021,
+      "x": 550.3094203138816,
+      "y": 344.1652298850575,
+      "depth": 4.094751,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p1-3",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-right-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 506.6533637267905,
+      "y": 337.53393015030946,
+      "depth": 4.09477,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p1-4",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-right-0-0-fb7185",
+      "pixelWidth": 30,
+      "pixelHeight": 24,
+      "displayWidth": 16.578249336870023,
+      "displayHeight": 13.262599469496019,
+      "x": 507.20597203801947,
+      "y": 344.1652298850575,
+      "depth": 4.094771,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p1-5",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-left-0-0",
+      "pixelWidth": 28,
+      "pixelHeight": 48,
+      "displayWidth": 15.473032714412025,
+      "displayHeight": 26.525198938992038,
+      "x": 551.9672452475685,
+      "y": 310.4561229000884,
+      "depth": 4.09479,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p1-6",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-left-0-0-fb7185",
+      "pixelWidth": 5,
+      "pixelHeight": 23,
+      "displayWidth": 2.763041556145004,
+      "displayHeight": 12.709991158267021,
+      "x": 564.6772364058355,
+      "y": 317.64003094606545,
+      "depth": 4.094791,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p1-7",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-right-0-0",
+      "pixelWidth": 27,
+      "pixelHeight": 48,
+      "displayWidth": 14.920424403183022,
+      "displayHeight": 26.525198938992038,
+      "x": 506.6533637267905,
+      "y": 310.4561229000884,
+      "depth": 4.09481,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p1-8",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-right-0-0-fb7185",
+      "pixelWidth": 4,
+      "pixelHeight": 23,
+      "displayWidth": 2.210433244916003,
+      "displayHeight": 12.709991158267021,
+      "x": 507.20597203801947,
+      "y": 317.64003094606545,
+      "depth": 4.094811,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p2-0",
+      "texture": "rover-v3-0",
+      "frame": "b-4-a78bfa",
+      "pixelWidth": 75,
+      "pixelHeight": 99,
+      "displayWidth": 41.44562334217506,
+      "displayHeight": 54.70822281167108,
+      "x": 642.0423999778957,
+      "y": 308.24568965517244,
+      "depth": 4.1875,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p2-1",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-left-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 676.3041152740938,
+      "y": 337.53393015030946,
+      "depth": 4.1885,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p2-2",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-left-0-0-a78bfa",
+      "pixelWidth": 31,
+      "pixelHeight": 23,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 12.709991158267021,
+      "x": 676.3041152740938,
+      "y": 344.1652298850575,
+      "depth": 4.188501,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p2-3",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-right-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 632.6480586870026,
+      "y": 337.53393015030946,
+      "depth": 4.18852,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p2-4",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-right-0-0-a78bfa",
+      "pixelWidth": 30,
+      "pixelHeight": 24,
+      "displayWidth": 16.578249336870023,
+      "displayHeight": 13.262599469496019,
+      "x": 633.2006669982317,
+      "y": 344.1652298850575,
+      "depth": 4.188521,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p2-5",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-left-0-0",
+      "pixelWidth": 28,
+      "pixelHeight": 48,
+      "displayWidth": 15.473032714412025,
+      "displayHeight": 26.525198938992038,
+      "x": 677.9619402077807,
+      "y": 310.4561229000884,
+      "depth": 4.18854,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p2-6",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-left-0-0-a78bfa",
+      "pixelWidth": 5,
+      "pixelHeight": 23,
+      "displayWidth": 2.763041556145004,
+      "displayHeight": 12.709991158267021,
+      "x": 690.6719313660477,
+      "y": 317.64003094606545,
+      "depth": 4.188541,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p2-7",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-right-0-0",
+      "pixelWidth": 27,
+      "pixelHeight": 48,
+      "displayWidth": 14.920424403183022,
+      "displayHeight": 26.525198938992038,
+      "x": 632.6480586870026,
+      "y": 310.4561229000884,
+      "depth": 4.18856,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p2-8",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-right-0-0-a78bfa",
+      "pixelWidth": 4,
+      "pixelHeight": 23,
+      "displayWidth": 2.210433244916003,
+      "displayHeight": 12.709991158267021,
+      "x": 633.2006669982317,
+      "y": 317.64003094606545,
+      "depth": 4.188561,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p3-0",
+      "texture": "rover-v3-0",
+      "frame": "b-4-facc15",
+      "pixelWidth": 75,
+      "pixelHeight": 99,
+      "displayWidth": 41.44562334217506,
+      "displayHeight": 54.70822281167108,
+      "x": 768.0370949381079,
+      "y": 308.24568965517244,
+      "depth": 4.28125,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p3-1",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-left-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 802.2988102343058,
+      "y": 337.53393015030946,
+      "depth": 4.28225,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p3-2",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-left-0-0-facc15",
+      "pixelWidth": 31,
+      "pixelHeight": 23,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 12.709991158267021,
+      "x": 802.2988102343058,
+      "y": 344.1652298850575,
+      "depth": 4.282251,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p3-3",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-right-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 758.6427536472148,
+      "y": 337.53393015030946,
+      "depth": 4.28227,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p3-4",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-right-0-0-facc15",
+      "pixelWidth": 30,
+      "pixelHeight": 24,
+      "displayWidth": 16.578249336870023,
+      "displayHeight": 13.262599469496019,
+      "x": 759.1953619584438,
+      "y": 344.1652298850575,
+      "depth": 4.282271,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p3-5",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-left-0-0",
+      "pixelWidth": 28,
+      "pixelHeight": 48,
+      "displayWidth": 15.473032714412025,
+      "displayHeight": 26.525198938992038,
+      "x": 803.9566351679929,
+      "y": 310.4561229000884,
+      "depth": 4.28229,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p3-6",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-left-0-0-facc15",
+      "pixelWidth": 5,
+      "pixelHeight": 23,
+      "displayWidth": 2.763041556145004,
+      "displayHeight": 12.709991158267021,
+      "x": 816.6666263262599,
+      "y": 317.64003094606545,
+      "depth": 4.282291,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p3-7",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-right-0-0",
+      "pixelWidth": 27,
+      "pixelHeight": 48,
+      "displayWidth": 14.920424403183022,
+      "displayHeight": 26.525198938992038,
+      "x": 758.6427536472148,
+      "y": 310.4561229000884,
+      "depth": 4.28231,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p3-8",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-right-0-0-facc15",
+      "pixelWidth": 4,
+      "pixelHeight": 23,
+      "displayWidth": 2.210433244916003,
+      "displayHeight": 12.709991158267021,
+      "x": 759.1953619584438,
+      "y": 317.64003094606545,
+      "depth": 4.282311,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p4-0",
+      "texture": "rover-v3-0",
+      "frame": "b-4-34d399",
+      "pixelWidth": 75,
+      "pixelHeight": 99,
+      "displayWidth": 41.44562334217506,
+      "displayHeight": 54.70822281167108,
+      "x": 390.0530100574713,
+      "y": 460.76558355437663,
+      "depth": 4.375,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p4-1",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-left-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 424.31472535366936,
+      "y": 490.0538240495137,
+      "depth": 4.376,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p4-2",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-left-0-0-34d399",
+      "pixelWidth": 31,
+      "pixelHeight": 23,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 12.709991158267021,
+      "x": 424.31472535366936,
+      "y": 496.6851237842617,
+      "depth": 4.376001,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p4-3",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-right-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 380.6586687665783,
+      "y": 490.0538240495137,
+      "depth": 4.37602,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p4-4",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-right-0-0-34d399",
+      "pixelWidth": 30,
+      "pixelHeight": 24,
+      "displayWidth": 16.578249336870023,
+      "displayHeight": 13.262599469496019,
+      "x": 381.21127707780727,
+      "y": 496.6851237842617,
+      "depth": 4.376021,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p4-5",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-left-0-0",
+      "pixelWidth": 28,
+      "pixelHeight": 48,
+      "displayWidth": 15.473032714412025,
+      "displayHeight": 26.525198938992038,
+      "x": 425.97255028735634,
+      "y": 462.97601679929267,
+      "depth": 4.37604,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p4-6",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-left-0-0-34d399",
+      "pixelWidth": 5,
+      "pixelHeight": 23,
+      "displayWidth": 2.763041556145004,
+      "displayHeight": 12.709991158267021,
+      "x": 438.6825414456234,
+      "y": 470.15992484526964,
+      "depth": 4.376041,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p4-7",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-right-0-0",
+      "pixelWidth": 27,
+      "pixelHeight": 48,
+      "displayWidth": 14.920424403183022,
+      "displayHeight": 26.525198938992038,
+      "x": 380.6586687665783,
+      "y": 462.97601679929267,
+      "depth": 4.37606,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p4-8",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-right-0-0-34d399",
+      "pixelWidth": 4,
+      "pixelHeight": 23,
+      "displayWidth": 2.210433244916003,
+      "displayHeight": 12.709991158267021,
+      "x": 381.21127707780727,
+      "y": 470.15992484526964,
+      "depth": 4.376061,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p5-0",
+      "texture": "rover-v3-0",
+      "frame": "b-4-fb923c",
+      "pixelWidth": 75,
+      "pixelHeight": 99,
+      "displayWidth": 41.44562334217506,
+      "displayHeight": 54.70822281167108,
+      "x": 516.0477050176835,
+      "y": 460.76558355437663,
+      "depth": 4.46875,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p5-1",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-left-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 550.3094203138816,
+      "y": 490.0538240495137,
+      "depth": 4.46975,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p5-2",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-left-0-0-fb923c",
+      "pixelWidth": 31,
+      "pixelHeight": 23,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 12.709991158267021,
+      "x": 550.3094203138816,
+      "y": 496.6851237842617,
+      "depth": 4.469751,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p5-3",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-right-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 506.6533637267905,
+      "y": 490.0538240495137,
+      "depth": 4.46977,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p5-4",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-right-0-0-fb923c",
+      "pixelWidth": 30,
+      "pixelHeight": 24,
+      "displayWidth": 16.578249336870023,
+      "displayHeight": 13.262599469496019,
+      "x": 507.20597203801947,
+      "y": 496.6851237842617,
+      "depth": 4.469771,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p5-5",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-left-0-0",
+      "pixelWidth": 28,
+      "pixelHeight": 48,
+      "displayWidth": 15.473032714412025,
+      "displayHeight": 26.525198938992038,
+      "x": 551.9672452475685,
+      "y": 462.97601679929267,
+      "depth": 4.46979,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p5-6",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-left-0-0-fb923c",
+      "pixelWidth": 5,
+      "pixelHeight": 23,
+      "displayWidth": 2.763041556145004,
+      "displayHeight": 12.709991158267021,
+      "x": 564.6772364058355,
+      "y": 470.15992484526964,
+      "depth": 4.469791,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p5-7",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-right-0-0",
+      "pixelWidth": 27,
+      "pixelHeight": 48,
+      "displayWidth": 14.920424403183022,
+      "displayHeight": 26.525198938992038,
+      "x": 506.6533637267905,
+      "y": 462.97601679929267,
+      "depth": 4.46981,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p5-8",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-right-0-0-fb923c",
+      "pixelWidth": 4,
+      "pixelHeight": 23,
+      "displayWidth": 2.210433244916003,
+      "displayHeight": 12.709991158267021,
+      "x": 507.20597203801947,
+      "y": 470.15992484526964,
+      "depth": 4.469811,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p6-0",
+      "texture": "rover-v3-0",
+      "frame": "b-4-e879f9",
+      "pixelWidth": 75,
+      "pixelHeight": 99,
+      "displayWidth": 41.44562334217506,
+      "displayHeight": 54.70822281167108,
+      "x": 642.0423999778957,
+      "y": 460.76558355437663,
+      "depth": 4.5625,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p6-1",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-left-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 676.3041152740938,
+      "y": 490.0538240495137,
+      "depth": 4.5635,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p6-2",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-left-0-0-e879f9",
+      "pixelWidth": 31,
+      "pixelHeight": 23,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 12.709991158267021,
+      "x": 676.3041152740938,
+      "y": 496.6851237842617,
+      "depth": 4.563501,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p6-3",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-right-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 632.6480586870026,
+      "y": 490.0538240495137,
+      "depth": 4.56352,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p6-4",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-right-0-0-e879f9",
+      "pixelWidth": 30,
+      "pixelHeight": 24,
+      "displayWidth": 16.578249336870023,
+      "displayHeight": 13.262599469496019,
+      "x": 633.2006669982317,
+      "y": 496.6851237842617,
+      "depth": 4.563521,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p6-5",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-left-0-0",
+      "pixelWidth": 28,
+      "pixelHeight": 48,
+      "displayWidth": 15.473032714412025,
+      "displayHeight": 26.525198938992038,
+      "x": 677.9619402077807,
+      "y": 462.97601679929267,
+      "depth": 4.56354,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p6-6",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-left-0-0-e879f9",
+      "pixelWidth": 5,
+      "pixelHeight": 23,
+      "displayWidth": 2.763041556145004,
+      "displayHeight": 12.709991158267021,
+      "x": 690.6719313660477,
+      "y": 470.15992484526964,
+      "depth": 4.563541,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p6-7",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-right-0-0",
+      "pixelWidth": 27,
+      "pixelHeight": 48,
+      "displayWidth": 14.920424403183022,
+      "displayHeight": 26.525198938992038,
+      "x": 632.6480586870026,
+      "y": 462.97601679929267,
+      "depth": 4.56356,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p6-8",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-right-0-0-e879f9",
+      "pixelWidth": 4,
+      "pixelHeight": 23,
+      "displayWidth": 2.210433244916003,
+      "displayHeight": 12.709991158267021,
+      "x": 633.2006669982317,
+      "y": 470.15992484526964,
+      "depth": 4.563561,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p7-0",
+      "texture": "rover-v3-0",
+      "frame": "b-4-cbd5e1",
+      "pixelWidth": 75,
+      "pixelHeight": 99,
+      "displayWidth": 41.44562334217506,
+      "displayHeight": 54.70822281167108,
+      "x": 768.0370949381079,
+      "y": 460.76558355437663,
+      "depth": 4.65625,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p7-1",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-left-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 802.2988102343058,
+      "y": 490.0538240495137,
+      "depth": 4.65725,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p7-2",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-left-0-0-cbd5e1",
+      "pixelWidth": 31,
+      "pixelHeight": 23,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 12.709991158267021,
+      "x": 802.2988102343058,
+      "y": 496.6851237842617,
+      "depth": 4.657251,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p7-3",
+      "texture": "rover-v3-0",
+      "frame": "w-4-front-right-0-0",
+      "pixelWidth": 31,
+      "pixelHeight": 48,
+      "displayWidth": 17.130857648099028,
+      "displayHeight": 26.525198938992038,
+      "x": 758.6427536472148,
+      "y": 490.0538240495137,
+      "depth": 4.65727,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p7-4",
+      "texture": "rover-v3-0",
+      "frame": "h-4-front-right-0-0-cbd5e1",
+      "pixelWidth": 30,
+      "pixelHeight": 24,
+      "displayWidth": 16.578249336870023,
+      "displayHeight": 13.262599469496019,
+      "x": 759.1953619584438,
+      "y": 496.6851237842617,
+      "depth": 4.657271,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p7-5",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-left-0-0",
+      "pixelWidth": 28,
+      "pixelHeight": 48,
+      "displayWidth": 15.473032714412025,
+      "displayHeight": 26.525198938992038,
+      "x": 803.9566351679929,
+      "y": 462.97601679929267,
+      "depth": 4.65729,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p7-6",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-left-0-0-cbd5e1",
+      "pixelWidth": 5,
+      "pixelHeight": 23,
+      "displayWidth": 2.763041556145004,
+      "displayHeight": 12.709991158267021,
+      "x": 816.6666263262599,
+      "y": 470.15992484526964,
+      "depth": 4.657291,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p7-7",
+      "texture": "rover-v3-0",
+      "frame": "w-4-rear-right-0-0",
+      "pixelWidth": 27,
+      "pixelHeight": 48,
+      "displayWidth": 14.920424403183022,
+      "displayHeight": 26.525198938992038,
+      "x": 758.6427536472148,
+      "y": 462.97601679929267,
+      "depth": 4.65731,
+      "angle": 0,
+      "visible": true
+    },
+    {
+      "id": "rover-v3-p7-8",
+      "texture": "rover-v3-0",
+      "frame": "h-4-rear-right-0-0-cbd5e1",
+      "pixelWidth": 4,
+      "pixelHeight": 23,
+      "displayWidth": 2.210433244916003,
+      "displayHeight": 12.709991158267021,
+      "x": 759.1953619584438,
+      "y": 470.15992484526964,
+      "depth": 4.657311,
+      "angle": 0,
+      "visible": true
+    }
+  ],
+  "textures": [
+    {
+      "key": "rover-v3-0",
+      "width": 2048,
+      "height": 2048,
+      "rgbaBytes": 16777216
+    },
+    {
+      "key": "rover-v3-1",
+      "width": 2048,
+      "height": 2048,
+      "rgbaBytes": 16777216
+    }
+  ]
+}

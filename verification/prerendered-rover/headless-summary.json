@@ -1,0 +1,102 @@
+{
+  "status": "passed",
+  "method": "Delivered repository harness, dedicated desktop-launched headless Chromium; actual requested viewports, synthetic production World replay",
+  "browserVersion": "155.0.8059.79",
+  "started": "2026-10-31T21:35:17.415Z",
+  "finished": "2026-10-31T21:37:03.835Z",
+  "captures": 120,
+  "viewports": [
+    [
+      390,
+      844
+    ],
+    [
+      844,
+      390
+    ],
+    [
+      1200,
+      800
+    ]
+  ],
+  "headings": 16,
+  "palettes": 8,
+  "cargoCounts": [
+    0,
+    10,
+    20
+  ],
+  "pageErrors": [],
+  "checks": "Signed forward/reverse/idle/lateral motion, per-render steering, registered atlas pixel budgets, overlap, boost alpha reuse/reduced cleanup, removal/reset, missing-atlas fallback and repeated navigation",
+  "atlasRgbaBytes": 33554432,
+  "allRasterRgbaBytes": 40929608,
+  "rafTimings": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "samples": 89,
+      "medianMs": 16.700000000000728,
+      "p95Ms": 50,
+      "maxMs": 116.70000000000073
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "samples": 89,
+      "medianMs": 16.69999999999709,
+      "p95Ms": 16.799999999999272,
+      "maxMs": 33.39999999999782
+    },
+    {
+      "viewport": {
+        "width": 1200,
+        "height": 800
+      },
+      "samples": 89,
+      "medianMs": 16.80000000000291,
+      "p95Ms": 50,
+      "maxMs": 133.3000000000029
+    }
+  ],
+  "earlierDiagnosticRafTimings": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "samples": 89,
+      "medianMs": 16.700000000000728,
+      "p95Ms": 16.799999999999272,
+      "maxMs": 16.799999999999272
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "samples": 89,
+      "medianMs": 16.700000000000728,
+      "p95Ms": 16.799999999999272,
+      "maxMs": 16.80000000000291
+    },
+    {
+      "viewport": {
+        "width": 1200,
+        "height": 800
+      },
+      "samples": 89,
+      "medianMs": 33.30000000000291,
+      "p95Ms": 66.70000000000437,
+      "maxMs": 200.09999999999854
+    }
+  ],
+  "memoryEstimate": "width*height*4 per unique loaded texture-manager or scene-child source image/canvas object; excludes driver allocations, mipmaps, and decoded CPU memory; includes legacy/derived/island overhead",
+  "limits": "Cloud timing samples vary and are not phone FPS. Native WeChat, physical-phone/touch drivers, live-backend semantics and upload eligibility are not established.",
+  "harnessFix": "Accept Vite CommonJS interop identifier when discovering the unchanged Phaser module URL; no production runtime or asset changes.",
+  "fullReportSha256": "e4715e0a67be184230e5e7848a06903af62a51b2ec8220a77117f3818d81bcc3",
+  "artifactRetention": "Full JSON and120PNGs retained outside the repository in the cloud browser-final-fixed directory; no bulk screenshot copies added."
+}
