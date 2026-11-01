@@ -348,6 +348,7 @@ panel = new CartoonPanel(
   }),
   {
     connect,
+    backToProfile: () => { disconnect(); status = "请选择车手和颜色"; notice = ""; },
     showGuide: () => entryGuide.show(Date.now()),
     toggleSound: () => sounds.toggle(),
     rename: () =>

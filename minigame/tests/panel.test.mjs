@@ -368,3 +368,16 @@ test('menu previews select the exact palette texture without tinting the white s
   assert.deepEqual(seen.map(v=>v.key),types.COLORS.map(c=>'rover-menu-'+c.slice(1)));
   assert.ok(seen.every(v=>v.frame===undefined));
 });
+test('directory exposes a return to the initial vehicle selection screen',()=>{
+ const {p,model}=harness();let returned=0;p.actions.backToProfile=()=>returned++;
+ model.connected=true;model.roomId=null;p.update();
+ const back=p.hits.find(h=>h.action===p.actions.backToProfile);
+ assert.ok(back);back.action();assert.equal(returned,1);
+});
+test('ready and waiting players retain their exact color and full opacity; only ready gets a ring',()=>{
+ const {p,model}=harness();model.connected=true;model.roomId='1';
+ model.state={phase:'lobby',players:[{id:'me',name:'甲',color:types.COLORS[0],ready:false,connected:true,score:0},{id:'2',name:'乙',color:types.COLORS[1],ready:true,connected:true,score:0}],batteries:[],stations:[]};
+ let cars=[],rings=0;p.car=(...args)=>cars.push(args);const g=new Proxy({}, {get:(_o,k)=>()=>{if(k==='strokeEllipse')rings++;return g;}});p.add.graphics=()=>g;p.update();
+ assert.deepEqual(cars.map(c=>c[2]),types.COLORS.slice(0,2));assert.ok(cars.every(c=>c[5]===1));assert.equal(rings,1);
+ cars=[];model.state.players[1].color=types.COLORS[2];p.update();assert.equal(cars[1][2],types.COLORS[2]);
+});

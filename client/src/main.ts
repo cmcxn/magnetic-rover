@@ -656,7 +656,8 @@ function showDirectory() {
     directorySignature = "";
     renderKey = "";
     app.className = "directory";
-    surface.innerHTML = `<div class="center garage-center"><section class="card garage directory-card"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="directory-heading"><div><h2>选择你的赛场</h2><p>2–8 人同场 · 全员准备即发车</p></div><button id="create-room" class="primary">＋ 创建房间</button></div><button id="edit-name" class="secondary profile-edit">昵称：${escape(localStorage.getItem("rover.name") || "车手")} · 修改</button><form id="join-code" class="join-code"><input id="room-input" maxlength="16" placeholder="输入朋友的房间码" aria-label="房间码"><button class="secondary" type="submit">加入</button></form><div id="room-list" class="room-list"></div><div class="error" id="error" role="alert"></div>${raceGuide()}</section></div>`;
+    surface.innerHTML = `<div class="center garage-center"><section class="card garage directory-card"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="directory-heading"><div><h2>选择你的赛场</h2><p>2–8 人同场 · 全员准备即发车</p></div><button id="create-room" class="primary">＋ 创建房间</button></div><button id="edit-name" class="secondary profile-edit">昵称：${escape(localStorage.getItem("rover.name") || "车手")} · 修改</button><button id="back-profile" class="secondary">← 返回选车</button><form id="join-code" class="join-code"><input id="room-input" maxlength="16" placeholder="输入朋友的房间码" aria-label="房间码"><button class="secondary" type="submit">加入</button></form><div id="room-list" class="room-list"></div><div class="error" id="error" role="alert"></div>${raceGuide()}</section></div>`;
+    document.querySelector<HTMLButtonElement>("#back-profile")!.onclick = cancelConnection;
     document.querySelector<HTMLButtonElement>("#edit-name")!.onclick =
       renameDriver;
     document.querySelector<HTMLButtonElement>("#create-room")!.onclick = () =>

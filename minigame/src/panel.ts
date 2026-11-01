@@ -43,6 +43,7 @@ export interface PanelModel {
 export interface PanelActions {
   showGuide?(): void;
   connect(): void;
+  backToProfile?(): void;
   toggleSound?(): void;
   rename(): void;
   color(value: string): void;
@@ -359,6 +360,7 @@ export class CartoonPanel extends Phaser.Scene {
         () => this.actions.send({ type: "rooms" }),
         true,
       );
+      this.button(704, 157, 128, "返回选车", this.actions.backToProfile ?? (() => {}), true);
       const perPage = 3,
         pages = Math.max(1, Math.ceil(m.rooms.length / perPage));
       this.page = Math.min(this.page, pages - 1);
@@ -550,16 +552,19 @@ export class CartoonPanel extends Phaser.Scene {
           y,
           lobby.width,
           lobby.height,
-          p.ready && p.connected ? parseInt(p.color.slice(1), 16) : 0xe3e9e5,
+          0xe3e9e5,
           20,
         );
+        if (p.ready && p.connected) this.paint
+          .lineStyle(3, parseInt(p.color.slice(1), 16), 1)
+          .strokeEllipse(x + lobby.width / 2, y + lobby.carY, lobby.carWidth + 18, lobby.carWidth * 0.75 + 14);
         this.car(
           x + lobby.width / 2,
           y + lobby.carY,
           p.color,
           lobby.carWidth,
           lobby.angle,
-          p.ready && p.connected ? 1 : 0.35,
+          1,
         );
         this.paint
           .fillStyle(UI.navy)

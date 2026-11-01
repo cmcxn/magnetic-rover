@@ -715,14 +715,14 @@ input {
   }
 }
 
-/* Waiting cars stay pale; ready cars regain their full team color. */
+/* Keep team colors visible before readiness; show readiness with a ring. */
 .lobby .car-card:not(.is-ready) .car-art {
-  opacity: 0.38;
-  filter: saturate(0.45);
+  opacity: 1;
+  filter: none;
 }
 .lobby .car-card.is-ready {
-  outline: 3px solid var(--car-color);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--car-color) 60%, transparent);
+  outline: none;
+  box-shadow: none;
 }
 .room-palette {
   grid-area: palette;
@@ -859,4 +859,14 @@ input {
   background-blend-mode: normal;
   mask: none;
   transform: none;
+}
+
+.lobby .car-card .car-art { opacity: 1; filter: none; }
+.lobby .car-card .car-art::after { display: none; }
+.lobby .car-card.is-ready .car-art::before {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 86px; height: 58px; transform: translate(-50%, -50%);
+  border: 3px solid var(--car-color); border-radius: 50%;
+  box-shadow: 0 0 9px color-mix(in srgb, var(--car-color) 40%, transparent);
+  pointer-events: none;
 }
