@@ -1,3 +1,4 @@
+import {Speedometer} from "../src/speedometer.ts";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
@@ -60,6 +61,7 @@ function harness(
     VehicleMotion,
     TireDust,
     wheelAngle,
+    Speedometer,
     Motion,
     cameraPolicy,
     performance: { now: () => 0 },

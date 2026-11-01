@@ -17,6 +17,7 @@ import {
   type State,
 } from "../../client/src/types";
 declare const __ROVER_BUILD__: string;
+declare const __ROVER_ENDPOINT__: string;
 declare const wx: any;
 declare const GameGlobal: any;
 declare const canvas: HTMLCanvasElement;
@@ -32,7 +33,7 @@ const safeRight = () =>
   );
 
 // A separate client keeps all outcomes authoritative on the unchanged Skynet server.
-const endpoint = "wss://cb.chenmin.org/ws";
+const endpoint = __ROVER_ENDPOINT__;
 const tokenKey = "rover.spike.token:" + endpoint;
 let name =
   wx.getStorageSync("rover.name") ||
@@ -343,6 +344,7 @@ panel = new CartoonPanel(
     notice,
     rtt,
     networkTimedOut,
+    speed: world.speed,
     fps: frameSample?.fps ?? null,
     age: Date.now() - lastSnapshot,
   }),
@@ -591,12 +593,12 @@ game.events.on(Phaser.Core.Events.POST_RENDER, () => {
     active &&
       !spectator &&
       state?.phase === "playing" &&
-      (boost || pcKeys.has("Space")) &&
       !!visual &&
-      visual.boost > 0 &&
+      (((boost || pcKeys.has("Space")) && visual.boost > 0) || ((visual.boostSpeed ?? 1) > 1.02 && Math.hypot(visual.ix ?? 0, visual.iy ?? 0) > .1)) &&
       visual.stun <= 0 &&
       Date.now() - lastSnapshot < 500,
     1 - 0.2 * (visual?.cargo ?? 0) / 20,
+    visual?.boostSpeed !== undefined ? Math.max(0, Math.min(1, (visual.boostSpeed-1) / Math.max(.01, (state?.boostMultiplier ?? 1.5)*(state?.boostTopFactor ?? 1)-1))) : undefined,
   );
   if (!active) return;
   const sample = frames.record(Date.now());

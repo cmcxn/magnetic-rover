@@ -23,6 +23,7 @@ import {
 export interface PanelModel {
   build?: string;
   connected: boolean;
+  speed?: number;
   selfVisual?: import("../../client/src/types").Player;
   keyboardEnabled?: boolean;
   soundEnabled?: boolean;
@@ -821,6 +822,8 @@ export class CartoonPanel extends Phaser.Scene {
         clockText(m.state.remaining),
         23,
       ).setStroke("#28404a", 2);
+      glass(w / 2 - 72, by + bh + 28, 144, 32);
+      this.label("speed", w / 2, by + bh + 44, `速度 ${Math.round(m.speed ?? 0)} 单位/秒`, 17, "#ffe36a").setStroke("#17374b", 2);
       const rx = hud.panel.x,
         ry = hud.panel.y + 34,
         pw = hud.panel.w,

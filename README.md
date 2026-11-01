@@ -92,6 +92,9 @@ ROVER_PORT=18083 docker compose -p magnetic-rover-runtime up -d --build --wait
 | `ROVER_VEHICLE_SCALE` | `1` | `0.25–1.5` | 相对当前车身尺寸的倍数 |
 | `ROVER_BOOST_MULTIPLIER` | `3` | `1–10` | 冲刺相对同载货量正常速度的倍数 |
 | `ROVER_BOOST_COOLDOWN` | `4` | `0.1–60` | 松开后从空能量充满所需秒数 |
+| `ROVER_BOOST_RECOVERY` | `0.7` | `0–3` | 冲刺结束后实际速度平滑回落到普通速度的时间 |
+| `ROVER_BOOST_TOP_FACTOR` | `1.5` | `1–3` | 相对原定冲刺倍率的最终速度系数 |
+| `ROVER_BOOST_RAMP` | 最大持续时间的一半 | `0–10` | 按住冲刺升至最高倍率所需秒数；0 保留瞬时加速 |
 | `ROVER_BOOST_DURATION` | `0.32` | `0.01–10` | 满能量连续冲刺可持续秒数 |
 
 例如在项目目录执行：

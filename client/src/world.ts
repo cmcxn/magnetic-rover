@@ -1,3 +1,4 @@
+import { Speedometer } from "./speedometer";
 import Phaser from "phaser";
 import {
   selectStationFrame,
@@ -30,11 +31,13 @@ export class World extends Phaser.Scene {
   private wheelMotion = new VehicleMotion();
   private tireDust = new TireDust();
   private dustAt = new Map<string, number>();
+  private speedometer = new Speedometer();
   private vehicleSample = { speed: 0, frame: 0, steer: 0 };
   private effectsActive = false;
   private motionSnapshot: State | null = null;
   private motionRole = "";
   resetMotion() {
+    this.speedometer.reset();
     this.motion.reset();
     this.wheelMotion.reset();
     this.roverVisuals.clear();
@@ -155,6 +158,10 @@ export class World extends Phaser.Scene {
           y: s.y,
         })),
     };
+  }
+  get speed() {
+    return this.effectsActive && this.state?.players.some(p => p.id === this.self && p.connected)
+      ? this.speedometer.value : 0;
   }
   worldScale = 1;
   ox = 0;
@@ -584,6 +591,7 @@ export class World extends Phaser.Scene {
       this.state?.phase === "playing";
     this.effectsActive = effectsActive;
     if (!effectsActive) {
+      this.speedometer.reset();
       this.cameras?.main.shakeEffect?.reset();
       this.boostIndicators.clear();
     }
@@ -859,6 +867,10 @@ export class World extends Phaser.Scene {
         this.impactState.set(p.id, impact);
       }
       if (impact.seq !== seq) {
+        if (seq > impact.seq && p.id === this.self && p.connected && effectsActive && !this.reducedEffects) {
+          // Shake only the World camera; HUD/joystick scenes stay stable.
+          this.cameras?.main.shake(180, 0.005, false);
+        }
         impact.lost = Math.max(0, impact.cargo - p.cargo);
         impact.until = _time + 400;
         impact.seq = seq;
@@ -892,6 +904,7 @@ export class World extends Phaser.Scene {
         active: effectsActive && p.connected && p.stun <= 0,
         scale: vehicleScale,
       });
+      if (p.id === this.self) this.speedometer.update(wheels.speed, delta);
       if (p.id === this.self)
         this.vehicleSample = {
           speed: wheels.speed,

@@ -14,6 +14,8 @@ export interface Player {
   boostCapacity?: number;
   rechargeTime?: number;
   boostHeld?: boolean;
+  boostElapsed?: number;
+  boostSpeed?: number;
   stun: number;
   hitSeq: number;
   impactSeq?: number;
@@ -72,6 +74,9 @@ export interface State {
   refillInterval?: number;
   vehicleScale?: number;
   boostMultiplier?: number;
+  boostRamp?: number;
+  boostRecovery?: number;
+  boostTopFactor?: number;
   boostCooldown?: number;
   boostDuration?: number;
   baseSpeed?: number;

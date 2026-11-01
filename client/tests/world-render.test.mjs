@@ -1,3 +1,4 @@
+import {Speedometer} from "../src/speedometer.ts";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
@@ -41,6 +42,7 @@ function harness() {
   const context = {
     ...propVisual,
     cameraPolicy,
+    Speedometer,
     stepRoverVisual,
     resolveRoverLayers,
     VehicleMotion,
@@ -643,4 +645,12 @@ test("held boost draws speed streaks over all four tires and clears them on rele
   w.state.players[0].boost = 0;
   w.update(32, 16);
   assert.equal(lines.length, 0, "release removes wheel speed overlay");
+});
+test('local collision shakes the map once, without replaying old or remote impacts',()=>{
+ const {w}=renderCar(4);w.self='p';const shakes=[];w.cameras={main:{shake:(...a)=>shakes.push(a)}};
+ const update=(seq,extra={})=>{w.state={...w.state,players:w.state.players.map(p=>({...p,impactSeq:seq,...extra}))};w.update(100+seq*20,16);};
+ update(0);assert.equal(shakes.length,0);update(1);assert.equal(shakes.length,1);w.update(150,16);assert.equal(shakes.length,1);
+ update(1);assert.equal(shakes.length,1);w.reducedEffects=true;update(2);assert.equal(shakes.length,1);
+ w.reducedEffects=false;w.self='someone-else';update(3);assert.equal(shakes.length,1);
+ w.self='p';w.liveEffects=false;update(4);assert.equal(shakes.length,1);
 });

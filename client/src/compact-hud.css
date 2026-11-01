@@ -315,3 +315,15 @@
     transition: none;
   }
 }
+
+#app.playing .speed-readout {
+  position: fixed; left: 50%; top: calc(var(--hud-top, 8px) + 64px);
+  transform: translateX(-50%); z-index: 12; pointer-events: none;
+  padding: 4px 12px; border-radius: 12px; background: #163a4be6;
+  color: #eaffff; font-size: 12px; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+#app.playing .speed-readout b { font-size: 24px; color: #ffe36a; margin: 0 5px; }
+#app.playing .speed-readout small { font-size: 10px; opacity: .85; }
+
+#app.playing .speed-readout b { display: inline-block; min-width: 3ch; text-align: right; }

@@ -1,6 +1,8 @@
 local G={}; G.__index=G
 local config=require 'game_config'
 local vehicleCollision=require 'vehicle_collision'
+local boostRamp=require 'boost_ramp'
+local stationSpawn=require 'station_spawn'
 local batteryMotion=require 'battery_motion'
 local Bot=require 'bot'
 local resources=config.resources
@@ -66,8 +68,9 @@ function G:input(p,m)
  if p.stun>0 then p.ix=0;p.iy=0;return false end
  local n=math.sqrt(x*x+y*y);if n>1 then x=x/n;y=y/n end
  p.ix=x;p.iy=y;p.last=self.time
- if not m.boost then p.boostHeld=false;p.boost=0
+ if not m.boost then p.boostHeld=false;p.boost=0;p.boostElapsed=0
  elseif not p.boostHeld and p.energy>1e-9 then
+  p.boostElapsed=0
   if n>=.1 then p.angle=math.atan(y,x) end
   p.bx=math.cos(p.angle);p.by=math.sin(p.angle);p.boost=p.energy*config.boostDuration;p.cooldown=config.boostCooldown
  end
@@ -121,11 +124,12 @@ function G:start()
  if self.phase~='lobby' then return nil,'Not in lobby' end
  local count=0;for _,p in ipairs(self.players) do if p.connected then count=count+1 end end
  if count<2 then return nil,'At least two players required' end
+ stationSpawn.place(self.players,self.stations)
  self.roundId=self.roundId+1;self.phase='playing';self.remaining=config.matchDuration;self.nextrefill=self.time+resources.refillInterval;self.supplyStage=1;self:replenish(resources.initial);return true
 end
 function G:again()
  if self.phase~='finished' then return nil,'Match not finished' end
- local keep={};for _,p in ipairs(self.players) do if p.connected then p.bot=nil;p.score=0;p.cargo=0;p.cooldown=0;p.energy=1;p.boostHeld=false;p.boost=0;p.stun=0;p.hitSeq=0;p.impactSeq=0;p.kx=0;p.ky=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*math.pi/4)*220*config.mapScale*math.max(1,config.vehicleScale);p.y=math.sin(#keep*math.pi/4)*220*config.mapScale*math.max(1,config.vehicleScale);keep[#keep+1]=p end end
+ local keep={};for _,p in ipairs(self.players) do if p.connected then p.bot=nil;p.score=0;p.cargo=0;p.cooldown=0;p.energy=1;p.boostHeld=false;p.boost=0;p.boostElapsed=0;p.boostSpeed=1;p.stun=0;p.hitSeq=0;p.impactSeq=0;p.kx=0;p.ky=0;p.pickupSeq=0;p.angle=0;p.protect=0;p.ix=0;p.iy=0;p.x=math.cos(#keep*math.pi/4)*220*config.mapScale*math.max(1,config.vehicleScale);p.y=math.sin(#keep*math.pi/4)*220*config.mapScale*math.max(1,config.vehicleScale);keep[#keep+1]=p end end
  self.players=keep;self.batteries={};self.contacts={};self.phase='lobby';self.remaining=config.matchDuration;self.finishedAt=nil;self.nextrefill=nil;self.supplyStage=nil;return true
 end
 function G:drop(p,n,nx,ny)
@@ -178,7 +182,7 @@ function G:step(dt,elapsed,remaining)
   p.stun=math.max(0,p.stun-elapsed);p.cooldown=math.max(0,p.cooldown-(p.boostHeld and elapsed or 0));if p.cooldown<1e-9 then p.cooldown=0 end
   p.protect=math.max(0,p.protect-elapsed)
   if dt==0 then p.boost=math.max(0,p.boost-elapsed) end
-  if self.time-p.last>.3 or p.stun>0 or not p.connected then p.ix=0;p.iy=0;p.boost=0;p.boostHeld=false end
+  if self.time-p.last>.3 or p.stun>0 or not p.connected then p.ix=0;p.iy=0;p.boost=0;p.boostSpeed=1;p.boostHeld=false end
   local ix,iy=p.ix,p.iy
   if p.boost>0 and p.bx then ix=p.bx;iy=p.by end
   if ix~=0 or iy~=0 then p.angle=math.atan(iy,ix) end
@@ -234,7 +238,7 @@ function G:step(dt,elapsed,remaining)
    if h.n>0 then self:drop(p,h.n,h.x,h.y) end
    if p.protect<=0 and h.stun>0 then p.stun=h.stun;p.hitSeq=p.hitSeq+1 end
    if h.stun>0 or h.n>0 then p.protect=math.max(p.protect,config.collision.protection) end
-   hitThisTick[p]=true;p.boost=0;p.ix=0;p.iy=0;p.driveX=0;p.driveY=0
+   hitThisTick[p]=true;p.boostSpeed=1;p.boost=0;p.ix=0;p.iy=0;p.driveX=0;p.driveY=0
    p.vx=h.x;p.vy=h.y
   end
  end
@@ -255,8 +259,14 @@ function G:step(dt,elapsed,remaining)
    for _,p in ipairs(active) do
     local boosting=p.boost>sliceStart+1e-8
     local speed=config.baseSpeed*(1-.2*p.cargo/20)
-    p.driveX=speed*(boosting and (p.bx or math.cos(p.angle))*config.boostMultiplier or p.ix)
-    p.driveY=speed*(boosting and (p.by or math.sin(p.angle))*config.boostMultiplier or p.iy)
+    local cap=config.boostMultiplier*config.boostTopFactor
+    local multiplier
+    if boosting then
+     multiplier=math.max(p.boostSpeed or 1,boostRamp.average((p.boostElapsed or 0)+sliceStart,slice,config.boostRamp,cap))
+     p.boostSpeed=math.max(p.boostSpeed or 1,boostRamp.average((p.boostElapsed or 0)+sliceEnd,0,config.boostRamp,cap))
+    else multiplier,p.boostSpeed=boostRamp.recover(p.boostSpeed or 1,slice,config.boostRecovery,cap) end
+    p.driveX=speed*multiplier*(boosting and (p.bx or math.cos(p.angle)) or p.ix)
+    p.driveY=speed*multiplier*(boosting and (p.by or math.sin(p.angle)) or p.iy)
     initialK[p]={x=p.kx or 0,y=p.ky or 0}
     p.vx=p.driveX+initialK[p].x*average;p.vy=p.driveY+initialK[p].y*average;p.collisionAt=nil
    end
@@ -310,13 +320,13 @@ function G:step(dt,elapsed,remaining)
    end
   end
   for i=#self.batteries,1,-1 do if collected[self.batteries[i]] then table.remove(self.batteries,i) end end
- end;p.boost=math.max(0,p.boost-elapsed) end
+ end;p.boostElapsed=p.boost>0 and (p.boostElapsed or 0)+math.min(p.boost,elapsed) or 0;p.boost=math.max(0,p.boost-elapsed) end
 end
 function G:snapshot(array)
  array=array or function(t)return t or {} end
- local s={type='state',boostMultiplier=config.boostMultiplier,vehicleScale=config.vehicleScale,boostCooldown=config.boostCooldown,boostDuration=config.boostDuration,baseSpeed=config.baseSpeed,serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=config.arenaRadius,mapScale=config.mapScale,supplySpeed=config.supplySpeed,refillInterval=resources.refillInterval,collisionRadius=config.collisionRadius,pickupRadius=config.pickupRadius,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
+ local s={type='state',boostMultiplier=config.boostMultiplier,boostRamp=config.boostRamp,boostRecovery=config.boostRecovery,boostTopFactor=config.boostTopFactor,vehicleScale=config.vehicleScale,boostCooldown=config.boostCooldown,boostDuration=config.boostDuration,baseSpeed=config.baseSpeed,serverTime=self.time,roundId=self.roundId,phase=self.phase,remaining=self.remaining,radius=config.arenaRadius,mapScale=config.mapScale,supplySpeed=config.supplySpeed,refillInterval=resources.refillInterval,collisionRadius=config.collisionRadius,pickupRadius=config.pickupRadius,returnIn=self.phase=='finished' and math.max(0,10-(self.time-(self.finishedAt or self.time))) or nil,players=array(),batteries=array(),stations=array(self.stations)}
  if self.phase~='lobby' then s.supply=self:supply() end
- for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,isBot=p.isBot==true,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,energy=p.energy,boostHeld=p.boostHeld,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,impactSeq=p.impactSeq,kx=p.kx,ky=p.ky,pickupSeq=p.pickupSeq,connected=p.connected,inputSeq=p.inputSeq,inputElapsed=p.inputElapsed,ix=p.ix,iy=p.iy,bx=p.bx,by=p.by} end end
+ for _,p in ipairs(self.players) do if not p.removed then s.players[#s.players+1]={id=p.id,name=p.name,isBot=p.isBot==true,color=p.color,x=p.x,y=p.y,angle=p.angle,cargo=p.cargo,score=p.score,cooldown=p.cooldown,energy=p.energy,boostHeld=p.boostHeld,boostElapsed=p.boostElapsed or 0,boostSpeed=p.boostSpeed or 1,boost=p.boost,stun=p.stun,hitSeq=p.hitSeq,impactSeq=p.impactSeq,kx=p.kx,ky=p.ky,pickupSeq=p.pickupSeq,connected=p.connected,inputSeq=p.inputSeq,inputElapsed=p.inputElapsed,ix=p.ix,iy=p.iy,bx=p.bx,by=p.by} end end
  for _,b in ipairs(self.batteries) do s.batteries[#s.batteries+1]={id=b.id,x=b.x,y=b.y,z=b.z,vx=b.vx,vy=b.vy,source=b.source,unlock=b.unlock} end
  if self.phase=='finished' then s.results=array();for _,p in ipairs(self.players) do s.results[#s.results+1]={id=p.id,name=p.name,isBot=p.isBot==true,color=p.color,score=p.score} end;table.sort(s.results,function(a,b)return a.score>b.score or (a.score==b.score and tonumber(a.id)<tonumber(b.id)) end) end
  return s

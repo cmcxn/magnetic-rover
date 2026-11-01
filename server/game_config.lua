@@ -16,6 +16,9 @@ return {
  mapScale=mapScale,arenaRadius=500*mapScale,supplySpeed=supplySpeed,
  baseSpeed=baseSpeed,
  vehicleScale=scale,boostMultiplier=multiplier,boostCooldown=cooldown,boostDuration=duration,
+ boostRamp=setting('ROVER_BOOST_RAMP',duration/2,0,10),
+ boostRecovery=setting('ROVER_BOOST_RECOVERY',.7,0,3),
+ boostTopFactor=setting('ROVER_BOOST_TOP_FACTOR',1.5,1,3),
  matchDuration=100,
  collisionRadius=60*scale,
  droppedBatteryRadius=10, -- Loot size is independent of vehicle scale; share placement and pickup geometry.

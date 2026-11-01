@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
+export ROVER_BOOST_TOP_FACTOR=1 ROVER_BOOST_RECOVERY=0
+export ROVER_BOOST_RAMP=0 # Legacy fixed-speed fixtures; test_boost_ramp sets its own ramp.
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SKYNET_ROOT="${SKYNET_ROOT:-$HERE/../../pluto-aoi-integration/vendor/skynet/}"
 cd "$HERE"
@@ -8,6 +10,7 @@ SKYNET_ROOT="$SKYNET_ROOT" sh test_arena_supply.sh
 export ROVER_MAP_SCALE=1 ROVER_SUPPLY_SPEED=1
 SKYNET_ROOT="$SKYNET_ROOT" sh test_base_speed.sh
 "$SKYNET_ROOT/3rd/lua/lua" test_client_root.lua
+"$SKYNET_ROOT/3rd/lua/lua" test_boost_ramp.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_game.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_bot.lua
 "$SKYNET_ROOT/3rd/lua/lua" test_arena_supply.lua

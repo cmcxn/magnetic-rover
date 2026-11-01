@@ -2,7 +2,7 @@ package.path='./?.lua;'..package.path
 local G=require 'game'
 local function setup(reverse)
  local g=G.new();local a=g:join('a','A','#38bdf8');local b=g:join('b','B','#fb7185');g:start();g.batteries={};g.nextrefill=1e9
- a.x=-60;a.y=0;b.x=60;b.y=0;a.cargo=20;b.cargo=20
+ a.angle=0;b.angle=0;a.x=-60;a.y=0;b.x=60;b.y=0;a.cargo=20;b.cargo=20
  if reverse then g.players={b,a} end
  return g,a,b
 end

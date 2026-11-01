@@ -2,7 +2,7 @@
 local json=require 'json'
 local C={}
 local configs={}
-for k in ('boostMultiplier vehicleScale boostCooldown boostDuration baseSpeed radius mapScale supplySpeed refillInterval collisionRadius pickupRadius stations roomCode maxPlayers maxSpectators'):gmatch('%S+') do configs[k]=true end
+for k in ('boostMultiplier boostRamp boostRecovery boostTopFactor vehicleScale boostCooldown boostDuration baseSpeed radius mapScale supplySpeed refillInterval collisionRadius pickupRadius stations roomCode maxPlayers maxSpectators'):gmatch('%S+') do configs[k]=true end
 local profiles={name=true,color=true,isBot=true}
 local groups={x='position',y='position',z='position',angle='angle',kx='velocity',ky='velocity',vx='velocity',vy='velocity',ix='direction',iy='direction',bx='direction',by='direction',energy='energy',serverTime='clock',remaining='time',returnIn='time',secondsToShrink='time',cooldown='time',boost='time',stun='time',inputElapsed='inputTime',unlock='time'}
 local scales={

@@ -178,6 +178,30 @@ export function constrainStations(
   p.x = at.x;
   p.y = at.y;
 }
+export function boostAverage(
+  age: number,
+  dt: number,
+  ramp: number,
+  maximum: number,
+) {
+  if (ramp <= 0 || age >= ramp) return maximum;
+  const first = Math.min(maximum, 1.1);
+  const integral = (t: number) => {
+    t = Math.max(0, t);
+    return t < ramp
+      ? first * t + ((maximum - first) * t * t) / (2 * ramp)
+      : ((first + maximum) * ramp) / 2 + maximum * (t - ramp);
+  };
+  return dt > 0
+    ? (integral(age + dt) - integral(age)) / dt
+    : first + (maximum - first) * Math.min(1, Math.max(0, age) / ramp);
+}
+export function recoverBoost(mult: number, dt: number, seconds: number, maximum: number) {
+  if (seconds <= 0) return [1,1];
+  if (dt <= 0) return [mult,mult];
+  const extra=Math.max(0,mult-1),rate=Math.max(1e-9,maximum-1)/seconds,t=Math.min(dt,extra/rate);
+  return [1+(extra*t-rate*t*t/2)/dt,1+Math.max(0,extra-rate*dt)];
+}
 /** Kinematics only. Collection, deposits, collisions and score remain authoritative. */
 export function integrate(
   p: Player,
@@ -187,6 +211,8 @@ export function integrate(
   baseSpeed = 240,
   boostMultiplier = 3,
   stations: State["stations"] = [],
+  boostRamp = 0,
+  boostRecovery = 0,
 ) {
   const start = { x: p.x, y: p.y, angle: p.angle };
   if (p.energy !== undefined) {
@@ -203,6 +229,7 @@ export function integrate(
   if (stunned || !p.connected) {
     p.ix = p.iy = 0;
     p.boost = 0;
+    p.boostSpeed = 1;
   }
   const ix = p.ix ?? 0,
     iy = p.iy ?? 0;
@@ -210,14 +237,22 @@ export function integrate(
   const by = p.boost > 0 ? (p.by ?? Math.sin(p.angle)) : iy;
   const dash = Math.min(dt, p.boost),
     speed = baseSpeed * (1 - (0.2 * p.cargo) / 20);
+  const multiplier = Math.max(p.boostSpeed ?? 1, boostAverage(
+    p.boostElapsed ?? 0,
+    dash,
+    boostRamp,
+    boostMultiplier,
+  ));
+  const endSpeed = dash > 0 ? Math.max(p.boostSpeed ?? 1, boostAverage((p.boostElapsed ?? 0)+dash,0,boostRamp,boostMultiplier)) : (p.boostSpeed ?? 1);
+  const [recovery, finalSpeed] = recoverBoost(endSpeed,dt-dash,boostRecovery,boostMultiplier);
+  p.boostSpeed = dt > dash ? finalSpeed : endSpeed;
+  p.boostElapsed = dash > 0 ? (p.boostElapsed ?? 0) + dash : 0;
   const decay = Math.exp(-5 * dt),
     travel = (1 - decay) / 5;
   p.x +=
-    speed * (bx * boostMultiplier * dash + ix * (dt - dash)) +
-    (p.kx ?? 0) * travel;
+    speed * (bx * multiplier * dash + ix * recovery * (dt - dash)) + (p.kx ?? 0) * travel;
   p.y +=
-    speed * (by * boostMultiplier * dash + iy * (dt - dash)) +
-    (p.ky ?? 0) * travel;
+    speed * (by * multiplier * dash + iy * recovery * (dt - dash)) + (p.ky ?? 0) * travel;
   if (p.kx !== undefined) p.kx *= decay;
   if (p.ky !== undefined) p.ky *= decay;
   clampPose(p, radius - collisionRadius);
@@ -235,11 +270,13 @@ function apply(p: Player, c: Control, tuning: State) {
     p.boostCapacity = tuning.boostDuration ?? 0.32;
     p.rechargeTime = tuning.boostCooldown ?? 4;
     if (!c.boost) {
+      p.boostElapsed = 0;
       p.boostHeld = false;
       p.boost = 0;
       return;
     }
     if (!p.boostHeld && p.energy > 0) {
+      p.boostElapsed = 0;
       if (n >= 0.1) p.angle = Math.atan2(c.y, c.x);
       p.bx = Math.cos(p.angle);
       p.by = Math.sin(p.angle);
@@ -390,8 +427,10 @@ export class Motion {
         s.radius,
         s.collisionRadius ?? 0,
         s.baseSpeed ?? 240,
-        s.boostMultiplier ?? 3,
+        (s.boostMultiplier ?? 3) * (s.boostTopFactor ?? 1),
         s.stations,
+        s.boostRamp ?? 0,
+        s.boostRecovery ?? 0,
       );
       return result;
     }
@@ -412,8 +451,10 @@ export class Motion {
           s.radius,
           s.collisionRadius ?? 0,
           s.baseSpeed ?? 240,
-          s.boostMultiplier ?? 3,
+          (s.boostMultiplier ?? 3) * (s.boostTopFactor ?? 1),
           s.stations,
+          s.boostRamp ?? 0,
+        s.boostRecovery ?? 0,
         );
         if (s.collisionRadius) {
           const velocity = {

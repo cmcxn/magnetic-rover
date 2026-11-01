@@ -1,7 +1,7 @@
 package.path='./?.lua;'..package.path
 local G=require 'game'
 local function setup()
- local g=G.new();local a=g:join('a','A','#38bdf8');local b=g:join('b','B','#fb7185');g:start();g.batteries={};g.nextrefill=1e9;a.x=0;a.y=0;b.x=200;b.y=200;return g,a,b
+ local g=G.new();local a=g:join('a','A','#38bdf8');local b=g:join('b','B','#fb7185');g:start();g.batteries={};g.nextrefill=1e9;a.angle=0;a.x=0;a.y=0;b.x=200;b.y=200;return g,a,b
 end
 local g,a,b=setup();g:input(a,{x=0,y=0,boost=true});g:step(.05);assert(math.abs(a.x-36)<.001 and a.y==0,'idle boost triple speed along spawn heading');assert(a.cooldown>3.9)
 local g,a,b=setup();g:input(a,{x=0,y=-1});g:step(.05);g:input(a,{x=0,y=0});local y=a.y;g:input(a,{x=0,y=0,boost=true,angle=0,speed=999});g:step(.05);assert(math.abs(a.y-y+36)<.001 and math.abs(a.x)<.001,'idle boost retains server heading');local cd=a.cooldown;g:input(a,{x=1,y=0,boost=true});g:step(.05);assert(a.cooldown<cd and math.abs(a.x)<.001,'boost locks direction and cooldown')

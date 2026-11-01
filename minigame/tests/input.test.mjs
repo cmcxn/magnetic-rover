@@ -94,6 +94,7 @@ function harness() {
       }
     },
     __ROVER_BUILD__: "test-build",
+    __ROVER_ENDPOINT__: "wss://cb.chenmin.org/ws",
     exports: {},
     ...types,
     skillView,

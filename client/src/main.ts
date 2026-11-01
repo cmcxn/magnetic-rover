@@ -726,7 +726,7 @@ function render() {
     if (phase === "lobby")
       surface.innerHTML = `<div class="center garage-center"><section class="card garage"><header class="race-logo"><strong>${GAME_NAME}<span>ϟ</span></strong><h1>100秒抢运赛</h1></header><div class="room-code">房间码 <strong id="room-code"></strong><button id="copy-room" class="copy-room" aria-label="复制房间码">复制</button></div><div id="ready-timeout" hidden></div><div id="room-palette" class="room-palette" aria-label="房间车身颜色"></div><div id="roster" class="car-roster"></div><div id="slots" class="slots"></div><div class="ai-actions" id="ai-actions"><button id="bot-action" class="primary ai-add" hidden>和 AI 一起玩</button><button id="start" class="primary race-start">❯❯ 开始比赛</button></div><div class="ready-hint"><span id="ready-hint"></span><button class="secondary" id="show-guide">玩法</button></div><div class="error" id="error" role="alert"></div>${raceGuide()}<button class="secondary leave-room">返回房间大厅</button></section></div>`;
     if (phase === "playing") {
-      surface.innerHTML = `<div class="compact-hud-surface" aria-hidden="true"></div><div class="hud"><div class="stat compact-score"><span class="hud-icon" aria-hidden="true">♻</span><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat compact-cargo"><svg class="hud-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="3" fill="#ffd25c"/><path d="M9 1h6v3H9z" fill="#ffeaa2"/><path d="m13 7-4 7h3l-1 5 5-8h-4z" fill="#77512b"/></svg><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="match-actions"><button class="secondary compact-sound" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-label="更多设置" title="更多设置" aria-controls="settings" aria-expanded="false">⚙</button>${role !== "spectator" ? '<button class="secondary leave-room" aria-label="离开房间返回大厅">离开</button>' : ""}</div><aside class="leaderboard"><h3>已存排行</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
+      surface.innerHTML = `<div class="compact-hud-surface" aria-hidden="true"></div><div class="hud"><div class="stat compact-score"><span class="hud-icon" aria-hidden="true">♻</span><small>积分</small><b id="score">0</b></div><div class="stat timer"><small id="supply-status">剩余时间</small><b id="timer">1:40</b></div><div class="stat compact-cargo"><svg class="hud-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="18" rx="3" fill="#ffd25c"/><path d="M9 1h6v3H9z" fill="#ffeaa2"/><path d="m13 7-4 7h3l-1 5 5-8h-4z" fill="#77512b"/></svg><small>载货</small><b id="cargo">0 / 20</b></div></div><div class="speed-readout" aria-label="当前速度">速度 <b id="speed">0</b><small>单位/秒</small></div><div class="match-actions"><button class="secondary compact-sound" id="sound">声音：${sounds.enabled ? "开" : "关"}</button><button class="secondary mobile-menu ranking-toggle" id="ranking-toggle" aria-controls="ranking" aria-expanded="false">排行</button><button class="secondary mobile-menu settings-toggle" id="settings-toggle" aria-label="更多设置" title="更多设置" aria-controls="settings" aria-expanded="false">⚙</button>${role !== "spectator" ? '<button class="secondary leave-room" aria-label="离开房间返回大厅">离开</button>' : ""}</div><aside class="leaderboard"><h3>已存排行</h3><div id="ranking"></div></aside><canvas class="minimap" id="map" width="200" height="200" aria-label="场地小地图"></canvas><div class="controls" id="settings"><button class="secondary" id="mouse">鼠标驾驶：关</button><button class="secondary" id="effects">减少特效：${reducedEffects ? "开" : "关"}</button></div><div id="stun-status" class="stun-status" role="status" aria-live="polite"></div><div class="joystick" id="joystick" aria-label="拖动摇杆驾驶"><div class="stick"></div></div><button class="boost" id="boost">冲 刺<span class="keyboard-hint">SPACE</span></button><div class="hint">收集 ⚡ → 驶入绿色回收站 → 存入积分</div>`;
       surface.insertAdjacentHTML(
         "beforeend",
         role === "spectator"
@@ -1158,6 +1158,8 @@ window.addEventListener("pointercancel", (e) => {
   if (e.pointerType === "mouse") mouseDown = false;
 });
 function updateSkillButton() {
+  const speedReadout = document.querySelector("#speed");
+  if (speedReadout) speedReadout.textContent = String(world.speed);
   const b = document.querySelector<HTMLButtonElement>("#boost");
   if (!b) return;
   const predicted = world.predictedPlayer?.();
@@ -1170,11 +1172,12 @@ function updateSkillButton() {
   );
   sounds.setBoosting?.(
     phase === "playing" &&
-      boost &&
-      view.boosting &&
+      ((boost && view.boosting) || ((me?.boostSpeed ?? 1) > 1.02 && Math.hypot(me?.ix ?? 0, me?.iy ?? 0) > 0.1)) &&
+      (me?.stun ?? 0) <= 0 &&
       !document.hidden &&
       performance.now() - lastState < 500,
     1 - 0.2 * (me?.cargo ?? 0) / 20,
+    me?.boostSpeed !== undefined ? Math.max(0, Math.min(1, (me.boostSpeed-1) / Math.max(.01, (state?.boostMultiplier ?? 1.5)*(state?.boostTopFactor ?? 1)-1))) : undefined,
   );
   const stun = me?.stun ?? 0;
   const label = view.boosting
