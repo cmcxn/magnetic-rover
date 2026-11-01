@@ -1,0 +1,35 @@
+{
+  "baselineCommit": "fbd4bc6bf4884ddbd23b228c081300ea735cbb78",
+  "baseline": {
+    "mainBytes": 1363238,
+    "totalBytes": 10204259,
+    "packages": [
+      {
+        "name": "art",
+        "root": "art/",
+        "bytes": 8841021
+      }
+    ]
+  },
+  "current": {
+    "mainBytes": 1937714,
+    "totalBytes": 11836279,
+    "packages": [
+      {
+        "name": "art",
+        "root": "art/",
+        "bytes": 9898565
+      }
+    ]
+  },
+  "addedRuntimeBytes": 1632020,
+  "modelBytes": 1053736,
+  "modelGzipBytes": 637821,
+  "drawCalls": 12,
+  "triangles": 86348,
+  "textures": 0,
+  "scope": "Local builds using the same installed toolchain; native upload/account limit not verified.",
+  "geometryAttributeAndIndexBytes": 1567128,
+  "geometryCount": 12,
+  "memoryNote": "Sum of parsed geometry attribute/index array bytes; excludes driver/program/framebuffer overhead; not real-device memory measurement."
+}

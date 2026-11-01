@@ -1,3 +1,4 @@
+import { previewModeRequested, requestPreviewMode } from "../src/preview-toggle.ts";
 import { StateDecoder } from "../../client/src/state-codec.ts";
 import { EntryGuide, GUIDE_KEY } from "../../client/src/onboarding.ts";
 import test from "node:test";
@@ -85,6 +86,7 @@ function harness() {
     }
   }
   const context = {
+    previewModeRequested, requestPreviewMode,
     StateDecoder,
     EntryGuide,
     GUIDE_KEY,

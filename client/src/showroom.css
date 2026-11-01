@@ -1,0 +1,28 @@
+.car-art[data-showroom-color] {
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+}
+.car-art[data-showroom-color]:active {
+  cursor: grabbing;
+}
+.showroom-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+[data-showroom-status="ready"] > .showroom-canvas {
+  display: block;
+}
+[data-showroom-status="ready"] > .toy-car {
+  visibility: hidden;
+}
+/* Room cards keep their compact phone layout; use available desktop height for detail. */
+@media (min-width: 900px) and (min-height: 700px) {
+  .lobby .car-card .car-art[data-showroom-color] {
+    height: 104px;
+    min-height: 104px;
+  }
+}

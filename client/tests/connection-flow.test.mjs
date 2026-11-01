@@ -1,3 +1,4 @@
+import { updateSelectionRoster } from "../src/showroom-h5.ts";
 import { StateDecoder } from "../src/state-codec.ts";
 import { EntryGuide, GUIDE_KEY } from "../src/onboarding.ts";
 import assert from "node:assert/strict";
@@ -133,6 +134,9 @@ function harness(search = "", options = {}) {
     }
   }
   const context = {
+    // DOM/GPU adapter is independently exercised by showroom tests and browser QA.
+    installShowroom: () => () => {},
+    updateSelectionRoster,
     StateDecoder,
     EntryGuide,
     GUIDE_KEY,

@@ -33,3 +33,63 @@ test("3x canvas keeps logical dimensions and scales main-canvas transforms", () 
   assert.equal(canvas.width, 2532);
   assert.equal(canvas.style.width, "844px");
 });
+test("WebGL does not touch 2D or scale logical Phaser projection", () => {
+  const canvas = {
+    width: 844,
+    height: 390,
+    style: {},
+    getContext() {
+      throw Error("2D locks WebGL canvas");
+    },
+  };
+  const renderer = {
+    gl: {},
+    resize() {
+      throw Error("must not double-scale WebGL projection");
+    },
+  };
+  assert.equal(
+    installCanvasDensity({ renderer }, canvas, {
+      windowWidth: 844,
+      windowHeight: 390,
+      pixelRatio: 3,
+    }),
+    1,
+  );
+  assert.equal(canvas.width, 844);
+});
+
+for (const ratio of [1, 2, 3])
+  test(`default Canvas DPR ${ratio} preserves logical rendering and input units`, () => {
+    let matrix;
+    const context = { setTransform: (...args) => (matrix = args) };
+    const canvas = {
+      width: 844,
+      height: 390,
+      style: {},
+      getContext: () => context,
+    };
+    const game = {
+      scale: { width: 844, height: 390 },
+      renderer: {
+        resize(w, h) {
+          canvas.width = w;
+          canvas.height = h;
+        },
+      },
+    };
+    assert.equal(
+      installCanvasDensity(game, canvas, {
+        windowWidth: 844,
+        windowHeight: 390,
+        pixelRatio: ratio,
+      }),
+      ratio,
+    );
+    assert.equal(canvas.width, 844 * ratio);
+    assert.equal(canvas.height, 390 * ratio);
+    assert.equal(game.scale.width, 844);
+    assert.equal(game.scale.height, 390);
+    context.setTransform(1, 0, 0, 1, 25, 30);
+    assert.deepEqual(matrix, [ratio, 0, 0, ratio, 25 * ratio, 30 * ratio]);
+  });

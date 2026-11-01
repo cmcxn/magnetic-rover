@@ -1,0 +1,12 @@
+{
+  "method": "Original blend and reimported shipped GLB rendered in Blender at identical source camera/light, 512px, 32 samples, no denoiser",
+  "rgbaMeanAbsoluteDifference255": [
+    0.08029556274414062,
+    0.09235763549804688,
+    0.0991058349609375,
+    0.001575469970703125
+  ],
+  "visualReview": "Same silhouette, all 4 wheels, theme parts, N/S poles and letters; no clipping or missing faces",
+  "threeLoader": "Passed real client-installed GLTFLoader parse; 12 meshes, 86348 triangles; bounds within 0.0001",
+  "sourceUnmodified": true
+}

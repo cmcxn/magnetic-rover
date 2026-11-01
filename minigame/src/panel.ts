@@ -1,4 +1,10 @@
 import Phaser from "phaser";
+import {
+  MiniShowroom,
+  framebufferViewport,
+  type ShowroomOptions,
+  type ShowroomRect,
+} from "./showroom";
 import { lobbyCardLayout } from "./lobby-layout";
 import {
   GAME_NAME,
@@ -22,6 +28,8 @@ import {
 } from "../../client/src/presentation";
 export interface PanelModel {
   build?: string;
+  preview3D?: boolean;
+  previewPending?: boolean;
   connected: boolean;
   selfVisual?: import("../../client/src/types").Player;
   keyboardEnabled?: boolean;
@@ -42,6 +50,7 @@ export interface PanelModel {
 }
 export interface PanelActions {
   showGuide?(): void;
+  togglePreview?(): void;
   connect(): void;
   backToProfile?(): void;
   toggleSound?(): void;
@@ -64,6 +73,69 @@ type Hit = {
 /** Platform shell only: every score and room phase comes from the same server as H5. */
 export class CartoonPanel extends Phaser.Scene {
   hits: Hit[] = [];
+  private showroom?: MiniShowroom;
+  private showroomRect?: ShowroomRect;
+  private showroomFallback?: Phaser.GameObjects.Container;
+  private showroomOptions?: ShowroomOptions;
+  private showroomActive = true;
+  private showroomTouch: { id: number; x: number } | null = null;
+  private showroomLost = false;
+  private contextLost = (event: Event) => {
+    event.preventDefault?.();
+    this.showroomLost = true;
+    this.showroom?.hide();
+    this.showroomFallback?.setVisible(true);
+  };
+  private contextRestored = () => {
+    this.showroomLost = false;
+    this.invalidate();
+  };
+  setShowroomActive(active: boolean) {
+    this.showroomActive = active;
+    if (!active) {
+      this.showroom?.hide();
+      this.showroomEnd();
+    } else this.invalidate();
+  }
+  showroomStart(id: number, x: number, y: number) {
+    const r = this.showroomRect;
+    if (
+      !this.showroomActive ||
+      this.showroomLost ||
+      this.getModel().state?.phase === "playing" ||
+      !r ||
+      !this.showroom?.ready ||
+      x < r.x ||
+      y < r.y ||
+      x > r.x + r.width ||
+      y > r.y + r.height
+    )
+      return false;
+    if (this.showroomTouch) return true;
+    this.showroomTouch = { id, x };
+    this.showroom.beginDrag();
+    return true;
+  }
+  showroomMove(id: number, x: number) {
+    if (this.showroomTouch?.id !== id) return false;
+    if (
+      !this.showroomActive ||
+      this.showroomLost ||
+      this.getModel().state?.phase === "playing"
+    ) {
+      this.showroomEnd(id);
+      return false;
+    }
+    this.showroom?.dragX(x - this.showroomTouch.x);
+    this.showroomTouch.x = x;
+    return true;
+  }
+  showroomEnd(id?: number) {
+    if (id !== undefined && this.showroomTouch?.id !== id) return;
+    this.showroomTouch = null;
+    this.showroom?.endDrag();
+  }
+
   private soundHit?: Hit;
   private guideHit?: Hit;
   private menu!: Phaser.GameObjects.Container;
@@ -93,8 +165,10 @@ export class CartoonPanel extends Phaser.Scene {
       top: number;
       capsuleBottom?: number;
     },
+    showroomOptions?: ShowroomOptions,
   ) {
     super("panel");
+    this.showroomOptions = showroomOptions;
     this.getModel = model;
     this.actions = actions;
     this.joystick = joystick;
@@ -108,6 +182,46 @@ export class CartoonPanel extends Phaser.Scene {
     this.dynamic = this.add.graphics();
     this.live.add(this.dynamic);
     this.scale.on("resize", () => this.invalidate());
+    const gl = (this.game?.renderer as Phaser.Renderer.WebGL.WebGLRenderer)?.gl;
+    if (gl && this.showroomOptions) {
+      const options = this.showroomOptions;
+      this.showroom = new MiniShowroom(() => {
+        const host = this.game.renderer as Phaser.Renderer.WebGL.WebGLRenderer;
+        if (gl.isContextLost()) throw new Error("Showroom context is lost");
+        host.pipelines.clear();
+        try {
+          const renderer = options.create(this.game.canvas, gl);
+          const dispose = renderer.dispose.bind(renderer);
+          renderer.dispose = () => {
+            if (!gl.isContextLost()) host.pipelines.clear();
+            try {
+              dispose();
+            } finally {
+              if (!gl.isContextLost()) host.pipelines.rebind();
+            }
+          };
+          return renderer;
+        } finally {
+          if (!gl.isContextLost()) host.pipelines.rebind();
+        }
+      }, options.load);
+      this.game.canvas.addEventListener?.("webglcontextlost", this.contextLost);
+      this.game.canvas.addEventListener?.(
+        "webglcontextrestored",
+        this.contextRestored,
+      );
+      this.events.once("shutdown", () => {
+        this.showroom?.hide();
+        this.game.canvas.removeEventListener?.(
+          "webglcontextlost",
+          this.contextLost,
+        );
+        this.game.canvas.removeEventListener?.(
+          "webglcontextrestored",
+          this.contextRestored,
+        );
+      });
+    }
   }
   invalidate() {
     this.key = "";
@@ -228,9 +342,13 @@ export class CartoonPanel extends Phaser.Scene {
     const preview = "rover-menu-" + color.slice(1);
     if (this.textures.exists(preview)) {
       const frame = this.textures.get(preview).get();
-      this.menu.add(this.add.image(x, y, preview)
-        .setDisplaySize(size, size * frame.height / frame.width)
-        .setRotation(0).setAlpha(alpha));
+      this.menu.add(
+        this.add
+          .image(x, y, preview)
+          .setDisplaySize(size, (size * frame.height) / frame.width)
+          .setRotation(0)
+          .setAlpha(alpha),
+      );
       return;
     }
     const texture = "rover-" + color.slice(1);
@@ -257,7 +375,102 @@ export class CartoonPanel extends Phaser.Scene {
       this.text((width * (i + 0.5)) / 3, y + 31, v, 18).setOrigin(0.5),
     );
   }
+  private previewCar(
+    x: number,
+    y: number,
+    color: string,
+    size: number,
+    angle = -0.35,
+    alpha = 1,
+  ) {
+    if (!this.showroom || !this.showroomActive || this.showroomLost) {
+      this.car(x, y, color, size, angle, alpha);
+      return;
+    }
+    const menu = this.menu,
+      fallback = this.add.container(0, 0);
+    menu.add(fallback);
+    this.menu = fallback;
+    this.car(x, y, color, size, angle, alpha);
+    this.menu = menu;
+    this.showroomFallback = fallback;
+    const scale = menu.scaleX;
+    this.showroomRect = {
+      x: menu.x + (x - size * 0.6) * scale,
+      y: menu.y + (y - size * 0.48) * scale,
+      width: size * 1.2 * scale,
+      height: size * 0.96 * scale,
+    };
+    this.showroom.show(color);
+    fallback.setVisible(!this.showroom.ready);
+    const external = this.add.extern();
+    menu.add(external);
+    (external as Phaser.GameObjects.Extern & { render: () => void }).render =
+      () => {
+        if (
+          !this.showroom?.ready ||
+          !this.showroomRect ||
+          !this.showroomActive ||
+          this.showroomLost
+        )
+          return;
+        const renderer = this.game
+          .renderer as Phaser.Renderer.WebGL.WebGLRenderer;
+        const gl = renderer.gl;
+        if (gl.isContextLost()) {
+          this.contextLost({ preventDefault() {} } as Event);
+          return;
+        }
+        // Extern flushes/rebinds Phaser pipelines. Preserve framebuffer/scissor/depth state
+        // that Three may touch, including framebuffer density on real WeChat devices.
+        const framebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+        const viewport = gl.getParameter(gl.VIEWPORT),
+          scissor = gl.getParameter(gl.SCISSOR_BOX);
+        const scissorTest = gl.isEnabled(gl.SCISSOR_TEST),
+          depthTest = gl.isEnabled(gl.DEPTH_TEST);
+        const depthMask = gl.getParameter(gl.DEPTH_WRITEMASK);
+        if (gl.isContextLost()) {
+          this.contextLost({ preventDefault() {} } as Event);
+          return;
+        }
+        if (!viewport || !scissor) {
+          this.showroom.fail();
+          fallback.setVisible(true);
+          return;
+        }
+        try {
+          this.showroom.render(
+            framebufferViewport(
+              this.showroomRect,
+              this.scale.width,
+              this.scale.height,
+              gl.drawingBufferWidth,
+              gl.drawingBufferHeight,
+            ),
+          );
+          fallback.setVisible(!this.showroom.ready);
+        } catch {
+          this.showroom.fail();
+          fallback.setVisible(true);
+        } finally {
+          if (gl.isContextLost()) {
+            this.contextLost({ preventDefault() {} } as Event);
+          } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+            gl.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+            gl.scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+            if (scissorTest) gl.enable(gl.SCISSOR_TEST);
+            else gl.disable(gl.SCISSOR_TEST);
+            if (depthTest) gl.enable(gl.DEPTH_TEST);
+            else gl.disable(gl.DEPTH_TEST);
+            gl.depthMask(depthMask);
+          }
+        }
+      };
+  }
   private renderMenu(m: PanelModel) {
+    this.showroomRect = undefined;
+    this.showroomFallback = undefined;
     this.menu.removeAll(true);
     this.paint = this.add.graphics();
     this.menu.add(this.paint);
@@ -291,7 +504,7 @@ export class CartoonPanel extends Phaser.Scene {
     ).setOrigin(0.5);
     this.text(W / 2, 77, "100 秒抢运赛 · 2–8 人同场", 17).setOrigin(0.5);
     if (!m.connected) {
-      this.car(172, 212, m.color, 190);
+      this.previewCar(172, 212, m.color, 190);
       this.text(172, 303, "收集 · 冲刺 · 回收", 20).setOrigin(0.5);
       this.text(400, 112, "你的车手昵称", 18);
       this.button(400, 143, 400, m.name, this.actions.rename, true);
@@ -329,6 +542,22 @@ export class CartoonPanel extends Phaser.Scene {
           : "小车大电量\n出发，抢点电！",
         m.keyboardEnabled ? 16 : 27,
       ).setOrigin(0.5);
+      if (this.actions.togglePreview) {
+        this.button(
+          400,
+          367,
+          400,
+          m.preview3D ? "切回普通预览" : "3D预览（实验）",
+          this.actions.togglePreview,
+          true,
+          true,
+          38,
+        );
+        if (m.previewPending)
+          this.text(600, 414, "已保存，关闭小游戏重新打开后生效", 12).setOrigin(
+            0.5,
+          );
+      }
       this.guide(428, W);
     } else if (!m.roomId) {
       this.button(
@@ -360,7 +589,14 @@ export class CartoonPanel extends Phaser.Scene {
         () => this.actions.send({ type: "rooms" }),
         true,
       );
-      this.button(704, 157, 128, "返回选车", this.actions.backToProfile ?? (() => {}), true);
+      this.button(
+        704,
+        157,
+        128,
+        "返回选车",
+        this.actions.backToProfile ?? (() => {}),
+        true,
+      );
       const perPage = 3,
         pages = Math.max(1, Math.ceil(m.rooms.length / perPage));
       this.page = Math.min(this.page, pages - 1);
@@ -502,6 +738,20 @@ export class CartoonPanel extends Phaser.Scene {
         "#667d88",
       ).setOrigin(0.5);
     } else if (m.state) {
+      if (this.actions.togglePreview) {
+        this.button(
+          28,
+          96,
+          212,
+          m.preview3D ? "切回普通预览" : "3D预览（实验）",
+          this.actions.togglePreview,
+          true,
+          true,
+          42,
+        );
+        if (m.previewPending)
+          this.text(134, 145, "已保存，重启后生效", 12).setOrigin(0.5);
+      }
       this.button(
         277,
         96,
@@ -546,19 +796,17 @@ export class CartoonPanel extends Phaser.Scene {
           (W - lobby.columns * (lobby.width + lobby.gap) + lobby.gap) / 2 +
           (i % 4) * (lobby.width + lobby.gap);
         const y = lobby.top + Math.floor(i / 4) * lobby.rowStep;
-        this.rounded(
-          this.paint,
-          x,
-          y,
-          lobby.width,
-          lobby.height,
-          0xe3e9e5,
-          20,
-        );
-        if (p.ready && p.connected) this.paint
-          .lineStyle(3, parseInt(p.color.slice(1), 16), 1)
-          .strokeEllipse(x + lobby.width / 2, y + lobby.carY, lobby.carWidth + 18, lobby.carWidth * 0.75 + 14);
-        this.car(
+        this.rounded(this.paint, x, y, lobby.width, lobby.height, 0xe3e9e5, 20);
+        if (p.ready && p.connected)
+          this.paint
+            .lineStyle(3, parseInt(p.color.slice(1), 16), 1)
+            .strokeEllipse(
+              x + lobby.width / 2,
+              y + lobby.carY,
+              lobby.carWidth + 18,
+              lobby.carWidth * 0.75 + 14,
+            );
+        (p.id === m.self ? this.previewCar.bind(this) : this.car.bind(this))(
           x + lobby.width / 2,
           y + lobby.carY,
           p.color,
@@ -715,7 +963,7 @@ export class CartoonPanel extends Phaser.Scene {
     t.setPosition(x, y).setText(value).setColor(color).setVisible(true);
     return t;
   }
-  update() {
+  update(_time?: number, delta = 16.67) {
     if (!this.menu) return;
     const m = this.getModel(),
       playing = m.state?.phase === "playing",
@@ -724,6 +972,8 @@ export class CartoonPanel extends Phaser.Scene {
       this.textures.exists("rover"),
       m.connected,
       m.keyboardEnabled,
+      m.preview3D,
+      m.previewPending,
       m.name,
       m.color,
       m.roomId,
@@ -748,6 +998,11 @@ export class CartoonPanel extends Phaser.Scene {
       this.key = signature;
       this.renderMenu(m);
     }
+    if (!this.showroomRect || !this.showroomActive || this.showroomLost) {
+      this.showroom?.hide();
+      this.showroomEnd();
+    } else this.showroom?.update(delta);
+    this.showroomFallback?.setVisible(!this.showroom?.ready);
     this.dynamic.clear();
     this.guideHit = undefined;
     for (const label of this.labels.values()) label.setVisible(false);
@@ -1126,13 +1381,44 @@ export class CartoonPanel extends Phaser.Scene {
         this.guideHit = { x, y, w: 64, h: 30, action: this.actions.showGuide };
       }
       if (me?.readyIn !== undefined) {
-        const s = this.menu.scaleX, x = this.menu.x + 30 * s, y = this.menu.y + 91 * s;
+        const s = this.menu.scaleX,
+          x = this.menu.x + 30 * s,
+          y = this.menu.y + 91 * s;
         const urgent = me.readyIn <= 10;
-        g.fillStyle(urgent ? 0xffd5ca : 0xffe6ae, 0.92).fillRoundedRect(x, y, 230*s, 48*s, 18*s);
+        g.fillStyle(urgent ? 0xffd5ca : 0xffe6ae, 0.92).fillRoundedRect(
+          x,
+          y,
+          230 * s,
+          48 * s,
+          18 * s,
+        );
         const color = urgent ? "#c1322b" : "#c46816";
-        this.label("ready-prefix", x+15*s, y+25*s, "请在", 19*s, color, 0);
-        this.label("ready-deadline", x+85*s, y+24*s, String(me.readyIn), 38*s, color);
-        this.label("ready-suffix", x+116*s, y+25*s, "秒内准备", 19*s, color, 0);
+        this.label(
+          "ready-prefix",
+          x + 15 * s,
+          y + 25 * s,
+          "请在",
+          19 * s,
+          color,
+          0,
+        );
+        this.label(
+          "ready-deadline",
+          x + 85 * s,
+          y + 24 * s,
+          String(me.readyIn),
+          38 * s,
+          color,
+        );
+        this.label(
+          "ready-suffix",
+          x + 116 * s,
+          y + 25 * s,
+          "秒内准备",
+          19 * s,
+          color,
+          0,
+        );
       }
     }
     if (m.notice && playing)

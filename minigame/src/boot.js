@@ -2,8 +2,15 @@
 require("./weapp-adapter.js");
 require("./platform.js");
 
-const context = canvas.getContext("2d");
+const selected = GameGlobal.__roverRenderer;
+const context = selected.context;
 function draw(message) {
+  if (selected.mode === "webgl") {
+    context.clearColor(0.765, 0.847, 0.725, 1);
+    context.clear(context.COLOR_BUFFER_BIT);
+    wx.showLoading?.({ title: message, mask: true });
+    return;
+  }
   context.fillStyle = "#c3d8b9";
   context.fillRect(0, 0, canvas.width, canvas.height);
   context.fillStyle = "#173e37";
@@ -17,9 +24,11 @@ function loadArt() {
     name: "art",
     success() {
       console.info("[rover] art subpackage ready");
+      wx.hideLoading?.();
       require("./main.js");
     },
     fail(error) {
+      wx.hideLoading?.();
       console.error("[rover] art subpackage failed", error.errMsg);
       draw("资源加载失败，请重试");
       wx.showModal({

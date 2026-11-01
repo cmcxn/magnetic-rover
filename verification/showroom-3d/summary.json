@@ -1,0 +1,305 @@
+{
+  "status": "passed",
+  "method": "Actual H5 application with deterministic WebSocket lobby; actual CartoonPanel + World + Showroom3D shared WebGL1 fixture. Observer-only renderer probes, no production edits.",
+  "browserVersion": "155.0.8059.79",
+  "runs": [
+    {
+      "scope": "all-before-new-toggle",
+      "status": "passed",
+      "finished": "2026-11-01T15:20:35.207Z",
+      "raw": "../rover-showroom-qa-20261101/full-before-toggle-report.json"
+    },
+    {
+      "scope": "mini-including-new-toggle",
+      "status": "passed",
+      "finished": "2026-11-01T15:24:18.594Z",
+      "raw": "../rover-showroom-qa-20261101/mini-with-toggle-final-report.json"
+    }
+  ],
+  "h5": [
+    {
+      "case": "actual-h5-lobby",
+      "viewport": {
+        "width": 1200,
+        "height": 900
+      },
+      "autoDelta": 0.13999499999999987,
+      "horizontalDelta": 0.5999999999999996,
+      "verticalYawUnchanged": true,
+      "cameraFixed": true,
+      "themes": 8,
+      "repeatedRenders": 12,
+      "identicalPacketDragContinued": true,
+      "captureLossRecovered": true,
+      "playingDisposeReentry": true,
+      "contextRestore": true,
+      "errors": [],
+      "probe": {
+        "loads": 3,
+        "disposes": 2,
+        "stateRestorationFailures": []
+      },
+      "fixedMagnetMaterials": {
+        "fixed_magnet_connector": {
+          "color": "adbaca",
+          "emissive": "000000",
+          "intensity": 1
+        },
+        "fixed_magnet_n": {
+          "color": "de1d24",
+          "emissive": "000000",
+          "intensity": 1
+        },
+        "fixed_magnet_s": {
+          "color": "164bd7",
+          "emissive": "000000",
+          "intensity": 1
+        },
+        "fixed_pole_letters": {
+          "color": "fdfdfa",
+          "emissive": "000000",
+          "intensity": 1
+        }
+      }
+    },
+    {
+      "case": "actual-h5-lobby",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "autoDelta": 0.11249999999999916,
+      "horizontalDelta": 0.600000061035156,
+      "verticalYawUnchanged": true,
+      "cameraFixed": true,
+      "themes": 8,
+      "repeatedRenders": 12,
+      "identicalPacketDragContinued": true,
+      "captureLossRecovered": true,
+      "playingDisposeReentry": true,
+      "contextRestore": true,
+      "errors": [],
+      "probe": {
+        "loads": 3,
+        "disposes": 2,
+        "stateRestorationFailures": []
+      },
+      "fixedMagnetMaterials": {
+        "fixed_magnet_connector": {
+          "color": "adbaca",
+          "emissive": "000000",
+          "intensity": 1
+        },
+        "fixed_magnet_n": {
+          "color": "de1d24",
+          "emissive": "000000",
+          "intensity": 1
+        },
+        "fixed_magnet_s": {
+          "color": "164bd7",
+          "emissive": "000000",
+          "intensity": 1
+        },
+        "fixed_pole_letters": {
+          "color": "fdfdfa",
+          "emissive": "000000",
+          "intensity": 1
+        }
+      }
+    }
+  ],
+  "shortLandscapeSmoke": {
+    "viewport": {
+      "width": 844,
+      "height": 390
+    },
+    "active": true
+  },
+  "missingGlbFallbacks": {
+    "h5": true,
+    "mini": true
+  },
+  "defaultCanvasDensity": [
+    {
+      "dpr": 1,
+      "reportedDensity": 1,
+      "physical": [
+        900,
+        700
+      ],
+      "logical": {
+        "width": 900,
+        "height": 700
+      }
+    },
+    {
+      "dpr": 2,
+      "reportedDensity": 2,
+      "physical": [
+        1800,
+        1400
+      ],
+      "logical": {
+        "width": 900,
+        "height": 700
+      }
+    },
+    {
+      "dpr": 3,
+      "reportedDensity": 3,
+      "physical": [
+        2700,
+        2100
+      ],
+      "logical": {
+        "width": 900,
+        "height": 700
+      }
+    }
+  ],
+  "miniSharedWebGL1": {
+    "case": "experimental-actual-panel-shared-webgl1",
+    "browserDpr": 2,
+    "framebufferDensity": 1,
+    "colors": 8,
+    "repeatedRenders": 12,
+    "cameraFixed": true,
+    "viewportScissor": {
+      "expected": {
+        "viewport": [
+          11,
+          13,
+          137,
+          123
+        ],
+        "scissor": [
+          17,
+          19,
+          113,
+          97
+        ],
+        "scissorTest": true,
+        "depthMask": false,
+        "color": [
+          0.20000000298023224,
+          0.30000001192092896,
+          0.4000000059604645,
+          0.5
+        ]
+      },
+      "after": {
+        "viewport": [
+          11,
+          13,
+          137,
+          123
+        ],
+        "scissor": [
+          17,
+          19,
+          113,
+          97
+        ],
+        "scissorTest": true,
+        "depthMask": false,
+        "color": [
+          0.20000000298023224,
+          0.30000001192092896,
+          0.4000000059604645,
+          0.5
+        ]
+      },
+      "sameContext": true
+    },
+    "contextRestore": true,
+    "errors": []
+  },
+  "sharedGlCheckpoints": [
+    {
+      "name": "before-manual-state-probe",
+      "error": 0
+    },
+    {
+      "name": "after-host-bracketed-state-probe",
+      "error": 0
+    },
+    {
+      "name": "after-playing-disposal",
+      "error": 0
+    }
+  ],
+  "postRestoreGlError": 0,
+  "gameplayWorldAfter3D": {
+    "roverReady": true,
+    "glError": 0,
+    "menuVisible": false
+  },
+  "visiblePreviewButtons": [
+    {
+      "case": "actual-mini-button-native-modal-contract",
+      "defaultMode": "canvas",
+      "cancelPreserves": true,
+      "confirmSaves": true,
+      "restartRequired": true,
+      "noHotRendererSwitch": true,
+      "toggle": {
+        "requested": true,
+        "pending": true,
+        "stored": [
+          [
+            "rover.showroom3D",
+            true
+          ]
+        ],
+        "dialog": {
+          "title": "\u542f\u75283D\u9884\u89c8\uff08\u5b9e\u9a8c\uff09",
+          "content": "3D\u9884\u89c8\u76ee\u524d\u662f\u5b9e\u9a8c\u6a21\u5f0f\uff0c\u753b\u8d28\u53ef\u80fd\u4f4e\u4e8e\u666e\u901a\u6a21\u5f0f\u3002\u5207\u6362\u9700\u8981\u91cd\u542f\uff1a\u786e\u8ba4\u540e\u8bf7\u5173\u95ed\u5c0f\u6e38\u620f\uff0c\u518d\u91cd\u65b0\u6253\u5f00\u3002\u9047\u5230\u5f02\u5e38\u53ef\u5207\u56de\u666e\u901a\u9884\u89c8\u3002",
+          "confirmText": "\u786e\u8ba4\u5207\u6362"
+        }
+      }
+    },
+    {
+      "case": "actual-mini-lobby-preview-button",
+      "cancelPreserves": true,
+      "nativeModalIsMockContractOnly": true
+    }
+  ],
+  "trackedScreenshots": [
+    {
+      "file": "h5-1200-lobby-ready.png",
+      "pixels": [
+        1200,
+        900
+      ]
+    },
+    {
+      "file": "h5-844-lobby-ready.png",
+      "pixels": [
+        844,
+        390
+      ]
+    },
+    {
+      "file": "mini-experimental-webgl1-preconnect.png",
+      "pixels": [
+        1800,
+        1400
+      ]
+    }
+  ],
+  "otherScreenshots": "Outside repository at ../rover-showroom-qa-20261101/",
+  "resolvedBrowserBugs": [
+    "Native RAF/cancel unbound Illegal invocation prevented H5 boot",
+    "Same-host canvas reappend lost pointer capture despite unchanged authoritative snapshot",
+    "Lost-context null viewport in shared Extern finally stopped entire experimental canvas; guarded and actual restore retested"
+  ],
+  "limits": [
+    "Not native WeChat runtime/device proof",
+    "Experimental mini shared WebGL is intentionally1x at browserDPR2; default Canvas density tested separately",
+    "No phone FPS or publication claim",
+    "Native modal uses actual helper plus mock wx callbacks; not real WeChat modal UI proof",
+    "Experimental WebGL canvas is900x700 at browserDPR2, so lower-density output is deliberate and disclosed",
+    "Fixture mini FPS60 label is synthetic model data, not measured performance",
+    "No live backend/network, native WeChat device, or publication verification"
+  ]
+}

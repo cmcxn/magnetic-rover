@@ -359,25 +359,198 @@ test("lobby help stays below the WeChat capsule and remains tappable", () => {
   p.press(p.guideHit.x + 10, p.guideHit.y + 10);
   assert.equal(calls.at(-1)[0], "guide");
 });
-test('menu previews select the exact palette texture without tinting the white shell', () => {
-  const {p}=harness();const seen=[];
-  p.textures.exists=(key)=>key.startsWith('rover-menu-');
-  p.textures.get=()=>({get:()=>({width:192,height:140})});
-  p.add.image=(x,y,key,frame)=>{seen.push({key,frame});return object();};
-  for(const color of types.COLORS)p.car(0,0,color);
-  assert.deepEqual(seen.map(v=>v.key),types.COLORS.map(c=>'rover-menu-'+c.slice(1)));
-  assert.ok(seen.every(v=>v.frame===undefined));
+test("menu previews select the exact palette texture without tinting the white shell", () => {
+  const { p } = harness();
+  const seen = [];
+  p.textures.exists = (key) => key.startsWith("rover-menu-");
+  p.textures.get = () => ({ get: () => ({ width: 192, height: 140 }) });
+  p.add.image = (x, y, key, frame) => {
+    seen.push({ key, frame });
+    return object();
+  };
+  for (const color of types.COLORS) p.car(0, 0, color);
+  assert.deepEqual(
+    seen.map((v) => v.key),
+    types.COLORS.map((c) => "rover-menu-" + c.slice(1)),
+  );
+  assert.ok(seen.every((v) => v.frame === undefined));
 });
-test('directory exposes a return to the initial vehicle selection screen',()=>{
- const {p,model}=harness();let returned=0;p.actions.backToProfile=()=>returned++;
- model.connected=true;model.roomId=null;p.update();
- const back=p.hits.find(h=>h.action===p.actions.backToProfile);
- assert.ok(back);back.action();assert.equal(returned,1);
+test("directory exposes a return to the initial vehicle selection screen", () => {
+  const { p, model } = harness();
+  let returned = 0;
+  p.actions.backToProfile = () => returned++;
+  model.connected = true;
+  model.roomId = null;
+  p.update();
+  const back = p.hits.find((h) => h.action === p.actions.backToProfile);
+  assert.ok(back);
+  back.action();
+  assert.equal(returned, 1);
 });
-test('ready and waiting players retain their exact color and full opacity; only ready gets a ring',()=>{
- const {p,model}=harness();model.connected=true;model.roomId='1';
- model.state={phase:'lobby',players:[{id:'me',name:'甲',color:types.COLORS[0],ready:false,connected:true,score:0},{id:'2',name:'乙',color:types.COLORS[1],ready:true,connected:true,score:0}],batteries:[],stations:[]};
- let cars=[],rings=0;p.car=(...args)=>cars.push(args);const g=new Proxy({}, {get:(_o,k)=>()=>{if(k==='strokeEllipse')rings++;return g;}});p.add.graphics=()=>g;p.update();
- assert.deepEqual(cars.map(c=>c[2]),types.COLORS.slice(0,2));assert.ok(cars.every(c=>c[5]===1));assert.equal(rings,1);
- cars=[];model.state.players[1].color=types.COLORS[2];p.update();assert.equal(cars[1][2],types.COLORS[2]);
+test("ready and waiting players retain their exact color and full opacity; only ready gets a ring", () => {
+  const { p, model } = harness();
+  model.connected = true;
+  model.roomId = "1";
+  model.state = {
+    phase: "lobby",
+    players: [
+      {
+        id: "me",
+        name: "甲",
+        color: types.COLORS[0],
+        ready: false,
+        connected: true,
+        score: 0,
+      },
+      {
+        id: "2",
+        name: "乙",
+        color: types.COLORS[1],
+        ready: true,
+        connected: true,
+        score: 0,
+      },
+    ],
+    batteries: [],
+    stations: [],
+  };
+  let cars = [],
+    rings = 0;
+  p.car = (...args) => cars.push(args);
+  const g = new Proxy(
+    {},
+    {
+      get: (_o, k) => () => {
+        if (k === "strokeEllipse") rings++;
+        return g;
+      },
+    },
+  );
+  p.add.graphics = () => g;
+  p.update();
+  assert.deepEqual(
+    cars.map((c) => c[2]),
+    types.COLORS.slice(0, 2),
+  );
+  assert.ok(cars.every((c) => c[5] === 1));
+  assert.equal(rings, 1);
+  cars = [];
+  model.state.players[1].color = types.COLORS[2];
+  p.update();
+  assert.equal(cars[1][2], types.COLORS[2]);
 });
+test("3D preview eligibility is restricted to initial hero and local lobby card", () => {
+  const { p, model } = harness();
+  const previews = [];
+  p.previewCar = (...args) => previews.push(args);
+  p.invalidate();
+  p.update();
+  assert.equal(previews.length, 1);
+  previews.length = 0;
+  model.connected = true;
+  model.roomId = "1";
+  model.state = {
+    phase: "lobby",
+    players: [
+      { id: "me", name: "甲", color: types.COLORS[0], connected: true },
+      { id: "2", name: "乙", color: types.COLORS[1], connected: true },
+    ],
+    batteries: [],
+    stations: [],
+  };
+  p.update();
+  assert.equal(previews.length, 1);
+  assert.equal(previews[0][2], types.COLORS[0]);
+  previews.length = 0;
+  model.state.phase = "playing";
+  p.update();
+  assert.equal(previews.length, 0);
+});
+test("authoritative playing transition cannot intercept first game touch before panel redraw", () => {
+  const { p, model } = harness();
+  let drags = 0;
+  p.showroomRect = { x: 10, y: 10, width: 100, height: 100 };
+  p.showroom = {
+    ready: true,
+    beginDrag() {
+      drags++;
+    },
+    endDrag() {},
+  };
+  assert.equal(p.showroomStart(1, 20, 20), true);
+  p.showroomEnd(1);
+  model.state = { phase: "playing", players: [], batteries: [], stations: [] };
+  assert.equal(p.showroomStart(2, 20, 20), false);
+  assert.equal(drags, 1);
+});
+test("held preview gesture stops consuming movement immediately on authoritative playing transition", () => {
+  const { p, model } = harness();
+  let ended = 0,
+    moved = 0;
+  p.showroomRect = { x: 10, y: 10, width: 100, height: 100 };
+  p.showroom = {
+    ready: true,
+    beginDrag() {},
+    endDrag() {
+      ended++;
+    },
+    dragX() {
+      moved++;
+    },
+  };
+  assert.equal(p.showroomStart(1, 20, 20), true);
+  model.state = { phase: "playing", players: [], batteries: [], stations: [] };
+  assert.equal(p.showroomMove(1, 30), false);
+  assert.equal(moved, 0);
+  assert.equal(ended, 1);
+  assert.equal(p.showroomTouch, null);
+});
+for (const midPass of [false, true])
+  test(`Extern survives ${midPass ? "mid-pass" : "already-lost"} context with null GL snapshots and allows recovery`, () => {
+    const { p } = harness();
+    let lost = !midPass,
+      hides = 0,
+      renders = 0;
+    let external;
+    p.showroom = {
+      ready: true,
+      show() {},
+      hide() {
+        this.ready = false;
+        hides++;
+      },
+      fail() {
+        this.ready = false;
+      },
+      render() {
+        renders++;
+      },
+    };
+    p.add.extern = () => (external = {});
+    const gl = {
+      isContextLost: () => lost,
+      getParameter() {
+        lost = true;
+        return null;
+      },
+      isEnabled: () => false,
+      bindFramebuffer() {},
+      viewport() {},
+      scissor() {},
+      enable() {},
+      disable() {},
+      depthMask() {},
+    };
+    p.game = { renderer: { gl } };
+    p.previewCar(100, 100, "#38bdf8", 100);
+    assert.doesNotThrow(() => external.render());
+    assert.equal(renders, 0);
+    p.contextLost({ preventDefault() {} });
+    assert.equal(p.showroom.ready, false);
+    assert.ok(hides > 0);
+    lost = false;
+    p.contextRestored();
+    assert.equal(p.showroomLost, false);
+    assert.equal(p.key, "");
+  });
+test('visible 3D preview toggle is available in profile and room but absent during play',()=>{const {p,model}=harness();let toggles=0;const buttons=[];p.actions.togglePreview=()=>toggles++;const original=p.button.bind(p);p.button=(...args)=>{buttons.push(args);return original(...args)};p.invalidate();p.update();let b=buttons.find(x=>x[3]==='3D预览（实验）');assert.ok(b);b[4]();assert.equal(toggles,1);buttons.length=0;model.connected=true;model.roomId='r';model.preview3D=true;model.state={phase:'lobby',players:[{id:'me',name:'me',color:types.COLORS[0],connected:true,ready:false,score:0}],batteries:[],stations:[]};p.update();b=buttons.find(x=>x[3]==='切回普通预览');assert.ok(b);b[4]();assert.equal(toggles,2);buttons.length=0;model.state.phase='playing';p.update();assert.equal(buttons.some(x=>x[3].includes('预览')),false)});

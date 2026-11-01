@@ -1,4 +1,7 @@
+import { installMiniTextDecoder } from "./text-decoder.js";
+import { selectMiniRenderer } from "./renderer-config.js";
 // Phaser 3 additions to the MIT WeChat quickstart adapter. No HTML UI is emulated.
+installMiniTextDecoder(GameGlobal, window);
 const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
 const width = info.windowWidth,
   height = info.windowHeight;
@@ -17,8 +20,17 @@ if (!window.screen)
     orientation: { type: "landscape-primary" },
   };
 if (!window.performance) window.performance = wx.getPerformance();
-if (!window.CanvasRenderingContext2D)
-  window.CanvasRenderingContext2D = canvas.getContext("2d").constructor;
+// Decide once, before boot or Phaser can lock the on-screen canvas to 2D.
+GameGlobal.__roverRenderer = selectMiniRenderer(canvas, wx);
+if (!window.CanvasRenderingContext2D) {
+  const offscreen = wx.createCanvas();
+  window.CanvasRenderingContext2D = offscreen.getContext("2d").constructor;
+}
+if (
+  GameGlobal.__roverRenderer.mode === "webgl" &&
+  !window.WebGLRenderingContext
+)
+  window.WebGLRenderingContext = GameGlobal.__roverRenderer.context.constructor;
 if (!document.documentElement.style) document.documentElement.style = {};
 document.documentElement.clientLeft = 0;
 document.documentElement.clientTop = 0;

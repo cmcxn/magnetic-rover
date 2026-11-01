@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "model": "rover.glb",
+  "source": "art/rover-v3/rover-source.blend",
+  "sourceSha256": "8a65b022ec5b0858ae5a3818556b02957ba370b8f77b8b843f4131bf75520c37",
+  "sourceUnmodified": true,
+  "sourceObjectCount": 130,
+  "sourceTriangleCount": 86348,
+  "exportedTriangleCount": 86348,
+  "fileBytes": 1053736,
+  "drawCalls": 12,
+  "upAxis": "+Y",
+  "frontAxis": "+X",
+  "pivot": [
+    0,
+    0,
+    0
+  ],
+  "bounds": {
+    "min": [
+      -1.4413666725158691,
+      -0.021121323108673096,
+      -1.3675000667572021
+    ],
+    "max": [
+      1.899999976158142,
+      1.5179998874664307,
+      1.3675000667572021
+    ]
+  },
+  "maxPositionQuantizationError": 4.2940685081233386e-05,
+  "maxNormalQuantizationErrorDegrees": 0.3709360251765825,
+  "externalDecoderRequired": false,
+  "geometrySimplified": false,
+  "textures": 0,
+  "themeMaterials": {
+    "shellaccent": "theme_shellaccent",
+    "hub": "theme_hub",
+    "light": "theme_light"
+  },
+  "themeEmissionStrength": {
+    "theme_hub": 1.3,
+    "theme_light": 2.0
+  },
+  "fixedMagnetMaterials": [
+    "fixed_magnet_n",
+    "fixed_magnet_s",
+    "fixed_magnet_connector",
+    "fixed_pole_letters"
+  ],
+  "palettes": [
+    "38bdf8",
+    "fb7185",
+    "a78bfa",
+    "facc15",
+    "34d399",
+    "fb923c",
+    "e879f9",
+    "cbd5e1"
+  ],
+  "groups": [
+    {
+      "material": "fixed_dark_chassis",
+      "vertices": 7008,
+      "triangles": 13968,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 13968
+    },
+    {
+      "material": "fixed_gasket",
+      "vertices": 6360,
+      "triangles": 12684,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 12684
+    },
+    {
+      "material": "fixed_magnet_connector",
+      "vertices": 648,
+      "triangles": 1292,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 1292
+    },
+    {
+      "material": "fixed_magnet_n",
+      "vertices": 216,
+      "triangles": 428,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 428
+    },
+    {
+      "material": "fixed_magnet_s",
+      "vertices": 216,
+      "triangles": 428,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 428
+    },
+    {
+      "material": "fixed_pole_letters",
+      "vertices": 1320,
+      "triangles": 2104,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 2104
+    },
+    {
+      "material": "fixed_rubber",
+      "vertices": 2560,
+      "triangles": 5104,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 5104
+    },
+    {
+      "material": "fixed_tread",
+      "vertices": 10368,
+      "triangles": 20448,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 20448
+    },
+    {
+      "material": "fixed_white_shell",
+      "vertices": 648,
+      "triangles": 1284,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 1284
+    },
+    {
+      "material": "theme_hub",
+      "vertices": 7142,
+      "triangles": 14212,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 14212
+    },
+    {
+      "material": "theme_light",
+      "vertices": 216,
+      "triangles": 428,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 428
+    },
+    {
+      "material": "theme_shellaccent",
+      "vertices": 7008,
+      "triangles": 13968,
+      "primitiveMode": 4,
+      "decodedTrianglesIncludingDegenerates": 13968
+    }
+  ],
+  "colorAPI": "Use THREE.Color.set(hexString) for material.color and emissive on theme_hub/theme_light; glTF factors are linear, Three converts sRGB CSS hex. Never recolor fixed_ materials.",
+  "scope": "Selection showroom only, no gameplay/steering/print-source changes. Original source geometry evaluated with modifiers; only material grouping and sub0.0001unit numeric quantization."
+}

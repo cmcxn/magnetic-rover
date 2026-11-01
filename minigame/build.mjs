@@ -20,7 +20,7 @@ await rm("minigame/dist", { recursive: true, force: true });
 await mkdir("minigame/dist", { recursive: true });
 await cp("minigame/vendor/weapp-adapter.js", "minigame/dist/weapp-adapter.js");
 await mkdir("minigame/dist/licenses", { recursive: true });
-for (const name of ["weapp-adapter.LICENSE", "Phaser.LICENSE"])
+for (const name of ["weapp-adapter.LICENSE", "Phaser.LICENSE", "Three.LICENSE"])
   await cp(`minigame/vendor/${name}`, `minigame/dist/licenses/${name}`);
 await cp("client/public/assets/cartoon", "minigame/dist/art/cartoon", {
   recursive: true,

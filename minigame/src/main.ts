@@ -5,6 +5,9 @@ import { installCanvasDensity } from "./density";
 import Phaser from "phaser";
 import { WeChatSounds } from "./audio";
 import { CartoonPanel } from "./panel";
+import { Showroom3D } from "../../client/src/showroom-3d";
+import { requestPreviewMode, previewModeRequested } from "./preview-toggle";
+import { readShowroomBinary } from "./showroom";
 import { skillView } from "../../client/src/presentation";
 import { World } from "../../client/src/world";
 import { FrameMetrics, type FrameSample } from "../../client/src/performance";
@@ -97,7 +100,11 @@ const world = new (class extends World {
       console.error("[rover] asset failed", file.key, file.src),
     );
     this.preloadRoverAssets("art/cartoon/rover-v3");
-    for (const color of COLORS) this.load.image("rover-menu-" + color.slice(1), "art/cartoon/rover-menu/" + color.slice(1) + ".png");
+    for (const color of COLORS)
+      this.load.image(
+        "rover-menu-" + color.slice(1),
+        "art/cartoon/rover-menu/" + color.slice(1) + ".png",
+      );
     this.preloadStationAssets("art/cartoon");
     this.preloadBatteryAssets("art/cartoon");
     this.load.image("chassis", "art/cartoon/rover-chassis.png");
@@ -146,6 +153,7 @@ function send(message: object) {
 }
 function resetInput() {
   pcKeys.clear();
+  panel?.showroomEnd?.();
   if (!connected) networkTimedOut = false;
   sounds.setBoosting?.(false);
   joystick.reset();
@@ -324,6 +332,10 @@ function editable(
 panel = new CartoonPanel(
   () => ({
     build: __ROVER_BUILD__,
+    preview3D: previewModeRequested(wx),
+    previewPending:
+      previewModeRequested(wx) !==
+      (GameGlobal.__roverRenderer?.mode === "webgl"),
     connected,
     selfVisual: world.predictedPlayer?.(),
     keyboardEnabled:
@@ -348,7 +360,21 @@ panel = new CartoonPanel(
   }),
   {
     connect,
-    backToProfile: () => { disconnect(); status = "请选择车手和颜色"; notice = ""; },
+    togglePreview: () =>
+      requestPreviewMode(wx, !previewModeRequested(wx), (enabled) => {
+        notice = `已选择${enabled ? "3D预览" : "普通预览"}，请关闭小游戏重新打开后生效`;
+        panel?.invalidate();
+        wx.showToast?.({
+          title: "设置已保存，请关闭后重新打开",
+          icon: "none",
+          duration: 3000,
+        });
+      }),
+    backToProfile: () => {
+      disconnect();
+      status = "请选择车手和颜色";
+      notice = "";
+    },
     showGuide: () => entryGuide.show(Date.now()),
     toggleSound: () => sounds.toggle(),
     rename: () =>
@@ -396,6 +422,10 @@ panel = new CartoonPanel(
     top: Math.max(8, windowInfo().safeArea?.top || 0),
     capsuleBottom: wx.getMenuButtonBoundingClientRect?.().bottom || 0,
   }),
+  {
+    create: (canvas, context) => new Showroom3D({ canvas, context }),
+    load: () => readShowroomBinary(wx),
+  },
 );
 // Network cadence is independent of display cadence. UI never creates score/position state.
 function controlState() {
@@ -498,6 +528,7 @@ wx.onTouchStart((event: any) => {
     const x = t.clientX,
       y = t.clientY;
     if (tutorial.press(x, y)) continue;
+    if (active && panel?.showroomStart?.(t.identifier, x, y)) continue;
     const hit = panel?.press(x, y) ?? false;
     lastTouch = { x, y, hit };
     if (hit) {
@@ -511,11 +542,14 @@ wx.onTouchStart((event: any) => {
   }
 });
 wx.onTouchMove((event: any) => {
-  for (const t of event.changedTouches)
+  for (const t of event.changedTouches) {
+    if (panel?.showroomMove?.(t.identifier, t.clientX)) continue;
     joystick.move(t.identifier, t.clientX, t.clientY);
+  }
 });
 wx.onTouchEnd((event: any) => {
   for (const t of event.changedTouches) {
+    panel?.showroomEnd?.(t.identifier);
     if (t.identifier === boostOwner) {
       boost = false;
       boostOwner = null;
@@ -535,6 +569,7 @@ wx.onTouchCancel((event: any) => {
   boost = false;
   boostOwner = null;
   for (const t of event.changedTouches) {
+    panel?.showroomEnd?.(t.identifier);
     fieldTouches.delete(t.identifier);
     if (
       joystick.end(t.identifier) &&
@@ -548,6 +583,7 @@ wx.onTouchCancel((event: any) => {
 wx.onHide(() => {
   resetInput();
   active = false;
+  panel?.setShowroomActive?.(false);
   sounds.setActive(false);
   rtt = null;
   ping = null;
@@ -556,6 +592,7 @@ wx.onHide(() => {
 });
 wx.onShow(() => {
   active = true;
+  panel?.setShowroomActive?.(true);
   sounds.setActive(true);
   world.resetMotion();
   if (connected) send({ type: "rooms" });
@@ -563,7 +600,9 @@ wx.onShow(() => {
 
 const info = windowInfo();
 const game = new Phaser.Game({
-  type: Phaser.CANVAS,
+  type:
+    GameGlobal.__roverRenderer?.mode === "webgl" ? Phaser.WEBGL : Phaser.CANVAS,
+  context: GameGlobal.__roverRenderer?.context,
   canvas,
   customEnvironment: true,
   parent: null,
@@ -596,7 +635,7 @@ game.events.on(Phaser.Core.Events.POST_RENDER, () => {
       visual.boost > 0 &&
       visual.stun <= 0 &&
       Date.now() - lastSnapshot < 500,
-    1 - 0.2 * (visual?.cargo ?? 0) / 20,
+    1 - (0.2 * (visual?.cargo ?? 0)) / 20,
   );
   if (!active) return;
   const sample = frames.record(Date.now());
@@ -615,6 +654,10 @@ Object.defineProperty(GameGlobal, "roverSpike", {
   configurable: true,
   get: () => ({
     build: __ROVER_BUILD__,
+    preview3D: previewModeRequested(wx),
+    previewPending:
+      previewModeRequested(wx) !==
+      (GameGlobal.__roverRenderer?.mode === "webgl"),
     endpoint,
     connected,
     audio: sounds.diagnostics,

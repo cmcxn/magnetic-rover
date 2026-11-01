@@ -1,3 +1,5 @@
+import { installShowroom, updateSelectionRoster } from "./showroom-h5";
+import "./showroom.css";
 import { StateDecoder } from "./state-codec";
 import { EntryGuide, GUIDE_KEY } from "./onboarding";
 import { GuideOverlay } from "./guide-overlay";
@@ -154,6 +156,7 @@ const defaultUrl =
   `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`;
 app.innerHTML = `<div class="brand"><div class="brand-icon">ϟ</div><div><strong>${GAME_NAME}</strong><small>100秒抢运赛</small></div></div><div class="connection pill"><strong class="registered-game-name">${GAME_NAME}</strong><span class="dot"></span><span id="status">尚未连接</span><div class="performance-line"><span id="fps" title="实际渲染循环帧率，约每秒测量一次；不是网络更新率">FPS：—</span><span id="latency" title="网络 RTT：WebSocket 应用层往返时间，不是帧率或快照间隔">RTT：未连接</span></div></div><div class="network-alert" aria-hidden="true"></div>${debug ? '<div id="diagnostics" class="diagnostics">FPS：— · 快照间隔：—</div>' : ""}<div id="surface"></div><div id="notice" class="toast hidden" role="status"></div>`;
 const surface = document.querySelector<HTMLDivElement>("#surface")!;
+installShowroom(surface);
 const frameMetrics = new FrameMetrics();
 const fpsElement = document.querySelector<HTMLElement>("#fps")!;
 let frameSample: FrameSample | null = null;
@@ -778,12 +781,13 @@ function render() {
   if (phase === "lobby") {
     document.querySelector("#room-code")!.textContent =
       state.roomCode ?? roomId ?? "";
-    document.querySelector("#roster")!.innerHTML = state.players
+    const rosterMarkup = state.players
       .map(
         (p) =>
-          `<article class="car-card ${p.ready ? "is-ready" : ""}" style="--car-color:${COLORS.includes(p.color) ? p.color : COLORS[0]}"><div class="car-art" aria-hidden="true"><span class="toy-car" style="background-image:url(/assets/cartoon/rover-menu/${(COLORS.includes(p.color) ? p.color : COLORS[0]).slice(1)}.png)"></span></div><strong>${p.id === id ? `<button class="driver-name" aria-label="修改车手昵称">${escape(p.name)} · 你 ✎</button>` : escape(p.name)}${p.isBot ? '<span class="ai-badge">AI</span>' : ""}</strong><span class="ready-chip">${!p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备"}</span></article>`,
+          `<article class="car-card ${p.ready ? "is-ready" : ""}" style="--car-color:${COLORS.includes(p.color) ? p.color : COLORS[0]}"><div class="car-art" ${p.id === id && role === "player" ? `data-showroom-color="${COLORS.includes(p.color) ? p.color : COLORS[0]}" title="左右拖动旋转小车"` : 'aria-hidden="true"'}><span class="toy-car" style="background-image:url(/assets/cartoon/rover-menu/${(COLORS.includes(p.color) ? p.color : COLORS[0]).slice(1)}.png)"></span></div><strong>${p.id === id ? `<button class="driver-name" aria-label="修改车手昵称">${escape(p.name)} · 你 ✎</button>` : escape(p.name)}${p.isBot ? '<span class="ai-badge">AI</span>' : ""}</strong><span class="ready-chip">${!p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备"}</span></article>`,
       )
       .join("");
+    updateSelectionRoster(document.querySelector<HTMLElement>("#roster")!, rosterMarkup);
     const rename = document.querySelector<HTMLButtonElement>(".driver-name");
     if (rename) rename.onclick = renameDriver;
     const palette = document.querySelector<HTMLDivElement>("#room-palette")!;

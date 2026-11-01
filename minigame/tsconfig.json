@@ -5,10 +5,23 @@
     "moduleResolution": "Bundler",
     "baseUrl": "../client/node_modules",
     "strict": true,
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "skipLibCheck": true,
     "noEmit": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "three": [
+        "@types/three"
+      ],
+      "three/*": [
+        "@types/three/*"
+      ]
+    }
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts"
+  ]
 }
