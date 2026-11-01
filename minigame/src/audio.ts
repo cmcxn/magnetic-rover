@@ -124,6 +124,11 @@ export class WeChatSounds {
     if (!active) this.stop();
   }
   update(prev: State | null, next: State, id: string) {
+    const local = next.players.find(p => p.id === id);
+    if (next.phase !== "playing" || next.remaining <= 0 || !local || local.connected === false ||
+      (prev && (prev.roomId !== next.roomId || prev.roundId !== next.roundId))) {
+      this.setBoosting(false);
+    }
     const left = next.players.find((p) => p.id === id)?.readyIn;
     if (
       next.phase === "lobby" &&

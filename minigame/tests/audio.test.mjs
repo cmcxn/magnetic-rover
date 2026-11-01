@@ -254,3 +254,7 @@ test('held engine changes revs without restarting the recording',()=>{
  h.advance(500);h.audio.setBoosting(true,1);
  assert.ok(c.playbackRate>low);assert.equal(c.plays,1);
 });
+test('native engine stops on finished and lobby snapshots without waiting for render',()=>{
+ const h=harness();h.audio.unlock();const c=h.contexts.find(c=>c.src.endsWith('boost.wav'));
+ for(const phase of ['finished','lobby']){h.audio.setBoosting(true);h.audio.update({phase:'playing',players:[{id:'me'}]},{phase,players:[{id:'me'}]},'me');assert.equal(c.loop,false);assert.equal(h.audio.boostLoop,false);}
+});

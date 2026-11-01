@@ -143,6 +143,7 @@ function harness(search = "", options = {}) {
     ...presentation,
     FrameMetrics,
     Sounds: class {
+      setBoosting() {}
       update() {}
       unlock() {
         return Promise.resolve();

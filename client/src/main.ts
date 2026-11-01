@@ -190,6 +190,7 @@ function canSendInput() {
   );
 }
 function resetControls() {
+  sounds.setBoosting(false);
   world.resetMotion();
   keys.clear();
   resetJoystick();
@@ -584,6 +585,7 @@ function connect(automatic = false) {
   };
 }
 function cancelConnection() {
+  sounds.setBoosting(false);
   world.resetMotion();
   leavingRoom = false;
   clearTimeout(leaveTimer);
@@ -1161,7 +1163,7 @@ function updateSkillButton() {
   const speedReadout = document.querySelector("#speed");
   if (speedReadout) speedReadout.textContent = String(world.speed);
   const b = document.querySelector<HTMLButtonElement>("#boost");
-  if (!b) return;
+  if (!b) { sounds.setBoosting(false); return; }
   const predicted = world.predictedPlayer?.();
   const me = predicted ?? state?.players.find((p) => p.id === id);
   b.style.setProperty("--player-color", me?.color ?? color);

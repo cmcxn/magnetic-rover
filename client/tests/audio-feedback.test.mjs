@@ -189,3 +189,10 @@ test("lobby warning sounds once per changed second, never for ready/solo/other p
   sounds.update(s(9), s(8), "other");
   assert.equal(played.length, 10);
 });
+test('leaving gameplay immediately stops held engine even without a boost button/frame',()=>{
+ const s=harness();let stops=0;
+ s.context={state:'running',currentTime:0,destination:{},createBufferSource:()=>({connect(){},disconnect(){},start(){},stop(){stops++}}),createGain:()=>({gain:{value:0,setValueAtTime(){},linearRampToValueAtTime(){}},connect(){},disconnect(){}})};
+ s.buffers.set('boost',{duration:.48});s.play=()=>{};
+ for(const phase of ['finished','lobby','directory']){s.setBoosting(true);s.update({phase:'playing',players:[{id:'me'}]},{phase,players:[{id:'me'}]},'me');assert.equal(s.boostLoop,null);}
+ assert.equal(stops,3);
+});
