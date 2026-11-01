@@ -1,7 +1,9 @@
 package.path='./?.lua;'..package.path
 local G=require 'game'
 local function setup()
- local g=G.new();local a=g:join('a','A','#38bdf8');local b=g:join('b','B','#fb7185');g:start();g.batteries={};g.nextrefill=1e9;a.x=0;a.y=0;b.x=300;b.y=0;return g,a,b
+ -- Keep legacy trigger geometry for these path-ordering fixtures. Solid model
+ -- sweeps and exterior deposits are covered by test_station_collision.lua.
+ local g=G.new();for _,s in ipairs(g.stations) do s.bodyRadius=nil;s.serviceRadius=nil end;local a=g:join('a','A','#38bdf8');local b=g:join('b','B','#fb7185');g:start();g.batteries={};g.nextrefill=1e9;a.x=0;a.y=0;b.x=300;b.y=0;return g,a,b
 end
 local g,a=setup();g:input(a,{x=1,y=0,speed=99999});g:step(.05);assert(a.x==12,'base speed is 240 units per second, authority ignores forged speed')
 local g,a=setup();a.cargo=20;g:input(a,{x=1,y=0,boost=true});g:step(.05);assert(math.abs(a.x-28.8)<1e-9,'loaded dash keeps 80% speed and 3x boost')

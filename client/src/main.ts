@@ -780,7 +780,7 @@ function render() {
     document.querySelector("#roster")!.innerHTML = state.players
       .map(
         (p) =>
-          `<article class="car-card ${p.ready ? "is-ready" : ""}" style="--car-color:${COLORS.includes(p.color) ? p.color : COLORS[0]}"><div class="car-art" aria-hidden="true"><span class="toy-car"><i></i></span></div><strong>${p.id === id ? `<button class="driver-name" aria-label="修改车手昵称">${escape(p.name)} · 你 ✎</button>` : escape(p.name)}${p.isBot ? '<span class="ai-badge">AI</span>' : ""}</strong><span class="ready-chip">${!p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备"}</span></article>`,
+          `<article class="car-card ${p.ready ? "is-ready" : ""}" style="--car-color:${COLORS.includes(p.color) ? p.color : COLORS[0]}"><div class="car-art" aria-hidden="true"><span class="toy-car" style="background-image:url(/assets/cartoon/rover-menu/${(COLORS.includes(p.color) ? p.color : COLORS[0]).slice(1)}.png)"></span></div><strong>${p.id === id ? `<button class="driver-name" aria-label="修改车手昵称">${escape(p.name)} · 你 ✎</button>` : escape(p.name)}${p.isBot ? '<span class="ai-badge">AI</span>' : ""}</strong><span class="ready-chip">${!p.connected ? "重连中" : p.ready ? "✓ 已准备" : "等待准备"}</span></article>`,
       )
       .join("");
     const rename = document.querySelector<HTMLButtonElement>(".driver-name");
@@ -1173,6 +1173,7 @@ function updateSkillButton() {
       view.boosting &&
       !document.hidden &&
       performance.now() - lastState < 500,
+    1 - 0.2 * (me?.cargo ?? 0) / 20,
   );
   const stun = me?.stun ?? 0;
   const label = view.boosting

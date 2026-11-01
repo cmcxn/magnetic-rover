@@ -8,6 +8,8 @@ export type VisualState = {
   /** Signed continuous wheel cycles; quantized only when resolving artwork. */
   phase: number;
   steer: Steer;
+  steerSignal?: number;
+  steerAgeMs?: number;
   /** Rebase after inactive or invalid samples, including the first resumed sample. */
   active?: boolean;
 };
@@ -115,6 +117,8 @@ export function stepRoverVisual(
     travel <= Math.max(100, 6000 * dt);
   let phase = Number.isFinite(previous?.phase) ? previous!.phase : 0;
   let steer: Steer = 0;
+  let signal = 0;
+  let age = (previous?.steerAgeMs ?? 150) + input.dtMs;
   if (valid) {
     const yaw = wrap(angle - previous.angle);
     const midpoint = previous.angle + yaw / 2;
@@ -124,12 +128,28 @@ export function stepRoverVisual(
     // Exact perpendicular travel may have a floating-point residue.
     if (Math.abs(longitudinal) < 1e-9) longitudinal = 0;
     phase += longitudinal / input.worldUnitsPerTurn;
+    let target = 0;
     if (Math.abs(longitudinal) / dt > 5 || travel < 1e-9) {
-      const target =
+      target =
         Math.max(-0.42, Math.min(0.42, (yaw / dt) * 0.12)) *
         (Math.sign(longitudinal) || 1);
-      steer = target > 0.025 ? 1 : target < -0.025 ? -1 : 0;
     }
+    const oldSignal = previous.steerSignal ?? 0;
+    signal =
+      previous.steerSignal === undefined
+        ? target
+        : oldSignal + (target - oldSignal) * (1 - Math.exp(-dt / 0.12));
+    const old = previous.steer;
+    steer =
+      signal > 0.05
+        ? 1
+        : signal < -0.05
+          ? -1
+          : Math.abs(signal) < 0.018
+            ? 0
+            : old;
+    if (steer !== old && age < 150) steer = old;
+    if (steer !== old) age = 0;
   }
   return {
     x,
@@ -138,6 +158,8 @@ export function stepRoverVisual(
     heading: selectHeading(angle, previous?.heading ?? null),
     phase,
     steer,
+    steerSignal: valid ? signal : undefined,
+    steerAgeMs: valid ? age : 150,
     active: input.active && sampleValid,
   };
 }

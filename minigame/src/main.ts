@@ -97,6 +97,7 @@ const world = new (class extends World {
       console.error("[rover] asset failed", file.key, file.src),
     );
     this.preloadRoverAssets("art/cartoon/rover-v3");
+    for (const color of COLORS) this.load.image("rover-menu-" + color.slice(1), "art/cartoon/rover-menu/" + color.slice(1) + ".png");
     this.preloadStationAssets("art/cartoon");
     this.preloadBatteryAssets("art/cartoon");
     this.load.image("chassis", "art/cartoon/rover-chassis.png");
@@ -594,6 +595,7 @@ game.events.on(Phaser.Core.Events.POST_RENDER, () => {
       visual.boost > 0 &&
       visual.stun <= 0 &&
       Date.now() - lastSnapshot < 500,
+    1 - 0.2 * (visual?.cargo ?? 0) / 20,
   );
   if (!active) return;
   const sample = frames.record(Date.now());

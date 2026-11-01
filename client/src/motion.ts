@@ -123,6 +123,61 @@ function constrain(
     poses.set(id, { ...p, angle: poses.get(id)!.angle });
   }
 }
+/** Match server solid station footprints; older snapshots keep legacy behavior. */
+export function constrainStations(
+  p: Pose,
+  start: Pose,
+  radius: number,
+  stations: State["stations"],
+) {
+  let at = { ...start };
+  let dx = p.x - start.x,
+    dy = p.y - start.y;
+  for (let pass = 0; pass < 8; pass++) {
+    for (const station of stations) {
+      if (!(station.bodyRadius && station.bodyRadius > 0)) continue;
+      const r = station.bodyRadius + radius,
+        x = at.x - station.x,
+        y = at.y - station.y,
+        d = Math.hypot(x, y);
+      if (d < r) {
+        at.x = station.x + (d > 1e-8 ? x / d : 1) * (r + 1e-6);
+        at.y = station.y + (d > 1e-8 ? y / d : 0) * (r + 1e-6);
+      }
+    }
+    let time = 1,
+      hit: { x: number; y: number; bodyRadius?: number } | undefined;
+    for (const station of stations) {
+      if (!(station.bodyRadius && station.bodyRadius > 0)) continue;
+      const t = contactTime(
+        at,
+        { x: dx, y: dy, angle: 0 },
+        { ...station, angle: 0 },
+        { x: 0, y: 0, angle: 0 },
+        station.bodyRadius + radius,
+      );
+      if (t !== undefined && t < time) {
+        time = t;
+        hit = station;
+      }
+    }
+    at.x += dx * time;
+    at.y += dy * time;
+    if (!hit) break;
+    const d = Math.hypot(at.x - hit.x, at.y - hit.y),
+      nx = (at.x - hit.x) / d,
+      ny = (at.y - hit.y) / d;
+    dx *= 1 - time;
+    dy *= 1 - time;
+    const inward = dx * nx + dy * ny;
+    if (inward < 0) {
+      dx -= inward * nx;
+      dy -= inward * ny;
+    }
+  }
+  p.x = at.x;
+  p.y = at.y;
+}
 /** Kinematics only. Collection, deposits, collisions and score remain authoritative. */
 export function integrate(
   p: Player,
@@ -131,7 +186,9 @@ export function integrate(
   collisionRadius = 0,
   baseSpeed = 240,
   boostMultiplier = 3,
+  stations: State["stations"] = [],
 ) {
+  const start = { x: p.x, y: p.y, angle: p.angle };
   if (p.energy !== undefined) {
     if (p.boostHeld)
       p.energy = Math.max(
@@ -164,6 +221,7 @@ export function integrate(
   if (p.kx !== undefined) p.kx *= decay;
   if (p.ky !== undefined) p.ky *= decay;
   clampPose(p, radius - collisionRadius);
+  constrainStations(p, start, collisionRadius, stations);
   if (bx !== 0 || by !== 0) p.angle = Math.atan2(by, bx);
   p.boost = Math.max(0, p.boost - dt);
 }
@@ -333,6 +391,7 @@ export class Motion {
         s.collisionRadius ?? 0,
         s.baseSpeed ?? 240,
         s.boostMultiplier ?? 3,
+        s.stations,
       );
       return result;
     }
@@ -354,6 +413,7 @@ export class Motion {
           s.collisionRadius ?? 0,
           s.baseSpeed ?? 240,
           s.boostMultiplier ?? 3,
+          s.stations,
         );
         if (s.collisionRadius) {
           const velocity = {
@@ -448,6 +508,13 @@ export class Motion {
         latest.state.collisionRadius,
         latest.state.radius,
       );
+      for (const [id, pose] of result)
+        constrainStations(
+          pose,
+          starts.get(id) ?? pose,
+          latest.state.collisionRadius,
+          latest.state.stations,
+        );
       if (now >= this.displayedAt) {
         this.displayed = new Map([...result].map(([id, p]) => [id, { ...p }]));
         this.displayedAt = now;

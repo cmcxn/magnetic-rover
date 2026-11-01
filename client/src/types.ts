@@ -59,7 +59,13 @@ export interface State {
     source?: string;
     unlock?: number;
   }[];
-  stations: { x: number; y: number; r: number }[];
+  stations: {
+    x: number;
+    y: number;
+    r: number;
+    bodyRadius?: number;
+    serviceRadius?: number;
+  }[];
   radius: number;
   mapScale?: number;
   supplySpeed?: number;

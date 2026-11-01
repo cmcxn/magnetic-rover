@@ -359,3 +359,12 @@ test("lobby help stays below the WeChat capsule and remains tappable", () => {
   p.press(p.guideHit.x + 10, p.guideHit.y + 10);
   assert.equal(calls.at(-1)[0], "guide");
 });
+test('menu previews select the exact palette texture without tinting the white shell', () => {
+  const {p}=harness();const seen=[];
+  p.textures.exists=(key)=>key.startsWith('rover-menu-');
+  p.textures.get=()=>({get:()=>({width:192,height:140})});
+  p.add.image=(x,y,key,frame)=>{seen.push({key,frame});return object();};
+  for(const color of types.COLORS)p.car(0,0,color);
+  assert.deepEqual(seen.map(v=>v.key),types.COLORS.map(c=>'rover-menu-'+c.slice(1)));
+  assert.ok(seen.every(v=>v.frame===undefined));
+});

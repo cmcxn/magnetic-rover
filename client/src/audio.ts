@@ -15,7 +15,8 @@ export class Sounds {
   last = new Map<Sound, number>();
   private boostLoop: { source: AudioBufferSourceNode; gain: GainNode } | null =
     null;
-  setBoosting(active: boolean) {
+  private boostStarted = 0;
+  setBoosting(active: boolean, strength = 1) {
     const c = this.context,
       b = this.buffers.get("boost");
     const shouldPlay =
@@ -38,9 +39,16 @@ export class Sounds {
       }
       return;
     }
-    if (this.boostLoop) return;
+    if (!this.boostLoop) this.boostStarted = c!.currentTime;
+    const ramp = Math.min(1, Math.max(0, (c!.currentTime - this.boostStarted) / 0.24));
+    const rate = 0.88 + 0.12 * ramp + 0.08 * Math.max(0, Math.min(1, strength));
+    if (this.boostLoop) {
+      this.boostLoop.source.playbackRate?.setTargetAtTime(rate, c!.currentTime, 0.06);
+      return;
+    }
     const source = c!.createBufferSource(),
       gain = c!.createGain();
+    if (source.playbackRate) source.playbackRate.value = rate;
     source.buffer = b!;
     source.loop = true;
     source.loopStart = b!.duration >= 0.48 ? 0.08 : 0;

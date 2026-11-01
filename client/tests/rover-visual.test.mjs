@@ -191,3 +191,16 @@ test("palette input accepts optional hash but manifest uses canonical unprefixed
   );
   assert.ok(resolveRoverLayers(m, palettes[0], initial()).length > 0);
 });
+test("touch heading noise cannot switch front wheel poses at frame rate", () => {
+  let v = initial(),
+    changes = 0;
+  for (let i = 1; i <= 120; i++) {
+    const n = stepRoverVisual(
+      v,
+      input({ x: i * 2, angle: i % 2 ? 0.018 : -0.018 }),
+    );
+    if (n.steer !== v.steer) changes++;
+    v = n;
+  }
+  assert.ok(changes <= 16, `too many pose changes: ${changes}`);
+});

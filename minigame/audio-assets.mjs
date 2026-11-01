@@ -64,14 +64,25 @@ export function compactWav(input, limitSeconds = Infinity) {
 export async function buildAudio(source, destination) {
   await mkdir(destination, { recursive: true });
   for (const name of SOUND_NAMES) {
-    const data = await readFile(
+    let data = await readFile(
       join(source, (name === "boost" ? "boost-engine" : name) + ".wav"),
     );
+    if (name === "boost") {
+      // Native loop repeats the whole file: omit the web attack and repeat the
+      // 80–480ms sustain twice, so its endpoint has the same recording phase.
+      const rate = data.readUInt32LE(24);
+      const cycle = data.subarray(44 + Math.round(rate * 0.08) * 2);
+      const header = Buffer.from(data.subarray(0, 44));
+      data = Buffer.concat([header, cycle, cycle]);
+      data.writeUInt32LE(data.length - 8, 4);
+      data.writeUInt32LE(data.length - 44, 40);
+    }
     await writeFile(
       join(destination, name + ".wav"),
       compactWav(data, name === "pickup" ? 0.22 : Infinity),
     );
   }
+  await copyFile(join(source, "ASTON-MARTIN-LICENSE.txt"), join(destination, "ASTON-MARTIN-LICENSE.txt"));
   await copyFile(
     join(source, "KENNEY-LICENSE.txt"),
     join(destination, "KENNEY-LICENSE.txt"),

@@ -134,7 +134,7 @@ ROVER_MAP_SCALE=2 ROVER_SUPPLY_SPEED=2 docker compose up -d --build
 
 H5 与微信小游戏共享独立车身和四轮渲染：胎纹按实际位移滚动，冲刺时加快；前轮随转向同向偏转，内轮角度稍大，后轮保持车身方向。轮胎后方带淡出的烟尘，冲刺显示队伍颜色外焰、橙色火焰和明亮内焰。停下、眩晕、断线和过期状态会停止新增运动效果；减少特效模式关闭烟尘并简化尾焰。
 
-声音开启时，按住冲刺播放原创电机循环声，松开、耗尽、后台或关闭声音时停止。微信原生音频在游戏声音开时不受系统静音拨片限制，仍受手机媒体音量控制。素材母版在 images/vehicle-motion-v1，游戏内只使用约100KiB的轻量车身与轮胎PNG；电机声音由 scripts/create-boost-engine.mjs 合成，不含外部采样。
+声音开启时，按住冲刺播放原创电机循环声，松开、耗尽、后台或关闭声音时停止。微信原生音频在游戏声音开时不受系统静音拨片限制，仍受手机媒体音量控制。素材母版在 images/vehicle-motion-v1，游戏内只使用约100KiB的轻量车身与轮胎PNG；冲刺音浪使用 BigSoundBank 的 CC0 阿斯顿·马丁实录剪辑，来源与复现脚本见 art/audio/aston-martin；scripts/create-boost-engine.mjs 可重新导出。
 
 ### 网络协议 v2（本地验证）
 

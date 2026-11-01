@@ -22,9 +22,9 @@ local function pickupRadius(b) return b.source=='drop' and config.collisionRadiu
 local function along(a,b,t) return {x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t} end
 local function clamp(p) local d=math.sqrt(p.x*p.x+p.y*p.y);if d>config.arenaRadius then p.x=p.x*config.arenaRadius/d;p.y=p.y*config.arenaRadius/d end end
 function G.new(tokenfn)
- return setmetatable({phase='lobby',remaining=config.matchDuration,time=0,roundId=0,players={},batteries={},contacts={},nextid=0,nextbat=0,stations={{x=-330*config.mapScale,y=-220*config.mapScale,r=65},{x=330*config.mapScale,y=-220*config.mapScale,r=65},{x=0,y=380*config.mapScale,r=65}},tokenfn=tokenfn},G)
+ return setmetatable({phase='lobby',remaining=config.matchDuration,time=0,roundId=0,players={},batteries={},contacts={},nextid=0,nextbat=0,stations={{x=-330*config.mapScale,y=-220*config.mapScale,r=65,bodyRadius=70,serviceRadius=70+config.collisionRadius+12},{x=330*config.mapScale,y=-220*config.mapScale,r=65,bodyRadius=70,serviceRadius=70+config.collisionRadius+12},{x=0,y=380*config.mapScale,r=65,bodyRadius=70,serviceRadius=70+config.collisionRadius+12}},tokenfn=tokenfn},G)
 end
-function G:station(p) for _,s in ipairs(self.stations) do if dist(p,s)<=s.r^2 then return true end end return false end
+function G:station(p) for _,s in ipairs(self.stations) do if dist(p,s)<=(s.serviceRadius or s.r)^2 then return true end end return false end
 function G:join(fd,name,color,token,deferNew)
  for _,p in ipairs(self.players) do
   if p.fd==fd then return nil,'Already joined' end
@@ -260,7 +260,7 @@ function G:step(dt,elapsed,remaining)
     initialK[p]={x=p.kx or 0,y=p.ky or 0}
     p.vx=p.driveX+initialK[p].x*average;p.vy=p.driveY+initialK[p].y*average;p.collisionAt=nil
    end
-   local segments=vehicleCollision.resolve(active,slice,resolveContacts)
+   local segments=vehicleCollision.resolve(active,slice,resolveContacts,self.stations)
    for _,p in ipairs(active) do
     if p.collisionAt then
      local damping=math.exp(-config.knockbackDecay*(slice-p.collisionAt))
@@ -284,7 +284,7 @@ function G:step(dt,elapsed,remaining)
    local start,finish=path.a,path.b;local exits={}
    local function add(t,event) event.t=path.t0+(path.t1-path.t0)*t;event.position=along(start,finish,t);events[#events+1]=event end
    for _,station in ipairs(self.stations) do
-    local enter,leave=circleInterval(start,finish,station,station.r)
+    local enter,leave=circleInterval(start,finish,station,station.serviceRadius or station.r)
     if enter then add(enter,{deposit=true});if leave<1 then exits[#exits+1]=math.min(1,leave+1e-7) end end
    end
    for _,battery in ipairs(self.batteries) do if battery.unlock<=self.time and (battery.z or 0)<=1 then

@@ -19,7 +19,7 @@ function C.sweep(a,finishA,angleA,b,finishB,angleB,padding)
  if last < -EPS or first>1+EPS then return end
  return math.max(0,first),math.min(1,last)
 end
-function C.project(players)
+function C.project(players,stations)
  local bound=config.arenaRadius-config.collisionRadius;local diameter=2*config.collisionRadius
  -- Stable ID order gives the same result regardless of room array order.
  for _=1,512 do
@@ -28,6 +28,12 @@ function C.project(players)
    local d=math.sqrt(p.x*p.x+p.y*p.y)
    if d>bound then error=math.max(error,d-bound);p.x=p.x*bound/d;p.y=p.y*bound/d end
   end
+  for _,p in ipairs(players) do for _,s in ipairs(stations or {}) do
+   if s.bodyRadius then
+    local nx,ny,d=normal(s,p);local overlap=s.bodyRadius+config.collisionRadius-d
+    if overlap>0 then error=math.max(error,overlap);p.x=p.x+nx*(overlap+EPS);p.y=p.y+ny*(overlap+EPS) end
+   end
+  end end
   for i,a in ipairs(players) do for j=i+1,#players do
    local b=players[j];local nx,ny,d=normal(a,b);local overlap=diameter-d
    if overlap>EPS then
@@ -38,9 +44,9 @@ function C.project(players)
   if error<EPS then return end
  end
 end
-function C.resolve(players,dt,onContacts)
+function C.resolve(players,dt,onContacts,stations)
  table.sort(players,function(a,b)return tonumber(a.id)<tonumber(b.id) end)
- C.project(players)
+ C.project(players,stations)
  local paths={};for _,p in ipairs(players) do paths[p]={} end
  local time=0
  local function advance(delta)
@@ -70,6 +76,18 @@ function C.resolve(players,dt,onContacts)
      if (a.vx-b.vx)*nx+(a.vy-b.vy)*ny>EPS then candidate(t*remaining,{a=a,b=b,nx=nx,ny=ny}) end
     end
    end
+   for _,s in ipairs(stations or {}) do if s.bodyRadius then
+    local x,y=a.x-s.x,a.y-s.y;local radius=s.bodyRadius+config.collisionRadius
+    local aa=a.vx*a.vx+a.vy*a.vy;local dot=x*a.vx+y*a.vy
+    local disc=dot*dot-aa*(x*x+y*y-radius*radius)
+    if aa>EPS and dot<0 and disc>=0 then
+     local t=(-dot-math.sqrt(disc))/aa
+     if t>=-EPS and t<=remaining then
+      local nx,ny=x+a.vx*math.max(0,t),y+a.vy*math.max(0,t);local d=math.sqrt(nx*nx+ny*ny)
+      candidate(math.max(0,t),{a=a,station=true,nx=nx/d,ny=ny/d})
+     end
+    end
+   end end
    local bound=config.arenaRadius-config.collisionRadius
    local aa=a.vx*a.vx+a.vy*a.vy;local dot=a.x*a.vx+a.y*a.vy
    if aa>EPS then
@@ -92,6 +110,9 @@ function C.resolve(players,dt,onContacts)
     local impulse=.7*closing
     a.vx=a.vx-e.nx*impulse;a.vy=a.vy-e.ny*impulse
     b.vx=b.vx+e.nx*impulse;b.vy=b.vy+e.ny*impulse
+   elseif e.station then
+    local inward=a.vx*e.nx+a.vy*e.ny
+    if inward<0 then a.vx=a.vx-inward*e.nx;a.vy=a.vy-inward*e.ny end
    else
     local d=math.sqrt(a.x*a.x+a.y*a.y);local nx,ny=a.x/d,a.y/d
     local outward=a.vx*nx+a.vy*ny
@@ -101,7 +122,7 @@ function C.resolve(players,dt,onContacts)
   if onContacts then onContacts(events) end
  end
  -- In an overconstrained pile the unconsumed fraction stays still, never tunnels.
- C.project(players)
+ C.project(players,stations)
  for _,p in ipairs(players) do
   if #paths[p]==0 then paths[p][1]={a={x=p.x,y=p.y},b={x=p.x,y=p.y},t0=0,t1=1} end
  end

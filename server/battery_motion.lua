@@ -10,7 +10,7 @@ local function blocks(g,b,p)
 end
 local function allowed(g,b)
  if b.x*b.x+b.y*b.y>(config.arenaRadius-radius)^2+1e-6 then return false end
- for _,s in ipairs(g.stations) do if (b.x-s.x)^2+(b.y-s.y)^2<(s.r+radius)^2 then return false end end
+ for _,s in ipairs(g.stations) do if (b.x-s.x)^2+(b.y-s.y)^2<((s.serviceRadius or s.r)+radius)^2 then return false end end
  for _,p in ipairs(g.players) do if blocks(g,b,p) and (b.x-p.x)^2+(b.y-p.y)^2<(config.collisionRadius+radius)^2-1e-5 then return false end end
  return true
 end
@@ -22,7 +22,7 @@ function B.place(g,b)
    local x,y=b.x-p.x,b.y-p.y;local d=math.sqrt(x*x+y*y)
    if d<r then if d<1e-8 then x=1;y=0;d=1 end;b.x=p.x+x/d*(r+1e-5);b.y=p.y+y/d*(r+1e-5) end
   end
-  for _,s in ipairs(g.stations) do exclude(s,s.r+radius) end
+  for _,s in ipairs(g.stations) do exclude(s,(s.serviceRadius or s.r)+radius) end
   for _,p in ipairs(g.players) do if blocks(g,b,p) then exclude(p,config.collisionRadius+radius) end end
   if allowed(g,b) then return end
  end

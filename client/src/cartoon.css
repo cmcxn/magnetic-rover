@@ -852,3 +852,11 @@ input {
     animation: none;
   }
 }
+
+/* Menu artwork is precomposed from the production 3D palette layers. */
+.toy-car {
+  background-color: transparent;
+  background-blend-mode: normal;
+  mask: none;
+  transform: none;
+}

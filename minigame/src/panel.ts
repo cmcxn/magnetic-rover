@@ -224,6 +224,14 @@ export class CartoonPanel extends Phaser.Scene {
     angle = -0.35,
     alpha = 1,
   ) {
+    const preview = "rover-menu-" + color.slice(1);
+    if (this.textures.exists(preview)) {
+      const frame = this.textures.get(preview).get();
+      this.menu.add(this.add.image(x, y, preview)
+        .setDisplaySize(size, size * frame.height / frame.width)
+        .setRotation(0).setAlpha(alpha));
+      return;
+    }
     const texture = "rover-" + color.slice(1);
     if (this.textures.exists(texture)) {
       const car = this.add

@@ -1,0 +1,5 @@
+Acceleration Aston Martin — Joseph SARDIN / BigSoundBank, sound #0600.
+Source: https://bigsoundbank.com/acceleration-aston-martin-s0600.html
+License: CC0 (public domain), https://bigsoundbank.com/licenses.html
+Edited for this game: excerpt, boundary crossfade, mono resampling, compression.
+Editable source and reproduction: art/audio/aston-martin/.

@@ -248,3 +248,9 @@ test("native lobby countdown beeps once a second and respects mute/background", 
   h.audio.update(s(9), s(8), "me");
   assert.equal(c.plays, 10);
 });
+test('held engine changes revs without restarting the recording',()=>{
+ const h=harness();h.audio.unlock();h.audio.setBoosting(true,0);
+ const c=h.contexts.find(c=>c.src.endsWith('boost.wav'));const low=c.playbackRate;
+ h.advance(500);h.audio.setBoosting(true,1);
+ assert.ok(c.playbackRate>low);assert.equal(c.plays,1);
+});

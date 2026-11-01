@@ -81,3 +81,20 @@ BASE_URL=http://127.0.0.1:5173 BROWSER_EXECUTABLE=/path/to/chromium node client/
 This checks all three stations together, new pickups, server-height/ground-shadow separation, station ordering/map scaling, legacy fallback and unchanged 20-cell cargo rendering using synthetic snapshots. See `verification/station-battery-v3/` for captured browser evidence. It does not substitute for live-server collection/deposit or native WeChat/phone acceptance.
 
 The four additional 256×256 PNGs total 306,698 bytes downloaded and 1 MiB decoded RGBA (before driver overhead; legacy fallbacks remain). The rebuilt mini-game reports 1,329 KiB main / 8,426 KiB art / 9,755 KiB total. The source generators now calibrate pivots after setting the square render aspect; this corrects the old station/battery metadata without changing model geometry.
+
+## Local acceptance follow-up (2026-11-01, 1.9.8)
+
+- WeChat's adapter reads packaged JSON through the filesystem and supplies the
+  XHR load event target; all rover/station/battery metadata can now load natively.
+- Both menu surfaces use eight atlas-derived rover previews. Regenerate with
+  `python3 art/rover-v3/menu_previews.py` (Pillow required).
+- Front steering has low-pass filtering, hysteresis and a 150ms minimum pose hold.
+- Stations now expose `bodyRadius` and `serviceRadius`. The Skynet sweep blocks
+  traversal, permits sliding and deposits at the exterior. Deploy server and client
+  together; older servers retain pass-through behavior. Legacy trigger-only ordering
+  fixtures remain separate from new solid-station tests.
+- Boost audio uses a CC0 Aston Martin recording, with a continuous sustain loop and
+  load-dependent throttle rise. Source, license and reproducible edit are under
+  `art/audio/aston-martin/`; run `node scripts/create-boost-engine.mjs` to regenerate.
+- Validation: client 194 tests, mini-game 43 tests, server regression suite, ten
+  Python asset tests and atlas validation passed. Phone feel remains manual acceptance.

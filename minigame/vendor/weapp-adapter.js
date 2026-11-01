@@ -1264,7 +1264,24 @@
 	      if (this.readyState !== XMLHttpRequest.OPENED) {
 	        throw new Error("Failed to execute 'send' on 'XMLHttpRequest': The object's state must be OPENED.")
 	      } else {
-	        wx.request({
+	        // Packaged assets are files, not HTTP endpoints. Keep the same XHR
+	        // completion callbacks so Phaser can enqueue atlas images after JSON.
+	        var request = wx.request
+	        var url = _url.get(this)
+	        if (typeof url === 'string' && !/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(url)) {
+	          request = function (options) {
+	            var fileOptions = {
+	              filePath: options.url,
+	              success: function (result) {
+	                options.success({ data: result.data, statusCode: 200, header: {} })
+	              },
+	              fail: options.fail
+	            }
+	            if (options.responseType !== 'arraybuffer') fileOptions.encoding = 'utf8'
+	            wx.getFileSystemManager().readFile(fileOptions)
+	          }
+	        }
+	        request({
 	          data: data,
 	          url: _url.get(this),
 	          method: _method.get(this),
@@ -1303,7 +1320,7 @@
 	              _this.responseText = data
 	            }
 	            _changeReadyState.call(_this, XMLHttpRequest.DONE)
-	            _triggerEvent.call(_this, 'load')
+	            _triggerEvent.call(_this, 'load', { target: _this, currentTarget: _this, type: 'load' })
 	            _triggerEvent.call(_this, 'loadend')
 	          },
 	          fail: function fail(_ref2) {

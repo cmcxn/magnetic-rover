@@ -59,10 +59,16 @@ export class WeChatSounds {
     }
   }
   private boostLoop = false;
-  setBoosting(active: boolean) {
+  private boostStarted = 0;
+  setBoosting(active: boolean, strength = 1) {
     const audio = this.contexts.get("boost");
     const shouldPlay =
       active && this.enabled && this.active && this.unlocked && !!audio;
+    if (shouldPlay && !this.boostLoop) this.boostStarted = this.now();
+    if (shouldPlay && audio) {
+      const ramp = Math.min(1, Math.max(0, (this.now() - this.boostStarted) / 240));
+      try { audio.playbackRate = 0.88 + 0.12 * ramp + 0.08 * Math.max(0, Math.min(1, strength)); } catch {}
+    }
     if (shouldPlay === this.boostLoop) return;
     this.boostLoop = shouldPlay;
     if (!audio) return;
