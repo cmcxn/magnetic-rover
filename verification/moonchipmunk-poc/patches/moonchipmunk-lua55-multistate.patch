@@ -1,0 +1,659 @@
+diff --git a/src/arbiter.c b/src/arbiter.c
+index 59887dd..f4de54f 100644
+--- a/src/arbiter.c
++++ b/src/arbiter.c
+@@ -24,6 +24,13 @@
+  */
+ 
+ #include "internal.h"
++typedef struct {ud_t * Ud;arbiter_t * Arbiter; int initialized;} poc_arbiter;
++static poc_arbiter *poc_arbiter_get(void) {
++ poc_arbiter *s=moonchipmunk_context_slot(3,sizeof(*s),0);
++ if(!s->initialized) {s->Ud=NULL;s->Arbiter=NULL;s->initialized=1;}return s;}
++#define Ud (poc_arbiter_get()->Ud)
++#define Arbiter (poc_arbiter_get()->Arbiter)
++
+ 
+ /* From the Chipmunk Manual:
+  * "You will never need to create or free an arbiter. More importantly, because they are
+@@ -34,8 +41,8 @@
+  * To avoid creating/destroying userdata at each callback, we use a singleton userdata
+  * and a pointer to arbiter_t which we update every time pusharbiter() is called.
+  */
+-static ud_t *Ud = NULL;
+-static arbiter_t *Arbiter = NULL;
++
++
+ #define HANDLE ((void*)&Arbiter)
+ 
+ static int freearbiter(lua_State *L, ud_t *ud)
+@@ -302,7 +309,7 @@ static const struct luaL_Reg Functions[] =
+ void moonchipmunk_open_arbiter(lua_State *L)
+     {
+     udata_define(L, ARBITER_MT, Methods, MetaMethods);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     newarbiter(L);
+     }
+ 
+diff --git a/src/body.c b/src/body.c
+index 02f4f37..c096980 100644
+--- a/src/body.c
++++ b/src/body.c
+@@ -443,7 +443,7 @@ static const struct luaL_Reg Functions[] =
+ void moonchipmunk_open_body(lua_State *L)
+     {
+     udata_define(L, BODY_MT, Methods, MetaMethods);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+ #if 0
+diff --git a/src/circle.c b/src/circle.c
+index ea39d3a..b445ee3 100644
+--- a/src/circle.c
++++ b/src/circle.c
+@@ -117,6 +117,6 @@ void moonchipmunk_open_circle(lua_State *L)
+     {
+     udata_define(L, CIRCLE_MT, Methods, MetaMethods);
+     udata_inherit(L, CIRCLE_MT, SHAPE_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/collision_handler.c b/src/collision_handler.c
+index edd36d8..0f6e687 100644
+--- a/src/collision_handler.c
++++ b/src/collision_handler.c
+@@ -194,6 +194,6 @@ static const struct luaL_Reg Functions[] =
+ void moonchipmunk_open_collision_handler(lua_State *L)
+     {
+     udata_define(L, COLLISION_HANDLER_MT, Methods, MetaMethods);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/compat-5.3.h b/src/compat-5.3.h
+index 9f20283..61165fa 100644
+--- a/src/compat-5.3.h
++++ b/src/compat-5.3.h
+@@ -399,7 +399,7 @@ COMPAT53_API void luaL_requiref (lua_State *L, const char *modname,
+ 
+ 
+ /* other Lua versions */
+-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501 || LUA_VERSION_NUM > 504
++#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501 || LUA_VERSION_NUM > 505
+ //@@ #if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501 || LUA_VERSION_NUM > 503
+ 
+ #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+diff --git a/src/constraint.c b/src/constraint.c
+index 8b12543..53e2852 100644
+--- a/src/constraint.c
++++ b/src/constraint.c
+@@ -280,7 +280,7 @@ static const struct luaL_Reg Functions[] =
+ void moonchipmunk_open_constraint(lua_State *L)
+     {
+     udata_define(L, CONSTRAINT_MT, Methods, MetaMethods);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+ #if 0
+diff --git a/src/damped_rotary_spring.c b/src/damped_rotary_spring.c
+index 075ea6a..018c7b9 100644
+--- a/src/damped_rotary_spring.c
++++ b/src/damped_rotary_spring.c
+@@ -137,6 +137,6 @@ void moonchipmunk_open_damped_rotary_spring(lua_State *L)
+     {
+     udata_define(L, DAMPED_ROTARY_SPRING_MT, Methods, MetaMethods);
+     udata_inherit(L, DAMPED_ROTARY_SPRING_MT, CONSTRAINT_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/damped_spring.c b/src/damped_spring.c
+index e88ad7d..fa9aa81 100644
+--- a/src/damped_spring.c
++++ b/src/damped_spring.c
+@@ -150,6 +150,6 @@ void moonchipmunk_open_damped_spring(lua_State *L)
+     {
+     udata_define(L, DAMPED_SPRING_MT, Methods, MetaMethods);
+     udata_inherit(L, DAMPED_SPRING_MT, CONSTRAINT_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/datastructs.c b/src/datastructs.c
+index 55594e6..695f925 100644
+--- a/src/datastructs.c
++++ b/src/datastructs.c
+@@ -24,13 +24,22 @@
+  */
+ 
+ #include "internal.h"
++typedef struct {int tovec2;int tovec4;int tomat2x3;int tobox2; int initialized;} poc_datastructs;
++static poc_datastructs *poc_datastructs_get(void) {
++ poc_datastructs *s=moonchipmunk_context_slot(4,sizeof(*s),0);
++ if(!s->initialized) {s->tovec2=LUA_NOREF;s->tovec4=LUA_NOREF;s->tomat2x3=LUA_NOREF;s->tobox2=LUA_NOREF;s->initialized=1;}return s;}
++#define tovec2 (poc_datastructs_get()->tovec2)
++#define tovec4 (poc_datastructs_get()->tovec4)
++#define tomat2x3 (poc_datastructs_get()->tomat2x3)
++#define tobox2 (poc_datastructs_get()->tobox2)
++
+ 
+ #define GLMATH_COMPAT (tovec2 != LUA_NOREF)
+ /* References to the MoonGLMATH functions used to convert pushed values to glmath objects. */
+-static int tovec2 = LUA_NOREF;
+-static int tovec4 = LUA_NOREF;
+-static int tomat2x3 = LUA_NOREF;
+-static int tobox2 = LUA_NOREF;
++
++
++
++
+ 
+ 
+ int isglmathcompat(void)
+diff --git a/src/enums.c b/src/enums.c
+index a082f47..48904b2 100644
+--- a/src/enums.c
++++ b/src/enums.c
+@@ -54,11 +54,13 @@ static int cmp_str(rec_t *rec1, rec_t *rec2)
+     return strcmp(rec1->str, rec2->str);
+     } 
+ 
+-static RB_HEAD(CodeTree, rec_s) CodeHead = RB_INITIALIZER(&CodeHead);
++RB_HEAD(CodeTree, rec_s);
++#define CodeHead (*(struct CodeTree*)moonchipmunk_context_slot(1, sizeof(struct CodeTree), 0))
+ RB_PROTOTYPE_STATIC(CodeTree, rec_s, CodeEntry, cmp_code) 
+ RB_GENERATE_STATIC(CodeTree, rec_s, CodeEntry, cmp_code) 
+ 
+-static RB_HEAD(StringTree, rec_s) StringHead = RB_INITIALIZER(&StringHead);
++RB_HEAD(StringTree, rec_s);
++#define StringHead (*(struct StringTree*)moonchipmunk_context_slot(2, sizeof(struct StringTree), 0))
+ RB_PROTOTYPE_STATIC(StringTree, rec_s, StringEntry, cmp_str) 
+ RB_GENERATE_STATIC(StringTree, rec_s, StringEntry, cmp_str) 
+  
+@@ -285,7 +287,7 @@ void moonchipmunk_open_enums(lua_State *L)
+     {
+     int domain;
+ 
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+ 
+     /* Add all the code<->string mappings */
+ #define ADD(what, s) do { enums_new(L, domain, what, s); } while(0)
+diff --git a/src/flags.c b/src/flags.c
+index 44f7830..2b25831 100644
+--- a/src/flags.c
++++ b/src/flags.c
+@@ -99,7 +99,7 @@ static const struct luaL_Reg Functions[] =
+ void moonchipmunk_open_flags(lua_State *L)
+     {
+     AddConstants(L);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+ 
+diff --git a/src/gear_joint.c b/src/gear_joint.c
+index 2927d93..a014d28 100644
+--- a/src/gear_joint.c
++++ b/src/gear_joint.c
+@@ -87,6 +87,6 @@ void moonchipmunk_open_gear_joint(lua_State *L)
+     {
+     udata_define(L, GEAR_JOINT_MT, Methods, MetaMethods);
+     udata_inherit(L, GEAR_JOINT_MT, CONSTRAINT_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/groove_joint.c b/src/groove_joint.c
+index 307faa4..99cc35c 100644
+--- a/src/groove_joint.c
++++ b/src/groove_joint.c
+@@ -94,6 +94,6 @@ void moonchipmunk_open_groove_joint(lua_State *L)
+     {
+     udata_define(L, GROOVE_JOINT_MT, Methods, MetaMethods);
+     udata_inherit(L, GROOVE_JOINT_MT, CONSTRAINT_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/internal.h b/src/internal.h
+index 251ca64..b1fedad 100644
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -30,6 +30,7 @@
+ #include <stdlib.h>
+ #include <time.h>
+ #include "moonchipmunk.h"
++#include "poc_context.h"
+ 
+ #define TOSTR_(x) #x
+ #define TOSTR(x) TOSTR_(x)
+@@ -194,8 +195,7 @@ void pushshapefilter(lua_State *L, cpShapeFilter *val);
+ const char* errstring(int err);
+ 
+ /* tracing.c */
+-#define trace_objects moonchipmunk_trace_objects
+-extern int trace_objects;
++#define trace_objects (*(int*)moonchipmunk_context_slot(8,sizeof(int),0))
+ 
+ /* shape.c */
+ #define shapedestroy moonchipmunk_shapedestroy
+@@ -220,7 +220,7 @@ int freebody(lua_State *L, ud_t *ud);
+ int newbody(lua_State *L, body_t *body, int borrowed);
+ 
+ /* main.c */
+-extern lua_State *moonchipmunk_L;
++extern _Thread_local lua_State *moonchipmunk_L;
+ MOONCHIPMUNK_EXPORT int luaopen_moonchipmunk(lua_State *L);
+ void moonchipmunk_open_enums(lua_State *L);
+ void moonchipmunk_open_flags(lua_State *L);
+diff --git a/src/main.c b/src/main.c
+index b15a201..f719d8e 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -25,17 +25,6 @@
+ 
+ #include "internal.h"
+ 
+-lua_State *moonchipmunk_L;
+-
+-static void AtExit(void)
+-    {
+-    if(moonchipmunk_L)
+-        {
+-        enums_free_all(moonchipmunk_L);
+-        moonchipmunk_L = NULL;
+-        }
+-    }
+- 
+ static int AddVersions(lua_State *L)
+     {
+     lua_pushstring(L, "_VERSION");
+@@ -90,17 +79,17 @@ static const struct luaL_Reg Functions[] =
+ int luaopen_moonchipmunk(lua_State *L)
+ /* Lua calls this function to load the module */
+     {
+-    moonchipmunk_L = L;
++    moonchipmunk_context_enter(L);
+ 
+     moonchipmunk_utils_init(L);
+-    atexit(AtExit);
++
+ 
+     lua_newtable(L); /* the module table */
+     moonchipmunk_open_enums(L);
+     moonchipmunk_open_flags(L);
+     AddVersions(L);
+     AddConstants(L);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     moonchipmunk_open_tracing(L);
+     moonchipmunk_open_misc(L);
+     moonchipmunk_open_space(L);
+diff --git a/src/misc.c b/src/misc.c
+index 2668201..138cd31 100644
+--- a/src/misc.c
++++ b/src/misc.c
+@@ -24,6 +24,13 @@
+  */
+ 
+ #include "internal.h"
++typedef struct {int ref_sample;int ref_segment; int initialized;} poc_misc;
++static poc_misc *poc_misc_get(void) {
++ poc_misc *s=moonchipmunk_context_slot(5,sizeof(*s),0);
++ if(!s->initialized) {s->ref_sample=LUA_NOREF;s->ref_segment=LUA_NOREF;s->initialized=1;}return s;}
++#define ref_sample (poc_misc_get()->ref_sample)
++#define ref_segment (poc_misc_get()->ref_segment)
++
+  
+    
+ static int MomentForCircle(lua_State *L)
+@@ -813,8 +820,8 @@ static int BBOffset(lua_State *L)
+  | cpMarchXxx()                                                                 |
+  *------------------------------------------------------------------------------*/
+ 
+-static int ref_sample = LUA_NOREF;
+-static int ref_segment = LUA_NOREF;
++
++
+ 
+ static double MarchSampleFunc(vec_t point, void *data)
+     {
+@@ -958,6 +965,6 @@ static const struct luaL_Reg Functions[] =
+ 
+ void moonchipmunk_open_misc(lua_State *L)
+     {
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/pin_joint.c b/src/pin_joint.c
+index 70c72ae..654a756 100644
+--- a/src/pin_joint.c
++++ b/src/pin_joint.c
+@@ -93,7 +93,7 @@ void moonchipmunk_open_pin_joint(lua_State *L)
+     {
+     udata_define(L, PIN_JOINT_MT, Methods, MetaMethods);
+     udata_inherit(L, PIN_JOINT_MT, CONSTRAINT_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+ 
+diff --git a/src/pivot_joint.c b/src/pivot_joint.c
+index 0d39531..c498ba7 100644
+--- a/src/pivot_joint.c
++++ b/src/pivot_joint.c
+@@ -97,6 +97,6 @@ void moonchipmunk_open_pivot_joint(lua_State *L)
+     {
+     udata_define(L, PIVOT_JOINT_MT, Methods, MetaMethods);
+     udata_inherit(L, PIVOT_JOINT_MT, CONSTRAINT_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/poc_context.c b/src/poc_context.c
+new file mode 100644
+index 0000000..d84d4f0
+--- /dev/null
++++ b/src/poc_context.c
+@@ -0,0 +1,63 @@
++
++#include <stdlib.h>
++#include <string.h>
++#include <assert.h>
++#include "poc_context.h"
++typedef struct { void *slots[10]; } context_t;
++_Thread_local lua_State *moonchipmunk_L;
++static _Thread_local context_t *active;
++static const char key;
++extern void moonchipmunk_enums_free_all(lua_State *);
++static int context_gc(lua_State *L) {
++    context_t *ctx=lua_touserdata(L,1);
++    lua_State *prev=moonchipmunk_L;
++    context_t *old=active;
++    moonchipmunk_L=L; active=ctx;
++    moonchipmunk_enums_free_all(L);
++    for(int i=0;i<10;i++) {free(ctx->slots[i]);ctx->slots[i]=NULL;}
++    moonchipmunk_L=prev;active=old;
++    return 0;
++}
++void moonchipmunk_context_enter(lua_State *L) {
++    lua_rawgetp(L,LUA_REGISTRYINDEX,&key);
++    if(lua_isnil(L,-1)) {
++        lua_pop(L,1);
++        context_t *ctx=lua_newuserdatauv(L,sizeof(*ctx),0);
++        memset(ctx,0,sizeof(*ctx));
++        if(luaL_newmetatable(L,"moonchipmunk.poc.context")) {
++            lua_pushcfunction(L,context_gc);lua_setfield(L,-2,"__gc");
++        }
++        lua_setmetatable(L,-2);
++        lua_pushvalue(L,-1);lua_rawsetp(L,LUA_REGISTRYINDEX,&key);
++    }
++    active=lua_touserdata(L,-1);lua_pop(L,1);
++    moonchipmunk_L=L;
++}
++void *moonchipmunk_context_slot(int slot,size_t size,int fill) {
++    assert(active && slot>=0 && slot<10);
++    if(!active->slots[slot]) {
++        active->slots[slot]=malloc(size);
++        if(!active->slots[slot]) luaL_error(moonchipmunk_L,"context allocation failed");
++        memset(active->slots[slot],fill,size);
++    }
++    return active->slots[slot];
++}
++static int entry(lua_State *L) {
++    lua_State *prev=moonchipmunk_L;context_t *old=active;
++    lua_CFunction fn=lua_tocfunction(L,lua_upvalueindex(1));
++    moonchipmunk_context_enter(L);
++    int n=lua_gettop(L);
++    lua_pushcfunction(L,fn);lua_insert(L,1);
++    int status=lua_pcall(L,n,LUA_MULTRET,0);
++    moonchipmunk_L=prev;active=old;
++    if(status!=LUA_OK) return lua_error(L);
++    return lua_gettop(L);
++}
++void moonchipmunk_setfuncs(lua_State *L,const luaL_Reg *r,int nup) {
++    if(nup) luaL_error(L,"POC supports zero-upvalue native registrations only");
++    for(;r->name;r++) {
++        lua_pushcfunction(L,r->func);
++        lua_pushcclosure(L,entry,1);
++        lua_setfield(L,-2,r->name);
++    }
++}
+diff --git a/src/poc_context.h b/src/poc_context.h
+new file mode 100644
+index 0000000..4448e60
+--- /dev/null
++++ b/src/poc_context.h
+@@ -0,0 +1,11 @@
++
++#ifndef MOON_POC_CONTEXT_H
++#define MOON_POC_CONTEXT_H
++#include <stddef.h>
++#include "lua.h"
++#include "lauxlib.h"
++extern _Thread_local lua_State *moonchipmunk_L;
++void *moonchipmunk_context_slot(int slot, size_t size, int fill);
++void moonchipmunk_context_enter(lua_State *L);
++void moonchipmunk_setfuncs(lua_State *L, const luaL_Reg *r, int nup);
++#endif
+diff --git a/src/poly.c b/src/poly.c
+index ecab4d5..06f5474 100644
+--- a/src/poly.c
++++ b/src/poly.c
+@@ -169,6 +169,6 @@ void moonchipmunk_open_poly(lua_State *L)
+     {
+     udata_define(L, POLY_MT, Methods, MetaMethods);
+     udata_inherit(L, POLY_MT, SHAPE_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/ratchet_joint.c b/src/ratchet_joint.c
+index 3df0802..815e525 100644
+--- a/src/ratchet_joint.c
++++ b/src/ratchet_joint.c
+@@ -91,6 +91,6 @@ void moonchipmunk_open_ratchet_joint(lua_State *L)
+     {
+     udata_define(L, RATCHET_JOINT_MT, Methods, MetaMethods);
+     udata_inherit(L, RATCHET_JOINT_MT, CONSTRAINT_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/rotary_limit_joint.c b/src/rotary_limit_joint.c
+index 3443cf7..6066ad7 100644
+--- a/src/rotary_limit_joint.c
++++ b/src/rotary_limit_joint.c
+@@ -87,6 +87,6 @@ void moonchipmunk_open_rotary_limit_joint(lua_State *L)
+     {
+     udata_define(L, ROTARY_LIMIT_JOINT_MT, Methods, MetaMethods);
+     udata_inherit(L, ROTARY_LIMIT_JOINT_MT, CONSTRAINT_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/segment.c b/src/segment.c
+index 41f5c5f..fced807 100644
+--- a/src/segment.c
++++ b/src/segment.c
+@@ -160,6 +160,6 @@ void moonchipmunk_open_segment(lua_State *L)
+     {
+     udata_define(L, SEGMENT_MT, Methods, MetaMethods);
+     udata_inherit(L, SEGMENT_MT, SHAPE_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/shape.c b/src/shape.c
+index 5666c75..de335a2 100644
+--- a/src/shape.c
++++ b/src/shape.c
+@@ -330,7 +330,7 @@ static const struct luaL_Reg Functions[] =
+ void moonchipmunk_open_shape(lua_State *L)
+     {
+     udata_define(L, SHAPE_MT, Methods, MetaMethods);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+ #if 0
+diff --git a/src/simple_motor.c b/src/simple_motor.c
+index aefc113..4b051e3 100644
+--- a/src/simple_motor.c
++++ b/src/simple_motor.c
+@@ -82,6 +82,6 @@ void moonchipmunk_open_simple_motor(lua_State *L)
+     {
+     udata_define(L, SIMPLE_MOTOR_MT, Methods, MetaMethods);
+     udata_inherit(L, SIMPLE_MOTOR_MT, CONSTRAINT_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/slide_joint.c b/src/slide_joint.c
+index 26326d9..867d62e 100644
+--- a/src/slide_joint.c
++++ b/src/slide_joint.c
+@@ -100,6 +100,6 @@ void moonchipmunk_open_slide_joint(lua_State *L)
+     {
+     udata_define(L, SLIDE_JOINT_MT, Methods, MetaMethods);
+     udata_inherit(L, SLIDE_JOINT_MT, CONSTRAINT_MT);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+diff --git a/src/space.c b/src/space.c
+index aff1647..7fb0f60 100644
+--- a/src/space.c
++++ b/src/space.c
+@@ -104,8 +104,7 @@ static int Create(lua_State *L)
+ 
+ static int CreateHasty(lua_State *L)
+     {
+-    space_t *space = cpHastySpaceNew();
+-    return newspace(L, space, 1);
++    return luaL_error(L, "Hasty Space is disabled in this multi-Actor POC");
+     }
+ 
+ static int SetIterations(lua_State *L)
+@@ -780,7 +779,7 @@ static const struct luaL_Reg Functions[] =
+ void moonchipmunk_open_space(lua_State *L)
+     {
+     udata_define(L, SPACE_MT, Methods, MetaMethods);
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+ #if 0
+diff --git a/src/tracing.c b/src/tracing.c
+index e6b3cac..37c994a 100644
+--- a/src/tracing.c
++++ b/src/tracing.c
+@@ -25,7 +25,7 @@
+ 
+ #include "internal.h"
+     
+-int trace_objects = 0;
++/* trace flag is registry-owned (internal.h). */
+ 
+ static int TraceObjects(lua_State *L)
+     {
+@@ -58,7 +58,7 @@ static const struct luaL_Reg Functions[] =
+ 
+ void moonchipmunk_open_tracing(lua_State *L)
+     {
+-    luaL_setfuncs(L, Functions, 0);
++    moonchipmunk_setfuncs(L, Functions, 0);
+     }
+ 
+ 
+diff --git a/src/udata.c b/src/udata.c
+index 582010a..9c1e450 100644
+--- a/src/udata.c
++++ b/src/udata.c
+@@ -45,7 +45,8 @@ struct moonchipmunk_udata_s {
+ static int cmp(udata_t *udata1, udata_t *udata2) /* the compare function */
+     { return (udata1->id < udata2->id ? -1 : udata1->id > udata2->id); } 
+ 
+-static RB_HEAD(udatatree_s, udata_s) Head = RB_INITIALIZER(&Head);
++RB_HEAD(udatatree_s, udata_s);
++#define Head (*(struct udatatree_s*)moonchipmunk_context_slot(0, sizeof(struct udatatree_s), 0))
+ 
+ RB_PROTOTYPE_STATIC(udatatree_s, udata_s, entry, cmp) 
+ RB_GENERATE_STATIC(udatatree_s, udata_s, entry, cmp) 
+@@ -247,12 +248,12 @@ int udata_define(lua_State *L, const char* mt, const luaL_Reg* methods, const lu
+     lua_setfield(L, -2, "__index");
+     if(metamethods)
+         /* add metamethods */
+-        luaL_setfuncs(L, metamethods, 0);
++        moonchipmunk_setfuncs(L, metamethods, 0);
+     if(methods)
+         {
+         /* add methods */
+         luaL_getsubtable(L, -1, "__index");
+-        luaL_setfuncs(L, methods, 0);
++        moonchipmunk_setfuncs(L, methods, 0);
+         lua_pop(L, 1);
+         }
+     lua_pop(L, 1);
+@@ -286,7 +287,7 @@ int udata_addmethods(lua_State *L, const char* mt, const luaL_Reg* methods)
+         {
+         /* add methods */
+         luaL_getsubtable(L, -1, "__index");
+-        luaL_setfuncs(L, methods, 0);
++        moonchipmunk_setfuncs(L, methods, 0);
+         lua_pop(L, 1);
+         }
+     lua_pop(L, 1);
+diff --git a/src/udata.h b/src/udata.h
+index 89dbc84..51b02ee 100644
+--- a/src/udata.h
++++ b/src/udata.h
+@@ -32,6 +32,7 @@ extern "C" {
+ #include "lua.h"
+ #include "lauxlib.h"
+ #include "compat-5.3.h"
++#include "poc_context.h"
+ 
+ #ifndef Malloc
+ #define Malloc moonchipmunk_Malloc
+diff --git a/src/utils.c b/src/utils.c
+index cf0bb99..f0b3af2 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -50,21 +50,15 @@ int notavailable(lua_State *L, ...)
+  * this library (we have needs to recompile lua only, or execute it with LD_PRELOAD
+  * set to the path to the malloc library we want to use).
+  */
+-static lua_Alloc Alloc = NULL;
+-static void* AllocUd = NULL;
+-
+-static void malloc_init(lua_State *L)
+-    {
+-    if(Alloc) unexpected(L);
+-    Alloc = lua_getallocf(L, &AllocUd);
+-    }
+-
+-static void* Malloc_(size_t size)
+-    { return Alloc ? Alloc(AllocUd, NULL, 0, size) : NULL; }
+-
+-static void Free_(void *ptr)
+-    { if(Alloc) Alloc(AllocUd, ptr, 0, 0); }
+-
++static void malloc_init(lua_State *L) {(void)L;}
++static void* Malloc_(size_t size) {
++ void *ud; lua_Alloc a=lua_getallocf(moonchipmunk_L,&ud);
++ return a(ud,NULL,0,size);
++}
++static void Free_(void *ptr) {
++ void *ud; lua_Alloc a=lua_getallocf(moonchipmunk_L,&ud);
++ a(ud,ptr,0,0);
++}
+ void *Malloc(lua_State *L, size_t size)
+     {
+     void *ptr;

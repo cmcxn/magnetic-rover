@@ -1,0 +1,16 @@
+20	head_on_bounce	true
+20	oblique_collision_rotation	true
+20	push_stationary_car	true
+20	unequal_mass_collision	true
+20	static_boundary_bounce	true
+20	eight_car_collision_chain	true
+20	accelerate_steer_release_decelerate	true
+20	destroy_recreate_state	true
+60	head_on_bounce	true
+60	oblique_collision_rotation	true
+60	push_stationary_car	true
+60	unequal_mass_collision	true
+60	static_boundary_bounce	true
+60	eight_car_collision_chain	true
+60	accelerate_steer_release_decelerate	true
+60	destroy_recreate_state	true

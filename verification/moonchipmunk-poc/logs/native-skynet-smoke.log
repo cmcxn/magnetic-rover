@@ -1,0 +1,18 @@
+[:00000002] LAUNCH snlua bootstrap
+[:00000003] LAUNCH snlua launcher
+[:00000004] LAUNCH snlua cdummy
+[:00000005] LAUNCH harbor 0 4
+[:00000006] LAUNCH snlua datacenterd
+[:00000007] LAUNCH snlua service_mgr
+[:00000008] LAUNCH snlua test
+SKYNET_NATIVE_REQUIRE_STEP_PASS	Lua 5.5	MoonChipmunk 0.1	Chipmunk 7.0.3
+[:00000008] init service failed: ...work/verification/moonchipmunk-poc/.build/smoke/test.lua:10: attempt to call a nil value (field 'abort')
+stack traceback:
+	...work/verification/moonchipmunk-poc/.build/smoke/test.lua:10: in upvalue 'start'
+	...ication/moonchipmunk-poc/.build/skynet/lualib/skynet.lua:1068: in function <...ication/moonchipmunk-poc/.build/skynet/lualib/skynet.lua:1066>
+	[C]: in global 'xpcall'
+	...ication/moonchipmunk-poc/.build/skynet/lualib/skynet.lua:1070: in field 'init_service'
+	...ication/moonchipmunk-poc/.build/skynet/lualib/skynet.lua:1083: in upvalue 'f'
+	...ication/moonchipmunk-poc/.build/skynet/lualib/skynet.lua:376: in function <...ication/moonchipmunk-poc/.build/skynet/lualib/skynet.lua:375>
+[:00000008] KILL self
+[:00000002] KILL self

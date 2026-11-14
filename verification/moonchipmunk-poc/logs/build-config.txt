@@ -1,0 +1,9 @@
+Native verification: Linux x86_64, Debian GNU/Linux 13.
+Skynet: commit 64391f732e76507ea6615f312cb71be1fd7bfbdd + the two pinned skynet-demo source patches.
+Lua: bundled 5.5.1; no alternate Lua library linked.
+Skynet build: make linux -j4, bundled prefixed jemalloc 81034ce1f1373e37dc865038e1bc8eeecf559ce8.
+Chipmunk: gcc -O2 -DNDEBUG -fPIC -shared -I chipmunk/include chipmunk/src/*.c -lm -lpthread.
+MoonChipmunk: gcc -std=gnu11 -O2 -fPIC -shared -DLINUX -I skynet/3rd/lua -I chipmunk/include moonchipmunk/src/*.c -Llib -lchipmunk -lm -lpthread -Wl,-rpath,$ORIGIN.
+The original upstream library failed to build at its Lua version guard; patched library passed the real Skynet load/step smoke.
+Local build-tools bootstrap only: official Debian autoconf 2.72-3.1 and m4 1.4.19-8, hashes in build.sh. No host-wide install.
+Docker recipe supplied but Docker not installed/executed; user approved native validation instead.
