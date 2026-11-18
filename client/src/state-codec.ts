@@ -259,6 +259,7 @@ export class StateDecoder {
             if (p[k] !== undefined && !integer(p[k]))
               throw Error("invalid counter");
           for (const k of [
+            "bodyAngle",
             "energy",
             "inputElapsed",
             "ix",

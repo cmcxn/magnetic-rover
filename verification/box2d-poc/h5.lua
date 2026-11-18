@@ -10,6 +10,10 @@ function game:start()
  end
  return ok,err
 end
+if os.getenv('POC_LUA_COMPARE')=='1' then
+ dofile(os.getenv('ROVER_SERVER')..'main.lua')
+ return
+end
 local adapt=require 'adapter'
 require('vehicle_collision').resolve=function(cars,dt,cb,stations)
  local paths=adapt(cars,dt,cb,stations,3)

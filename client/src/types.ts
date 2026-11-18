@@ -6,6 +6,7 @@ export interface Player {
   x: number;
   y: number;
   angle: number;
+  bodyAngle?: number;
   cargo: number;
   score: number;
   cooldown: number;
