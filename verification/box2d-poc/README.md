@@ -17,3 +17,11 @@ cd verification/box2d-poc
 * H5 需要 Node、已安装的 client 依赖、Node 可解析的 playwright-core，以及本机 Chromium 或 Edge。设置 BROWSER 为浏览器可执行文件的绝对路径，按需设置 NODE、NODE_PATH 和 IMAGE，执行 `./h5.sh`。脚本临时占用本机回环端口 18982 和 18983，运行约 100 秒。房间的第一辆车由原 H5 驾驶，第二辆车通过真实 WebSocket 加入并准备。操控与观察仅在本机进行。
 
 入口 config 沿用项目 Skynet 引导，启动实验服务 poc.lua。h5.lua 为可复现的侧撞安排初始位置，再运行原 server/main.lua。两者均只在实验容器加载。项目正常启动仍走原 Lua resolver。
+
+## CloudBase 使用仓库根 Dockerfile
+
+本分支的根 Dockerfile 构建 Box2D 试驾服务。选择 GitHub 分支 poc/box2d-native，构建上下文为仓库根目录，Dockerfile 路径为 Dockerfile，容器端口为 18080，启动命令使用镜像默认值。HTTP 根路径提供 H5，WebSocket 路径为 /ws。正常比赛使用原有出生点和房间调度。
+
+云端构建按目标架构编译 native.so。Box2D 依赖随分支以源码归档提供，构建时校验 SHA-256。归档来自 upstream v3.1.1 commit 8c661469c9507d3ad6fbd2fea3f1aa71669c2fe3 的 src、include 和 LICENSE，由 git archive --format=tar.gz 生成。编译和运行使用相同的 Skynet 基础镜像，Lua 头文件来自仓库 skynet-source.tar。构建仍需取得基础镜像、APT 和 npm 依赖。
+
+构建日志中的 POC_PASS 表示目标架构的 Skynet 成功加载模块并通过碰撞与房间测试。容器启动后应出现 Magnetic Rover physics: Box2D 3.1.1, 3 substeps per game tick 和服务监听日志。需要隔离试驾时，可将该分支配置到单独的 CloudBase 测试服务。
