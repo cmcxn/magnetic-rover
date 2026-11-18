@@ -1,0 +1,34 @@
+[:00000002] LAUNCH snlua bootstrap
+[:00000003] LAUNCH snlua launcher
+[:00000004] LAUNCH snlua cdummy
+[:00000005] LAUNCH harbor 0 4
+[:00000006] LAUNCH snlua datacenterd
+[:00000007] LAUNCH snlua service_mgr
+[:00000008] LAUNCH snlua poc
+perpendicular side hit rad/s	1	6.6708974838256836
+chain-check	1	4.5889382362365723	true	401.64718627929688
+offset-chain	1	4.5889382362365723	401.64718627929688
+offset impact speed / spin	1	83.648149913939278	0.46062189340591431	501.90527450928647	2.7523016929626465	0.055273056030273438
+rule ticks	1	1	2	2	15	1	2
+opposed throttle begin events	1	17
+game double boost	1	1	1	9	9
+2200 stress	1	pair	1
+2200 stress	1	wall	no-crossing
+pinned cargo	1	1	98
+perpendicular side hit rad/s	3	5.1575722694396973
+chain-check	3	1.546505331993103	true	423.18740844726562
+offset-chain	3	1.546505331993103	423.18740844726562
+offset impact speed / spin	3	83.641759868899427	0.44277811050415039	501.89872354162532	2.6240322589874268	0.052608396857976913
+rule ticks	3	1	1	1	14	1	2
+opposed throttle begin events	3	92
+game double boost	3	1	1	9	9
+2200 stress	3	pair	no-crossing
+2200 stress	3	wall	no-crossing
+pinned cargo	3	1	58
+Rooms.handle create/start/disconnect/expire 100 PASS; reachable worlds 0
+world lifecycle 1000 PASS
+native batch us p95 p99	1	6.8340450525283813	7.8750308603048325
+solver only us p95 p99	1	2.4170000000000003	2.834
+native batch us p95 p99	3	16.208970919251442	18.832972273230553
+solver only us p95 p99	3	5.166	6.125
+POC_PASS

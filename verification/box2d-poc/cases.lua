@@ -45,6 +45,31 @@ local function physics(n)
   assert(touched);native.close(w)
  end
 end
+-- Compare matched geometry at two approach speeds, including the Lua hit callback.
+local function impactSpeed(n)
+ local adapter=require 'adapter'
+ local function trial(speed,y)
+  local cars={car(-80,y,speed),car(0,0)}
+  local stations={}
+  local maxSpeed,maxSpin=0,0
+  for tick=1,20 do
+   adapter(cars,.05,function(events)
+    for _,e in ipairs(events) do
+     if e.b then e.a.vx=-90;e.b.vx=340 end -- legacy gameplay knockback
+    end
+   end,stations,n)
+   local target=cars[2]
+   maxSpeed=math.max(maxSpeed,math.sqrt(target.vx^2+target.vy^2))
+   maxSpin=math.max(maxSpin,math.abs(target.omega))
+  end
+  return maxSpeed,maxSpin
+ end
+ local slow,slowSpin=trial(120,34)
+ local fast,fastSpin=trial(720,34)
+ local _,centerSpin=trial(720,0)
+ print('offset impact speed / spin',n,slow,slowSpin,fast,fastSpin,centerSpin)
+ assert(fast>slow*2 and fastSpin>slowSpin*2 and centerSpin<fastSpin*.3)
+end
 local function business(n)
  local collision=require 'vehicle_collision'
  local adapt=require 'adapter'
@@ -225,7 +250,7 @@ local function brakeAndHold(n)
  native.close(w)
 end
 return function()
- for _,n in ipairs({1,3}) do physics(n);business(n);brakeAndHold(n);dashPair(n);pinnedCargo(n) end
+ for _,n in ipairs({1,3}) do physics(n);impactSpeed(n);business(n);brakeAndHold(n);dashPair(n);pinnedCargo(n) end
  lifecycle()
  local cars={car(0,0,360)};local other={car(200,0)}
  local keep=native.new(other,{},1000,48)

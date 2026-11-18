@@ -1,12 +1,15 @@
 import type { Player, State } from "./types";
 export type Control = { x: number; y: number; boost: boolean };
 type Command = Control & { seq: number; at: number };
-type Pose = { x: number; y: number; angle: number };
+type Pose = { x: number; y: number; angle: number; bodyAngle?: number };
 const wrap = (n: number) => Math.atan2(Math.sin(n), Math.cos(n));
 const mix = (a: Pose, b: Pose, t: number): Pose => ({
   x: a.x + (b.x - a.x) * t,
   y: a.y + (b.y - a.y) * t,
   angle: a.angle + wrap(b.angle - a.angle) * t,
+  ...(a.bodyAngle !== undefined && b.bodyAngle !== undefined && {
+    bodyAngle: a.bodyAngle + wrap(b.bodyAngle - a.bodyAngle) * t,
+  }),
 });
 /** Presentation constraints only: these never assign hits, stun, cargo or scores. */
 function clampPose(p: Pose, limit: number) {
@@ -120,7 +123,7 @@ function constrain(
   for (const id of ids) {
     const p = pos.get(id)!;
     clampPose(p, arena - radius);
-    poses.set(id, { ...p, angle: poses.get(id)!.angle });
+    poses.set(id, { ...poses.get(id)!, x: p.x, y: p.y });
   }
 }
 /** Match server solid station footprints; older snapshots keep legacy behavior. */
@@ -249,10 +252,22 @@ export function integrate(
   p.boostElapsed = dash > 0 ? (p.boostElapsed ?? 0) + dash : 0;
   const decay = Math.exp(-5 * dt),
     travel = (1 - decay) / 5;
-  p.x +=
-    speed * (bx * multiplier * dash + ix * recovery * (dt - dash)) + (p.kx ?? 0) * travel;
-  p.y +=
-    speed * (by * multiplier * dash + iy * recovery * (dt - dash)) + (p.ky ?? 0) * travel;
+  let dx = speed * (bx * multiplier * dash + ix * recovery * (dt - dash));
+  let dy = speed * (by * multiplier * dash + iy * recovery * (dt - dash));
+  if (p.bodyAngle !== undefined && (dx !== 0 || dy !== 0)) {
+    // Match the native POC drive controller at the midpoint of the turn.
+    let error = wrap(Math.atan2(dy, dx) - p.bodyAngle);
+    // Fixed tie break keeps predicted and authoritative U-turns on the same side.
+    if (Math.abs(error) > Math.PI - 0.04) error = Math.PI;
+    const turn = Math.max(-10 * dt, Math.min(10 * dt, error));
+    const mid = p.bodyAngle + turn / 2;
+    const distance = Math.hypot(dx, dy) * Math.max(0, Math.cos(error - turn / 2));
+    dx = distance * Math.cos(mid);
+    dy = distance * Math.sin(mid);
+    p.bodyAngle = wrap(p.bodyAngle + turn);
+  }
+  p.x += dx + (p.kx ?? 0) * travel;
+  p.y += dy + (p.ky ?? 0) * travel;
   if (p.kx !== undefined) p.kx *= decay;
   if (p.ky !== undefined) p.ky *= decay;
   clampPose(p, radius - collisionRadius);
@@ -506,6 +521,7 @@ export class Motion {
           x: v.x + this.correction.x * t,
           y: v.y + this.correction.y * t,
           angle: v.angle + this.correction.angle * t,
+          ...(v.bodyAngle !== undefined && { bodyAngle: v.bodyAngle }),
         });
         continue;
       }

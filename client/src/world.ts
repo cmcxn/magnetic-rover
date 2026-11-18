@@ -616,14 +616,12 @@ export class World extends Phaser.Scene {
     for (const p of this.state?.players ?? []) {
       const pose = poses?.get(p.id);
       if (pose) {
-        if (p.bodyAngle === undefined) {
+        if (pose.bodyAngle === undefined) {
           this.smooth.set(p.id, pose);
         } else {
-          const previous = this.smooth.get(p.id)?.angle ?? p.bodyAngle;
-          const turn = Phaser.Math.Angle.Wrap(p.bodyAngle - previous);
           this.smooth.set(p.id, {
             ...pose,
-            angle: previous + turn * (1 - Math.exp(-delta / 45)),
+            angle: pose.bodyAngle,
           });
         }
         continue;

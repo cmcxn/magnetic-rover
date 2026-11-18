@@ -58,7 +58,10 @@ static int create(lua_State *L) {
     }
     bd.type = b2_dynamicBody;
     bd.isBullet = true;
-    bd.angularDamping = 2;
+    bd.angularDamping = 1.5f;
+    // The solver applies restitution to the normal approach speed at the
+    // contact point. Off-centre impulses produce yaw through the lever arm.
+    sd.material.restitution = 0.53f;
     sd.enableContactEvents = true;
     b2Polygon rect = b2MakeBox(size * .9f, size * .62f);
     for (int i = 0; i < count; i++) {

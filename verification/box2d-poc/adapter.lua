@@ -15,11 +15,23 @@ return function(cars,dt,callback,stations,n)
  end
  local w=room.world
  for _,p in ipairs(cars) do
-  p.steerOmega=nil
-  if p.bodyAngle and (p.ix~=0 or p.iy~=0) then
-   local delta=p.angle-p.bodyAngle
-   local error=math.atan(math.sin(delta),math.cos(delta))
-   p.steerOmega=p.omega+math.max(-12*dt,math.min(12*dt,4*error-p.omega))
+  p.steerOmega=p.underSteering and 0 or nil
+  p.underSteering=false
+  local drive=math.sqrt((p.driveX or 0)^2+(p.driveY or 0)^2)
+  if drive>0 then
+   local heading=p.bodyAngle or p.angle
+   local target=math.atan(p.driveY,p.driveX)
+   local error=math.atan(math.sin(target-heading),math.cos(target-heading))
+   if math.abs(error)>math.pi-.04 then error=math.pi end
+   local turn=math.max(-10*dt,math.min(10*dt,error))
+   local mid=heading+turn/2
+   -- Reduce throttle across sharp turns; knockback is independent of traction.
+   local speed=drive*math.max(0,math.cos(error-turn/2))
+   local impulseX,impulseY=p.vx-p.driveX,p.vy-p.driveY
+   p.driveX=speed*math.cos(mid);p.driveY=speed*math.sin(mid)
+   p.vx=p.driveX+impulseX;p.vy=p.driveY+impulseY
+   p.steerOmega=turn/dt
+   p.underSteering=true
   elseif p.lastPhysicsX and p.vx==0 and p.vy==0 then
    local drag=math.exp(-8*dt)
    p.vx=p.lastPhysicsX*drag;p.vy=p.lastPhysicsY*drag
@@ -34,6 +46,8 @@ return function(cars,dt,callback,stations,n)
    avx,avy,bvx,bvy=bvx,bvy,avx,avy
   end
   local a,b=cars[i],cars[j]
+  a.underSteering=false
+  if b then b.underSteering=false end
   events[#events+1]={a=a,b=b,nx=nx,ny=ny,time=time,avx=avx,avy=avy,bvx=bvx,bvy=bvy}
  end
  for i,p in ipairs(cars) do
@@ -51,5 +65,10 @@ return function(cars,dt,callback,stations,n)
   p.lastPhysicsX,p.lastPhysicsY=p.vx,p.vy
  end
  callback(events)
+ -- Game classifies hits, stuns and loot. Preserve Box2D's solved exit velocity
+ -- for the next tick instead of the circle resolver's canned knockback.
+ for i,p in ipairs(cars) do
+  p.vx=state[i][3];p.vy=state[i][4]
+ end
  return paths
 end
