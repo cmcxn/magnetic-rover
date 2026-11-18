@@ -1,0 +1,9 @@
+[:00000002] LAUNCH snlua bootstrap
+[:00000003] LAUNCH snlua launcher
+[:00000004] LAUNCH snlua cdummy
+[:00000005] LAUNCH harbor 0 4
+[:00000006] LAUNCH snlua datacenterd
+[:00000007] LAUNCH snlua service_mgr
+[:00000008] LAUNCH snlua poc
+RESULT {"catch":0,"cpu":34.816077305308532,"hotThreadCPU":9.6129417075094494,"lag95":0,"lag99":0,"miss":0,"mode":0,"peakKiB":76388,"physics95":0.068542081862688065,"physics99":1.1357080657035112,"postKiB":78748,"rooms":32,"round95":27.906792005524039,"round99":33.960334025323391,"seconds":60.023249652003869}
+POC_PASS

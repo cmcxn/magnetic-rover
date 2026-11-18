@@ -1,0 +1,13 @@
+Darwin bogon 27.2.0 Darwin Kernel Version 27.2.0: Wed Oct 14 23:45:26 PDT 2026; root:xnu-13432.41.4~25/RELEASE_ARM64_T8152 arm64
+Apple M6
+Docker 29.9.2 Docker Desktop aarch64 VM_CPUs=12 VM_RAM=8319238144
+runtime=sha256:15d2b15e18d5dd0cd4279ce481360d064be3dd046d7f6b57002d3fcc435d22d2 revision=f1baee5051108fce40588738f4a5960f12edea97
+Linux 75eb340d94e8 7.0.14-linuxkit #1 SMP PREEMPT Fri Oct 16 11:55:50 UTC 2026 aarch64 GNU/Linux
+200000 100000
+536870912
+100
+Lua 5.5.1  Copyright (C) 1994-2026 Lua.org, PUC-Rio
+4358a8c32949431345e116134e671b8c53a8532bc03d2f694c3ce5b51c91043e  /skynet/skynet
+e4c7af9903ff306b1066474f4e4bdf9eb41e40e8
+8c661469c9507d3ad6fbd2fea3f1aa71669c2fe3
+7e73fa81234a58557f887bd1dbbf97a153bdec39564c10987f41a7b7868cdab6  ../../skynet-source.tar

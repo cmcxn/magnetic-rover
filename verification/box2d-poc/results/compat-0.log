@@ -1,0 +1,42 @@
+[:00000002] LAUNCH snlua bootstrap
+[:00000003] LAUNCH snlua launcher
+[:00000004] LAUNCH snlua cdummy
+[:00000005] LAUNCH harbor 0 4
+[:00000006] LAUNCH snlua datacenterd
+[:00000007] LAUNCH snlua service_mgr
+[:00000008] LAUNCH snlua poc
+PASS game: pickup/deposit once, input validation, normalized movement, bounds, stale inputs, boost/drop protection, reconnect, timeout, finish/restart
+PASS limits: 8 guests, UTF-8 sanitization, six-color allowlist, station spawn exclusion, last-ten-seconds refill stop, shared ties, token privacy, full 100-second simulated match
+PASS mechanics: cargo cap, loaded speed, boost speed and cooldown spam rejection
+PASS regressions: abandoned lobby frees slots; simultaneous station boost collisions are order-independent
+PASS overlapping stationary boost does not attack; station safe-zone deposits both full cargo
+COMPAT	test_game	pass
+PASS pickupSeq: authoritative per-battery increments, same-tick batches, cap, deposits, drops, locks, per-player isolation, reconnect baseline and rematch reset
+COMPAT	test_pickup_seq	pass
+PASS dropped loot: scaled contact, wall, supply ring, locks, height, capacity, AI	1
+COMPAT	test_drop_pickup	pass
+PASS boost-hit: idle direction, exact dash, stale/disconnected input, moving stun, immunity, walls, simultaneous multi-hit, no boosted chain, rematch, capacity and cooldown
+COMPAT	test_boost_hit	pass
+PASS collision regressions: normal no-loss, boost amounts, separating/following, safe zones, simultaneous fairness, contact hysteresis and immunity
+COMPAT	test_collisions	pass
+PASS collision redesign 555 assertions
+PASS settled drop pickup and initial eight-car nonoverlap
+PASS lobby churn chooses an unoccupied solid spawn
+PASS seeded80x25 eight-car wall/pile stress; total 72629 assertions
+PASS partial-boost expiry, exact knockback decay, approved safezone boost rule; total 72633 assertions
+COMPAT	test_collision_redesign	pass
+PASS doubled movement, swept pickup/station grazing, locks, radius, collision and arena bounds
+PASS path ordered station entry/exit pickups, contact-time safety, stationary and tangent regressions
+PASS unified magnet radius, snapshot, exact boundary, capacity and simultaneous single claim
+PASS loaded magnet sweep and exact tangent boundary
+COMPAT	test_fast_movement	pass
+PASS solid station sweep, recovery and reachable deposit
+PASS live station exterior deposit, repeated drive and tangent sliding
+COMPAT	test_station_collision	pass
+PASS lifecycle: ten-second cargo removal preserves identity, live token protected, empty finished reset honors grace and connected results viewer
+COMPAT	test_lifecycle	pass
+PASS motion protocol: applied ack, held time, sequence validation, coalescing, reconnect, round
+PASS motion no-op ack, stale input and skipped time, reconnect sequence restart
+COMPAT	test_motion_protocol	pass
+COMPAT_SUMMARY	0	10	0
+POC_PASS

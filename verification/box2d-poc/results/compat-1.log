@@ -1,0 +1,23 @@
+[:00000002] LAUNCH snlua bootstrap
+[:00000003] LAUNCH snlua launcher
+[:00000004] LAUNCH snlua cdummy
+[:00000005] LAUNCH harbor 0 4
+[:00000006] LAUNCH snlua datacenterd
+[:00000007] LAUNCH snlua service_mgr
+[:00000008] LAUNCH snlua poc
+COMPAT	test_game	/app/server/test_game.lua:12: stale input stops
+COMPAT	test_pickup_seq	/app/server/test_pickup_seq.lua:25: deposit does not increment or reset sequence
+PASS dropped loot: scaled contact, wall, supply ring, locks, height, capacity, AI	1
+COMPAT	test_drop_pickup	pass
+COMPAT	test_boost_hit	/app/server/test_boost_hit.lua:10: empty ordinary target moves with impulse and both stun once
+COMPAT	test_collisions	/app/server/test_collisions.lua:10: ordinary both stun
+COMPAT	test_collision_redesign	/app/server/test_collision_redesign.lua:6: ordinary collision stuns both including attacker
+COMPAT	test_fast_movement	/app/server/test_fast_movement.lua:9: loaded dash keeps 80% speed and 3x boost
+COMPAT	test_station_collision	/p/adapter.lua:28: bad argument #3 to 'step' (invalid step)
+PASS lifecycle: ten-second cargo removal preserves identity, live token protected, empty finished reset honors grace and connected results viewer
+COMPAT	test_lifecycle	pass
+PASS motion protocol: applied ack, held time, sequence validation, coalescing, reconnect, round
+PASS motion no-op ack, stale input and skipped time, reconnect sequence restart
+COMPAT	test_motion_protocol	pass
+COMPAT_SUMMARY	1	3	7
+POC_PASS

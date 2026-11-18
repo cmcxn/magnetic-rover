@@ -1,0 +1,21 @@
+[:00000002] LAUNCH snlua bootstrap
+[:00000003] LAUNCH snlua launcher
+[:00000004] LAUNCH snlua cdummy
+[:00000005] LAUNCH harbor 0 4
+[:00000006] LAUNCH snlua datacenterd
+[:00000007] LAUNCH snlua service_mgr
+[:00000008] LAUNCH snlua poc
+offset-chain	1	0.57905983924865723	302.97576904296875
+POC_FAIL /p/cases.lua:31: pass-through mode=1 wall=false tick=1 x=0.0
+stack traceback:
+	[C]: in global 'assert'
+	/p/cases.lua:31: in upvalue 'physics'
+	/p/cases.lua:77: in function 'cases'
+	/p/poc.lua:23: in function </p/poc.lua:20>
+	[C]: in global 'xpcall'
+	/p/poc.lua:86: in upvalue 'start'
+	/skynet/lualib/skynet.lua:1068: in function </skynet/lualib/skynet.lua:1066>
+	[C]: in global 'xpcall'
+	/skynet/lualib/skynet.lua:1070: in field 'init_service'
+	/skynet/lualib/skynet.lua:1083: in upvalue 'f'
+	/skynet/lualib/skynet.lua:376: in function </skynet/lualib/skynet.lua:375>
