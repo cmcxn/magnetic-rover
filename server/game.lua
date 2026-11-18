@@ -255,6 +255,8 @@ function G:step(dt,elapsed,remaining)
   if slice>1e-8 then
    local decay=math.exp(-config.knockbackDecay*slice)
    local average=(1-decay)/(config.knockbackDecay*slice)
+   local carry=math.exp(-2.5*slice)
+   local nativeAverage=(1-carry)/(2.5*slice)
    local initialK={}
    for _,p in ipairs(active) do
     local boosting=p.boost>sliceStart+1e-8
@@ -268,11 +270,16 @@ function G:step(dt,elapsed,remaining)
     p.driveX=speed*multiplier*(boosting and (p.bx or math.cos(p.angle)) or p.ix)
     p.driveY=speed*multiplier*(boosting and (p.by or math.sin(p.angle)) or p.iy)
     initialK[p]={x=p.kx or 0,y=p.ky or 0}
-    p.vx=p.driveX+initialK[p].x*average;p.vy=p.driveY+initialK[p].y*average;p.collisionAt=nil
+    local motionAverage=p.bodyAngle and nativeAverage or average
+    p.vx=p.driveX+initialK[p].x*motionAverage;p.vy=p.driveY+initialK[p].y*motionAverage;p.collisionAt=nil
    end
    local segments=vehicleCollision.resolve(active,slice,resolveContacts,self.stations)
    for _,p in ipairs(active) do
-    if p.collisionAt then
+    if p.bodyAngle then
+     -- Box2D returns the exit velocity, including contact impulses.
+     local scale=p.collisionAt and 1 or carry/nativeAverage
+     p.kx=(p.vx-p.driveX)*scale;p.ky=(p.vy-p.driveY)*scale
+    elseif p.collisionAt then
      local damping=math.exp(-config.knockbackDecay*(slice-p.collisionAt))
      p.kx=(p.vx-p.driveX)*damping;p.ky=(p.vy-p.driveY)*damping
     else

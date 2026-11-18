@@ -70,6 +70,34 @@ local function impactSpeed(n)
  print('offset impact speed / spin',n,slow,slowSpin,fast,fastSpin,centerSpin)
  assert(fast>slow*2 and fastSpin>slowSpin*2 and centerSpin<fastSpin*.3)
 end
+local function movingImpact(n)
+ local adapter=require 'adapter'
+ require('vehicle_collision').resolve=function(players,dt,cb,stations)
+  return adapter(players,dt,cb,stations,n)
+ end
+ for _,offset in ipairs({0,34}) do
+  local g=require('game').new()
+  local rear,front=g:join(1,'rear'),g:join(2,'front')
+  assert(g:start())
+  rear.x,rear.y,rear.angle=-104,offset,0
+  front.x,front.y,front.angle=0,0,0
+  g.batteries={};g.nextrefill=math.huge
+  local hit=false
+  for tick=1,20 do
+   g:input(rear,{x=1,y=0,boost=true})
+   g:input(front,{x=.35,y=0})
+   local x,carry=front.x,front.kx
+   g:step(.05)
+   if hit then
+    assert(carry>0 and front.x-x>carry*.045,'moving victim should carry speed into stun')
+    break
+   end
+   hit=front.hitSeq>0
+  end
+  assert(hit,'moving impact must reach gameplay rules')
+ end
+end
+
 local function business(n)
  local collision=require 'vehicle_collision'
  local adapt=require 'adapter'
@@ -250,7 +278,7 @@ local function brakeAndHold(n)
  native.close(w)
 end
 return function()
- for _,n in ipairs({1,3}) do physics(n);impactSpeed(n);business(n);brakeAndHold(n);dashPair(n);pinnedCargo(n) end
+ for _,n in ipairs({1,3}) do physics(n);impactSpeed(n);movingImpact(n);business(n);brakeAndHold(n);dashPair(n);pinnedCargo(n) end
  lifecycle()
  local cars={car(0,0,360)};local other={car(200,0)}
  local keep=native.new(other,{},1000,48)

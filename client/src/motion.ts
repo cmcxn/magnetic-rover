@@ -250,8 +250,9 @@ export function integrate(
   const [recovery, finalSpeed] = recoverBoost(endSpeed,dt-dash,boostRecovery,boostMultiplier);
   p.boostSpeed = dt > dash ? finalSpeed : endSpeed;
   p.boostElapsed = dash > 0 ? (p.boostElapsed ?? 0) + dash : 0;
-  const decay = Math.exp(-5 * dt),
-    travel = (1 - decay) / 5;
+  const glide = p.bodyAngle === undefined ? 5 : 2.5;
+  const decay = Math.exp(-glide * dt),
+    travel = (1 - decay) / glide;
   let dx = speed * (bx * multiplier * dash + ix * recovery * (dt - dash));
   let dy = speed * (by * multiplier * dash + iy * recovery * (dt - dash));
   if (p.bodyAngle !== undefined && (dx !== 0 || dy !== 0)) {
@@ -471,7 +472,7 @@ export class Motion {
           s.boostRamp ?? 0,
         s.boostRecovery ?? 0,
         );
-        if (s.collisionRadius) {
+        if (s.collisionRadius && result.bodyAngle === undefined) {
           const velocity = {
             x: result.x - start.x,
             y: result.y - start.y,
@@ -549,7 +550,7 @@ export class Motion {
         ),
       );
     }
-    if (latest.state.collisionRadius) {
+    if (latest.state.collisionRadius && !latest.state.players.some((p) => p.bodyAngle !== undefined)) {
       const starts =
         this.displayed.size && now >= this.displayedAt
           ? this.displayed
