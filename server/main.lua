@@ -93,6 +93,10 @@ local function serve(fd,addr)
  socket.start(fd)
  local code,url,method,headers,body=httpd.read_request(helper.readfunc(fd),8192)
  if code~=200 then socket.close(fd);return end
+ if method=='GET' and url=='/healthz' then
+  httpd.write_response(helper.writefunc(fd),200,'{"ready":true,"wechatWs":true}',{['Content-Type']='application/json',['Cache-Control']='no-store'})
+  socket.close(fd);return
+ end
  if (url=='/ws' or url=='/ws?wechat=1') and method=='GET' and headers.upgrade and headers.upgrade:lower()=='websocket' then
   peers[fd]={window=skynet.now(),count=0,wechat=url=='/ws?wechat=1'};pending[fd]=skynet.now()
   -- Pinned runtime supplies queued write size in KiB to socket.warning.

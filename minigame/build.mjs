@@ -54,11 +54,19 @@ await build({
   },
   legalComments: "eof",
 });
+await build({
+  entryPoints: ["minigame/src/health.ts"],
+  outfile: "minigame/dist/health.js",
+  bundle: true,
+  format: "cjs",
+  target: "es2017",
+});
 // The upload parser is older than the simulator: lower optional chaining too.
 await build({
   entryPoints: ["minigame/src/boot.js"],
   outfile: "minigame/dist/game.js",
   bundle: false,
+  define: { __ROVER_ENDPOINT__: JSON.stringify(process.env.ROVER_WS_URL || "wss://cb.chenmin.org/ws") },
   format: "cjs",
   target: "es2017",
 });

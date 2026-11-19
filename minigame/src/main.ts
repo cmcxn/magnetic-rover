@@ -1,3 +1,4 @@
+import type { createWarmup } from "./health";
 import { StateDecoder } from "../../client/src/state-codec";
 import { EntryGuide, GUIDE_KEY } from "../../client/src/onboarding";
 import { TutorialScene } from "./guide";
@@ -34,6 +35,7 @@ const safeRight = () =>
 
 // A separate client keeps all outcomes authoritative on the unchanged Skynet server.
 const endpoint = __ROVER_ENDPOINT__ + "?wechat=1";
+const warmup: ReturnType<typeof createWarmup> = GameGlobal.roverWarmup;
 const tokenKey = "rover.spike.token:" + endpoint;
 let name =
   wx.getStorageSync("rover.name") ||
@@ -186,7 +188,8 @@ function connect() {
   const current = wx.connectSocket({
     url: endpoint,
     fail: (e: any) => {
-      status = "连接失败：" + e.errMsg;
+      disconnect();
+      status = "游戏服务连接失败，请稍后重试。";
       uiKey = "";
     },
   });
@@ -202,6 +205,11 @@ function connect() {
     showNotice("审核暂时不可用，请稍后重试");
     uiKey = "";
   }
+  const joinTimeout = setTimeout(() => {
+    if (socket !== current || welcomed) return;
+    disconnect();
+    status = "游戏服务连接失败，请稍后重试。";
+  }, 20000);
   let requestedCode = false;
   function join(credentials: { token?: string; code?: string }) {
     current.send({ data: JSON.stringify({
@@ -252,6 +260,7 @@ function connect() {
       rememberProfile(data);
     } else if (data.type === "welcome") {
       negotiated = data.protocolVersion ?? 1;
+      clearTimeout(joinTimeout);
       welcomed = true;
       connected = true;
       decoder.reset(typeof data.roomId === "string" ? data.roomId : undefined);
@@ -305,14 +314,19 @@ function connect() {
   });
   current.onError((e: any) => {
     if (socket === current) {
-      status = "网络错误：" + e.errMsg;
+      if (!welcomed) {
+        disconnect();
+        status = "游戏服务连接失败，请稍后重试。";
+      } else status = "网络错误：" + e.errMsg;
       console.error("[rover]", e.errMsg);
       uiKey = "";
     }
   });
   current.onClose(() => {
+    clearTimeout(joinTimeout);
     if (socket !== current) return;
     resetInput();
+    socket = undefined;
     connected = false;
     state = null;
     world.state = null;
@@ -359,7 +373,8 @@ panel = new CartoonPanel(
       /windows|mac|devtools/i.test(
         wx.getDeviceInfo?.().platform || windowInfo().platform || "",
       ),
-    status,
+    status: status === "点击连接，进入真实联机大厅" && warmup.message ? warmup.message : status,
+    retryWarmup: warmup.failed,
     soundEnabled: sounds.enabled,
     name,
     color,
@@ -377,7 +392,12 @@ panel = new CartoonPanel(
     age: Date.now() - lastSnapshot,
   }),
   {
-    connect,
+    connect: () => {
+      if (socket) return;
+      notice = "";
+      status = "点击连接，进入真实联机大厅";
+      warmup.join(connect);
+    },
     backToProfile: () => { disconnect(); status = "请选择车手和颜色"; notice = ""; },
     showGuide: () => entryGuide.show(Date.now()),
     toggleSound: () => sounds.toggle(),

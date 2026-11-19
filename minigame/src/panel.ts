@@ -28,6 +28,7 @@ export interface PanelModel {
   keyboardEnabled?: boolean;
   soundEnabled?: boolean;
   status: string;
+  retryWarmup: boolean;
   name: string;
   color: string;
   rooms: RoomSummary[];
@@ -327,7 +328,7 @@ export class CartoonPanel extends Phaser.Scene {
         400,
         300,
         400,
-        "驶入大厅  →",
+        m.retryWarmup ? "重试" : "驶入大厅  →",
         this.actions.connect,
         false,
         true,
@@ -757,6 +758,7 @@ export class CartoonPanel extends Phaser.Scene {
     const signature = JSON.stringify([
       this.textures.exists("rover"),
       m.connected,
+      m.retryWarmup,
       m.keyboardEnabled,
       m.name,
       m.color,

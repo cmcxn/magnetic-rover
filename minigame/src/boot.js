@@ -1,6 +1,7 @@
 // This entry stays in the main package. Art must finish loading before Phaser starts.
 require("./weapp-adapter.js");
 require("./platform.js");
+GameGlobal.roverWarmup = require("./health.js").startWeChatWarmup(wx, __ROVER_ENDPOINT__);
 
 const context = canvas.getContext("2d");
 function draw(message) {

@@ -129,3 +129,9 @@ alongside all existing Lua fixtures.
 小游戏用原有业务 token 恢复登录。会话过期或首次连接时，客户端静默调用 wx.login，服务端兑换 code 并将 OpenID 绑定到业务会话。首次入场和改昵称均审核实际保存的名称，场景固定为 1。服务端成功回执后客户端才写本地昵称缓存。
 
 在仓库根目录运行 `python3 scripts/wechat-review.py --review`。脚本在交互终端隐藏输入最新 code，兑换成功后更新被 Git 忽略的 .env.wechat，再用本次兑换所得 OpenID 测试七条昵称。省略 --review 时只兑换并保存。WECHAT_OPENID 用于本地测试配置，正式审核从已验证会话取值。
+
+### 云托管冷启动
+
+将小游戏的 HTTPS request 合法域名配置为与 WSS 相同的主机。小游戏在加载资源时请求 GET /healthz。Skynet 监听成功后返回 200 及 ready、wechatWs 两个布尔标记，并禁止缓存。该接口不调用微信登录或审核 API。Docker 健康检查也使用此路径。
+
+在 CloudBase 部署带健康接口的服务后再测试小游戏构建。可将最小实例数设为 0，最大实例数设为 1，避免内存中的多个房间大厅分裂。先等待云托管确认缩到 0，再用真机打开小游戏验证首个 HTTPS 请求唤醒实例、等待提示以及就绪后进入大厅。

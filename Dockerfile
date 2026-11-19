@@ -45,7 +45,7 @@ RUN sed -i "s/^start = 'main'$/start = 'box2d_main'/" /app/server/config && \
     rm /app/server/cases.lua /app/server/poc.lua /tmp/physics-test.conf /tmp/physics-test.log
 USER 10001:10001
 EXPOSE 18080
-HEALTHCHECK --interval=15s --timeout=3s --start-period=15s --retries=3 CMD curl -fsS http://127.0.0.1:18080/ >/dev/null || exit 1
+HEALTHCHECK --interval=15s --timeout=3s --start-period=15s --retries=3 CMD curl -fsS http://127.0.0.1:18080/healthz >/dev/null || exit 1
 ENTRYPOINT ["/skynet/skynet", "/app/server/config"]
 CMD []
 LABEL org.opencontainers.image.title="magnetic-rover" org.opencontainers.image.skynet-revision="f1baee5051108fce40588738f4a5960f12edea97"
