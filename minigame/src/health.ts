@@ -1,6 +1,8 @@
 type ProbeResult = { statusCode: number; data: unknown };
 type Probe = (complete: (result?: ProbeResult) => void) => { abort(): void };
 
+const HEARTBEAT_MS = 60_000;
+
 export function createWarmup(probe: Probe) {
   let state: "idle" | "waiting" | "ready" | "failed" = "idle";
   let started = 0;
@@ -31,6 +33,7 @@ export function createWarmup(probe: Probe) {
       if (response?.statusCode === 200 && data?.ready === true && data.wechatWs === true) {
         stop("ready");
         readyAt = Date.now();
+        timer = setTimeout(refresh, HEARTBEAT_MS);
         const action = enter;
         enter = undefined;
         action?.();
@@ -41,14 +44,22 @@ export function createWarmup(probe: Probe) {
     });
   }
 
+  function refresh() {
+    stop("idle");
+    start();
+  }
+
   function start() {
     if (state === "waiting" || state === "ready") return;
+    clearTimeout(timer);
     state = "waiting";
     started = Date.now();
     failures = 0;
     deadline = setTimeout(() => {
       enter = undefined;
       stop("failed");
+      // End fast retries, but keep checking at the normal foreground cadence.
+      timer = setTimeout(refresh, HEARTBEAT_MS);
     }, 45000);
     poll();
   }
@@ -57,10 +68,11 @@ export function createWarmup(probe: Probe) {
     start,
     pause() { stop("idle"); },
     join(action: () => void) {
-      if (state === "ready" && Date.now() - readyAt >= 60000) stop("idle");
+      if (state === "ready" && Date.now() - readyAt >= HEARTBEAT_MS) stop("idle");
       if (state === "ready") action();
       else { enter = action; start(); }
     },
+    get waiting() { return state === "waiting"; },
     get failed() { return state === "failed"; },
     get message() {
       if (state === "failed") return "暂时连不上服务器，请稍后重试。";

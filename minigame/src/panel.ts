@@ -29,6 +29,7 @@ export interface PanelModel {
   soundEnabled?: boolean;
   status: string;
   retryWarmup: boolean;
+  warmingUp: boolean;
   name: string;
   color: string;
   rooms: RoomSummary[];
@@ -919,9 +920,9 @@ export class CartoonPanel extends Phaser.Scene {
         wifiX = rx + 183 * unit;
       g.lineStyle(2, netColor)
         .beginPath()
-        .arc(wifiX, py + 22, 8, Math.PI * 1.2, Math.PI * 1.8)
+        .arc(wifiX, py + 23, 8, Math.PI * 1.2, Math.PI * 1.8)
         .strokePath();
-      g.fillStyle(netColor).fillCircle(wifiX, py + 22, 1.5);
+      g.fillStyle(netColor).fillCircle(wifiX, py + 25, 1.5);
       this.label(
         "net",
         rx + pw - 8,
@@ -1118,6 +1119,27 @@ export class CartoonPanel extends Phaser.Scene {
         }
       }
     } else {
+      const badgeRight = w - right - 10;
+      const badgeTop = Math.max(8, top, capsuleBottom ?? 0) + 10;
+      if (m.connected || m.warmingUp) {
+        const online = m.connected;
+        const width = online ? 76 : 34;
+        const cx = badgeRight - width / 2;
+        const cy = badgeTop + 15;
+        g.fillStyle(UI.navy, 0.82).fillRoundedRect(badgeRight - width, badgeTop, width, 30, 10);
+        if (online) {
+          const net = latencyView(m.rtt, m.networkTimedOut);
+          g.fillStyle(parseInt(net.color.slice(1), 16)).fillCircle(badgeRight - width + 12, cy + 2, 3);
+          this.label("lobby-rtt", badgeRight - 8, cy,
+            m.rtt !== null && !m.networkTimedOut ? Math.round(m.rtt) + " ms" : "—",
+            12, net.color, 1);
+        } else {
+          const angle = Date.now() / 220;
+          g.lineStyle(2, 0xffd584).beginPath().arc(cx, cy, 11, angle, angle + 4.6).strokePath();
+          g.fillStyle(0xffedbd).fillRoundedRect(cx - 5, cy - 4, 10, 3, 1);
+          g.fillRoundedRect(cx - 5, cy + 1, 10, 3, 1);
+        }
+      }
       if (m.build)
         this.label("build", w - right, h - 28, m.build, 10, "#fff8e7")
           .setOrigin(1, 0.5)
@@ -1128,7 +1150,7 @@ export class CartoonPanel extends Phaser.Scene {
         h - 12,
         m.notice ||
           (!m.connected
-            ? m.status
+            ? m.warmingUp ? "" : m.status
             : m.roomId
               ? ""
               : "已连接 · 选择房间开始比赛"),
@@ -1157,8 +1179,8 @@ export class CartoonPanel extends Phaser.Scene {
     }
     if (!playing && m.roomId && m.state?.phase === "lobby") {
       if (this.actions.showGuide) {
-        const x = w - right - 70,
-          y = Math.max(8, top, (capsuleBottom ?? 0) + 8);
+        const x = w - right - 156,
+          y = Math.max(8, top, capsuleBottom ?? 0) + 10;
         g.fillStyle(UI.navy, 0.65).fillRoundedRect(x, y, 64, 30, 10);
         this.label("guide-link", x + 32, y + 15, "玩法", 13);
         this.guideHit = { x, y, w: 64, h: 30, action: this.actions.showGuide };

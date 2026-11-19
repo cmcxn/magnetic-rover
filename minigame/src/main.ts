@@ -373,7 +373,8 @@ panel = new CartoonPanel(
       /windows|mac|devtools/i.test(
         wx.getDeviceInfo?.().platform || windowInfo().platform || "",
       ),
-    status: status === "点击连接，进入真实联机大厅" && warmup.message ? warmup.message : status,
+    status: warmup.failed ? warmup.message : status,
+    warmingUp: !connected && warmup.waiting,
     retryWarmup: warmup.failed,
     soundEnabled: sounds.enabled,
     name,

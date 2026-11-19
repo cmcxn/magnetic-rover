@@ -52,3 +52,34 @@ test("background aborts pending request and foreground resumes queued entry", (t
   requests[1].complete({ statusCode: 200, data: { ready: true, wechatWs: true } });
   assert.equal(joins, 1);
 });
+
+test("foreground stays warm without a join and hiding cancels the heartbeat", (t) => {
+  const { warmup, requests, tick } = harness(t);
+  const ready = { statusCode: 200, data: { ready: true, wechatWs: true } };
+  warmup.start();
+  requests[0].complete(ready);
+  tick(59_999);
+  assert.equal(requests.length, 1);
+  tick(1);
+  assert.equal(requests.length, 2);
+  requests[1].complete(ready);
+  tick(60_000);
+  assert.equal(requests.length, 3);
+  requests[2].complete(ready);
+  warmup.pause();
+  tick(60_000);
+  assert.equal(requests.length, 3);
+  warmup.start();
+  assert.equal(requests.length, 4);
+});
+
+test("failed foreground warmup resumes at heartbeat cadence", (t) => {
+  const { warmup, requests, tick } = harness(t);
+  warmup.start();
+  tick(45_000);
+  assert.equal(warmup.failed, true);
+  tick(59_999);
+  assert.equal(requests.length, 1);
+  tick(1);
+  assert.equal(requests.length, 2);
+});
