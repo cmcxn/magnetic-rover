@@ -149,9 +149,10 @@ function R:tryStart(room)
  local n,ready=self:counts(room)
  if n>=2 and n==ready then room.clock:start(self.now) end
 end
-function R:join(fd,m)
+function R:join(fd,m,openid)
  if self.connections[fd] then return self:error(fd,'Already joined') end
  local s=type(m.token)=='string' and self.sessions[m.token] or nil
+ if s and s.wechatOpenid~=openid then return self:error(fd,'Invalid session') end
  if s then
   if s.fd then return self:error(fd,'Guest already connected; close the other tab first') end
   if not s.room or s.room.game.phase=='lobby' then
@@ -172,12 +173,12 @@ function R:join(fd,m)
  -- Reuse core nickname/color validation without adding a directory user to a room.
  local validation=Game.new(self.tokenfn);local p,e=validation:join(fd,m.name,m.color)
  if not p then return self:error(fd,e) end
- s={protocolVersion=m.protocolVersion==2 and 2 or 1,token=p.token,name=p.name,color=p.color,fd=fd,role='directory',last=self.now}
+ s={protocolVersion=m.protocolVersion==2 and 2 or 1,token=p.token,name=p.name,color=p.color,fd=fd,wechatOpenid=openid,role='directory',last=self.now}
  self.sessions[s.token]=s;self.connections[fd]=s;self:welcome(s);self:directory(fd)
 end
-function R:handle(fd,m,now)
+function R:handle(fd,m,now,openid)
  self:advance(now)
- if m.type=='join' then return self:join(fd,m) end
+ if m.type=='join' then return self:join(fd,m,openid) end
  local s=self.connections[fd];if not s then return self:error(fd,'Join first') end
  s.last=self.now
  if m.type=='rooms' then return self:directory(fd) end

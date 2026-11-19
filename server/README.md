@@ -121,3 +121,11 @@ without capability fields, both clients hide the AI entry. No new dependency,
 external AI service or API key is required. `test_bot.lua` and
 `test_bots_rooms.lua` cover behavior and lifecycle; the image build runs them
 alongside all existing Lua fixtures.
+
+## 微信小游戏昵称审核
+
+在进程环境配置 WECHAT_APP_ID 和 WECHAT_APP_SECRET，或复制仓库根目录的 .env.wechat.example 为 .env.wechat 并填写密钥。已有的非空环境变量优先。容器部署使用环境变量注入凭证。小游戏连接 /ws?wechat=1，需要更新后的 Skynet 服务。已有的 /ws 仍供 H5 使用。
+
+小游戏用原有业务 token 恢复登录。会话过期或首次连接时，客户端静默调用 wx.login，服务端兑换 code 并将 OpenID 绑定到业务会话。首次入场和改昵称均审核实际保存的名称，场景固定为 1。服务端成功回执后客户端才写本地昵称缓存。
+
+在仓库根目录运行 `python3 scripts/wechat-review.py --review`。脚本在交互终端隐藏输入最新 code，兑换成功后更新被 Git 忽略的 .env.wechat，再用本次兑换所得 OpenID 测试七条昵称。省略 --review 时只兑换并保存。WECHAT_OPENID 用于本地测试配置，正式审核从已验证会话取值。

@@ -36,6 +36,7 @@ export interface PanelModel {
   roomId: string | null;
   spectator: boolean;
   notice: string;
+  reviewNotice: string;
   rtt: number | null;
   fps: number | null;
   networkTimedOut?: boolean;
@@ -72,6 +73,9 @@ export class CartoonPanel extends Phaser.Scene {
   private live!: Phaser.GameObjects.Container;
   private dynamic!: Phaser.GameObjects.Graphics;
   private labels = new Map<string, Phaser.GameObjects.Text>();
+  private reviewBackdrop!: Phaser.GameObjects.Graphics;
+  private reviewText!: Phaser.GameObjects.Text;
+  private reviewKey = "";
   private key = "";
   private page = 0;
   private board = false;
@@ -108,6 +112,13 @@ export class CartoonPanel extends Phaser.Scene {
     this.live = this.add.container(0, 0);
     this.dynamic = this.add.graphics();
     this.live.add(this.dynamic);
+    this.reviewBackdrop = this.add.graphics().setDepth(100).setVisible(false);
+    this.reviewText = this.add.text(0, 0, "", {
+      fontFamily: "sans-serif",
+      fontStyle: "bold",
+      color: "#fff8e7",
+      align: "center",
+    }).setOrigin(0.5).setDepth(101).setVisible(false);
     this.scale.on("resize", () => this.invalidate());
   }
   invalidate() {
@@ -716,11 +727,33 @@ export class CartoonPanel extends Phaser.Scene {
     t.setPosition(x, y).setText(value).setColor(color).setVisible(true);
     return t;
   }
+  private renderReviewNotice(message: string) {
+    this.reviewBackdrop.setVisible(Boolean(message));
+    this.reviewText.setVisible(Boolean(message));
+    if (!message) return;
+    const { width, height } = this.scale;
+    const key = JSON.stringify([message, width, height]);
+    if (this.reviewKey === key) return;
+    this.reviewKey = key;
+    const cardWidth = Math.min(520, width - 40);
+    this.reviewText.setPosition(width / 2, height / 2)
+      .setFontSize(width < 480 ? 20 : 24)
+      .setWordWrapWidth(cardWidth - 40)
+      .setText(message);
+    const cardHeight = Math.max(96, this.reviewText.height + 48);
+    const x = (width - cardWidth) / 2;
+    const y = (height - cardHeight) / 2;
+    this.reviewBackdrop.clear()
+      .fillStyle(0x102e3e, 0.65).fillRect(0, 0, width, height)
+      .fillStyle(0x19374c, 1).fillRoundedRect(x, y, cardWidth, cardHeight, 18)
+      .lineStyle(2, 0xffce83, 1).strokeRoundedRect(x, y, cardWidth, cardHeight, 18);
+  }
   update() {
     if (!this.menu) return;
     const m = this.getModel(),
       playing = m.state?.phase === "playing",
       me = m.state?.players.find((p) => p.id === m.self);
+    this.renderReviewNotice(m.reviewNotice);
     const signature = JSON.stringify([
       this.textures.exists("rover"),
       m.connected,

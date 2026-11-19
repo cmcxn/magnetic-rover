@@ -33,7 +33,7 @@ const safeRight = () =>
   );
 
 // A separate client keeps all outcomes authoritative on the unchanged Skynet server.
-const endpoint = __ROVER_ENDPOINT__;
+const endpoint = __ROVER_ENDPOINT__ + "?wechat=1";
 const tokenKey = "rover.spike.token:" + endpoint;
 let name =
   wx.getStorageSync("rover.name") ||
@@ -64,6 +64,15 @@ let boost = false,
   lastInput = 0,
   uiKey = "",
   notice = "";
+let reviewNotice = { text: "", expiresAt: 0 };
+function showNotice(message: string) {
+  if (message === "用户名称不合规，请修改后重试" || message.startsWith("审核暂时不可用")) {
+    notice = "";
+    reviewNotice = { text: message, expiresAt: Date.now() + 5000 };
+  } else {
+    notice = message;
+  }
+}
 const entryGuide = new EntryGuide(wx.getStorageSync(GUIDE_KEY) === "yes", () =>
   wx.setStorageSync(GUIDE_KEY, "yes"),
 );
@@ -187,17 +196,22 @@ function connect() {
     welcomed = false,
     fullRequestedAt = -Infinity;
 
+  function loginFailed() {
+    if (socket !== current) return;
+    disconnect();
+    showNotice("审核暂时不可用，请稍后重试");
+    uiKey = "";
+  }
+  let requestedCode = false;
+  function join(credentials: { token?: string; code?: string }) {
+    current.send({ data: JSON.stringify({
+      type: "join", protocolVersion: 2, name, color, ...credentials,
+    }), fail: loginFailed });
+  }
   current.onOpen(() => {
     if (socket !== current) return;
-    connected = true;
     status = "已连接，正在进入大厅";
-    send({
-      type: "join",
-      protocolVersion: 2,
-      name,
-      color,
-      token: wx.getStorageSync(tokenKey) || undefined,
-    });
+    join({ token: wx.getStorageSync(tokenKey) || undefined });
   });
   current.onMessage((event: any) => {
     if (socket !== current) return;
@@ -223,11 +237,23 @@ function connect() {
       recovery = result.mode !== "continuous";
       data = result.state;
     }
-    if (data.type === "profile") {
+    if (data.type === "wechat_login_required" && !welcomed && !requestedCode) {
+      requestedCode = true;
+      wx.login({
+        success: (result: { code?: string }) => {
+          if (socket !== current) return;
+          if (result.code) {
+            join({ code: result.code });
+          } else loginFailed();
+        },
+        fail: loginFailed,
+      });
+    } else if (data.type === "profile") {
       rememberProfile(data);
     } else if (data.type === "welcome") {
       negotiated = data.protocolVersion ?? 1;
       welcomed = true;
+      connected = true;
       decoder.reset(typeof data.roomId === "string" ? data.roomId : undefined);
       rememberProfile(data);
       wx.setStorageSync(tokenKey, data.token);
@@ -266,7 +292,8 @@ function connect() {
       ping = null;
     } else if (data.type === "error") {
       if (data.code === "ready_warning") return;
-      notice = data.message;
+      if (!welcomed) disconnect();
+      if (typeof data.message === "string") showNotice(data.message);
       uiKey = "";
       console.warn("[rover] server", data.message);
       if (data.message === "Guest already connected") {
@@ -342,6 +369,7 @@ panel = new CartoonPanel(
     roomId,
     spectator,
     notice,
+    reviewNotice: Date.now() < reviewNotice.expiresAt ? reviewNotice.text : "",
     rtt,
     networkTimedOut,
     speed: world.speed,
@@ -357,7 +385,7 @@ panel = new CartoonPanel(
       editable("车手昵称", name, (value) => {
         const nextName = [...value].slice(0, 16).join("");
         if (connected) send({ type: "set_name", name: nextName });
-        else rememberProfile({ name: nextName });
+        else { name = nextName; uiKey = ""; }
       }),
     color: (value) => {
       color = value;

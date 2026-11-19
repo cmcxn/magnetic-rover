@@ -11,3 +11,5 @@ server/.control-lock/
 
 minigame/dist/
 minigame/project.private.config.json
+
+/.env.wechat

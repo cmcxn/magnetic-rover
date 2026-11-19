@@ -2,6 +2,7 @@ root = '$SKYNET_ROOT'
 app = '$ROVER_SERVER'
 thread = 4
 harbor = 0
+enablessl = true
 start = 'main'
 bootstrap = 'snlua bootstrap'
 logger = nil

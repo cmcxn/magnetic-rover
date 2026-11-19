@@ -6,6 +6,15 @@ local helper=require 'http.sockethelper'
 local crypt=require 'skynet.crypt'
 local json=require 'json'
 local rooms=require('rooms').new(function() return crypt.hexencode(crypt.randomkey()..crypt.randomkey()..crypt.randomkey()) end,skynet.now()/100,json.array,{epochPrefix=crypt.hexencode(crypt.randomkey())})
+local WeChat=require 'wechat'
+local httpc=require 'http.httpc'
+local reviewQueue=require('skynet.queue')()
+httpc.timeout=500
+local wechat=WeChat.new(WeChat.config(os.getenv,(os.getenv('ROVER_SERVER') or './server/'):gsub('/+$','')..'/../.env.wechat'),
+ function(method,path,body)
+  return httpc.request(method,'https://api.weixin.qq.com',path,{}, {['Content-Type']='application/json'},body)
+ end,function() return skynet.now()/100 end)
+local Game=require 'game'
 local pending={};local peers={}
 local latency=require 'latency'
 local sendStats={messages=0,jsonBytes=0,websocketBytes=0,byType={},byStream={}}
@@ -38,7 +47,42 @@ function handle.message(fd,msg,kind)
  if m.type=='ping' and rooms.connections[fd] then
   local reply,e=latency.reply(peer,m,now/100);if reply then send(fd,reply) elseif e then err(fd,e) end;return
  end
- rooms:handle(fd,m,now/100)
+ local openid
+ if peer.wechat and (m.type=='join' or m.type=='set_name') then
+  local session=rooms.connections[fd]
+  if m.type=='join' then
+   if session then return err(fd,'Already joined') end
+   session=type(m.token)=='string' and rooms.sessions[m.token] or nil
+   openid=session and session.wechatOpenid
+   if not openid then
+    if type(m.code)~='string' or m.code=='' then
+     return send(fd,{type='wechat_login_required'})
+    end
+    openid=wechat.exchange(m.code)
+    if peers[fd]~=peer then return end
+    if not openid then return err(fd,WeChat.unavailable) end
+    m.token=nil
+    session=nil
+   end
+  else
+   openid=session and session.wechatOpenid
+   if not openid then return err(fd,WeChat.unavailable) end
+  end
+  if m.name~=nil or not session then
+   local player,reason=Game.new():join(fd,m.name,m.color)
+   if not player then return err(fd,reason) end
+   m.name=player.name
+   if not session or session.name~=m.name then
+    local allowed,failure=reviewQueue(function()
+     if peers[fd]~=peer then return nil,WeChat.unavailable end
+     return wechat.review(openid,m.name)
+    end)
+    if peers[fd]~=peer then return end
+    if not allowed then return err(fd,failure) end
+   end
+  end
+ end
+ rooms:handle(fd,m,skynet.now()/100,openid)
  if rooms.connections[fd] then pending[fd]=nil end
  flush()
 end
@@ -49,8 +93,8 @@ local function serve(fd,addr)
  socket.start(fd)
  local code,url,method,headers,body=httpd.read_request(helper.readfunc(fd),8192)
  if code~=200 then socket.close(fd);return end
- if url=='/ws' and method=='GET' and headers.upgrade and headers.upgrade:lower()=='websocket' then
-  peers[fd]={window=skynet.now(),count=0};pending[fd]=skynet.now()
+ if (url=='/ws' or url=='/ws?wechat=1') and method=='GET' and headers.upgrade and headers.upgrade:lower()=='websocket' then
+  peers[fd]={window=skynet.now(),count=0,wechat=url=='/ws?wechat=1'};pending[fd]=skynet.now()
   -- Pinned runtime supplies queued write size in KiB to socket.warning.
   socket.warning(fd,function(id,kib)
    if kib >= 1024 then skynet.error('Closing slow rover socket',id,kib);handle.close(id);pcall(socket.close,id) end
