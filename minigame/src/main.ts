@@ -33,7 +33,10 @@ const safeRight = () =>
   );
 
 // A separate client keeps all outcomes authoritative on the unchanged Skynet server.
-const endpoint = __ROVER_ENDPOINT__;
+const cloudEnv = "prod-d9ghudrmh2b8bfd7c";
+const cloudService = "mr";
+const wsPath = "/ws?wechat=1";
+const endpoint = __ROVER_ENDPOINT__ || `${cloudEnv}/${cloudService}${wsPath}`;
 const tokenKey = "rover.spike.token:" + endpoint;
 let name =
   wx.getStorageSync("rover.name") ||
@@ -157,11 +160,17 @@ function resetInput() {
   if (connected && state?.phase === "playing")
     send(world.inputCommand({ x: 0, y: 0, boost: false }));
 }
+let connectionAttempt = 0;
+let connectionTimeout: ReturnType<typeof setTimeout> | undefined;
+
 function disconnect() {
+  connectionAttempt++;
+  clearTimeout(connectionTimeout);
   resetInput();
   connected = false;
-  socket?.close({});
+  const previous = socket;
   socket = undefined;
+  previous?.close({});
   state = null;
   world.state = null;
   roomId = null;
@@ -174,30 +183,58 @@ function connect() {
   status = "正在连接服务器";
   notice = "";
   uiKey = "";
-  const current = wx.connectSocket({
-    url: endpoint,
-    fail: (e: any) => {
-      status = "连接失败：" + e.errMsg;
-      uiKey = "";
-    },
-  });
+  const attempt = connectionAttempt;
+  function failed(error: { errMsg?: string; message?: string }) {
+    if (attempt !== connectionAttempt) return;
+    disconnect();
+    status = "游戏服务连接失败，请稍后重试。";
+    uiKey = "";
+    console.error("[rover] connect", error.errMsg || error.message);
+  }
+  connectionTimeout = setTimeout(() => failed({ message: "Connection timed out" }), 20000);
+  if (__ROVER_ENDPOINT__) {
+    attachSocket(wx.connectSocket({ url: endpoint, fail: failed }));
+    return;
+  }
+  try {
+    wx.cloud.init();
+    wx.cloud.connectContainer({
+      config: { env: cloudEnv },
+      service: cloudService,
+      path: wsPath,
+    }).then(({ socketTask }: any) => {
+      if (attempt === connectionAttempt) attachSocket(socketTask);
+      else socketTask.close({});
+    }).catch(failed);
+  } catch (error) {
+    failed(error as Error);
+  }
+}
+
+function attachSocket(current: any) {
   socket = current;
   const decoder = new StateDecoder();
   let negotiated = 1,
     welcomed = false,
     fullRequestedAt = -Infinity;
 
+  let requestedCode = false;
+  function loginFailed() {
+    if (socket !== current) return;
+    disconnect();
+    status = "微信登录失败，请重新连接";
+    uiKey = "";
+  }
+  function join(credentials: { token?: string; code?: string }) {
+    current.send({
+      data: JSON.stringify({ type: "join", protocolVersion: 2, name, color, ...credentials }),
+      fail: loginFailed,
+    });
+  }
   current.onOpen(() => {
     if (socket !== current) return;
-    connected = true;
     status = "已连接，正在进入大厅";
-    send({
-      type: "join",
-      protocolVersion: 2,
-      name,
-      color,
-      token: wx.getStorageSync(tokenKey) || undefined,
-    });
+    join({ token: wx.getStorageSync(tokenKey) || undefined });
   });
   current.onMessage((event: any) => {
     if (socket !== current) return;
@@ -223,11 +260,23 @@ function connect() {
       recovery = result.mode !== "continuous";
       data = result.state;
     }
-    if (data.type === "profile") {
+    if (data.type === "wechat_login_required" && !welcomed && !requestedCode) {
+      requestedCode = true;
+      wx.login({
+        success: ({ code }: { code?: string }) => {
+          if (socket !== current) return;
+          if (code) join({ code });
+          else loginFailed();
+        },
+        fail: loginFailed,
+      });
+    } else if (data.type === "profile") {
       rememberProfile(data);
     } else if (data.type === "welcome") {
       negotiated = data.protocolVersion ?? 1;
       welcomed = true;
+      connected = true;
+      clearTimeout(connectionTimeout);
       decoder.reset(typeof data.roomId === "string" ? data.roomId : undefined);
       rememberProfile(data);
       wx.setStorageSync(tokenKey, data.token);
@@ -269,6 +318,7 @@ function connect() {
       notice = data.message;
       uiKey = "";
       console.warn("[rover] server", data.message);
+      if (!welcomed) disconnect();
       if (data.message === "Guest already connected") {
         wx.removeStorageSync(tokenKey);
         disconnect();
@@ -278,6 +328,7 @@ function connect() {
   });
   current.onError((e: any) => {
     if (socket === current) {
+      if (!welcomed) disconnect();
       status = "网络错误：" + e.errMsg;
       console.error("[rover]", e.errMsg);
       uiKey = "";
@@ -285,15 +336,11 @@ function connect() {
   });
   current.onClose(() => {
     if (socket !== current) return;
-    resetInput();
     connected = false;
-    state = null;
-    world.state = null;
-    roomId = null;
+    socket = undefined;
+    disconnect();
     status = "连接已关闭，点击连接重试";
     uiKey = "";
-    ping = null;
-    rtt = null;
   });
 }
 

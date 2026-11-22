@@ -28,7 +28,7 @@ const compiled = ts.transpileModule(
     },
   },
 ).outputText;
-function harness() {
+function harness({ requireLogin = false } = {}) {
   let panel,
     now = 1000,
     post;
@@ -42,6 +42,7 @@ function harness() {
     removeStorageSync() {},
     setClipboardData() {},
     showModal() {},
+    login: ({ success }) => success({ code: "test-login-code" }),
     connectSocket: () => {
       const handlers = {};
       const s = {
@@ -96,6 +97,8 @@ function harness() {
     __ROVER_BUILD__: "test-build",
     __ROVER_ENDPOINT__: "wss://cb.chenmin.org/ws",
     exports: {},
+    setTimeout: () => 0,
+    clearTimeout() {},
     ...types,
     skillView,
     FrameMetrics,
@@ -146,6 +149,7 @@ function harness() {
   socket.handlers.open();
   const deliver = (message) =>
     socket.handlers.message({ data: JSON.stringify(message) });
+  if (requireLogin) deliver({ type: "wechat_login_required" });
   deliver({
     type: "welcome",
     id: "me",
@@ -383,4 +387,13 @@ test("new-epoch phase reset releases held keyboard controls before replacing sta
   const input = h.sent.filter((m) => m.type === "input").at(-1);
   assert.equal(input.x, 0);
   assert.equal(input.boost, false);
+});
+
+test("a WeChat login challenge sends the login code before entering the lobby", () => {
+  const h = harness({ requireLogin: true });
+  const joins = h.sent.filter(({ type }) => type === "join");
+  assert.equal(joins.length, 2);
+  assert.equal(joins[0].code, undefined);
+  assert.equal(joins[1].code, "test-login-code");
+  assert.equal(h.model.connected, true);
 });
