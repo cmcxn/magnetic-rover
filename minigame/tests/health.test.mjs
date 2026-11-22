@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createWarmup } from "../src/health.ts";
+import { createWarmup, startWeChatWarmup } from "../src/health.ts";
 
 function harness(t) {
   t.mock.timers.enable({ apis: ["setTimeout", "Date"] });
@@ -82,4 +82,31 @@ test("failed foreground warmup resumes at heartbeat cadence", (t) => {
   assert.equal(requests.length, 1);
   tick(1);
   assert.equal(requests.length, 2);
+});
+
+test("default warmup checks the WeChat Cloud Run service and resumes queued entry", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout", "Date"] });
+  let options;
+  let resolve;
+  const wx = {
+    cloud: {
+      init() {},
+      callContainer(request) {
+        options = request;
+        return new Promise((complete) => { resolve = complete; });
+      },
+    },
+    onHide() {},
+    onShow() {},
+  };
+  const warmup = startWeChatWarmup(wx, "");
+  let entered = false;
+  warmup.join(() => { entered = true; });
+  assert.deepEqual(options.config, { env: "prod-d9ghudrmh2b8bfd7c" });
+  assert.equal(options.header["X-WX-SERVICE"], "mr");
+  assert.equal(options.path, "/healthz");
+  resolve({ statusCode: 200, data: { ready: true, wechatWs: true } });
+  await Promise.resolve();
+  assert.equal(entered, true);
+  warmup.pause();
 });

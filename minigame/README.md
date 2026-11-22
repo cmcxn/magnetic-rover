@@ -77,4 +77,4 @@ Phaser 横幅可能仍显示 No Audio：这是关闭浏览器音频管理器以�
 
 开发预览可用 `ROVER_WS_URL=ws://<电脑局域网IP>:18080/ws node minigame/build.mjs`
 指定本机后端，手机需同一局域网。此设置仅影响本次构建；正式构建不设置该变量，
-默认仍连接 `wss://cb.chenmin.org/ws`。上传正式版前务必重新执行默认构建。
+默认通过微信云托管环境 `prod-d9ghudrmh2b8bfd7c` 的 `mr` 直连。启动时用 `wx.cloud.callContainer` 请求 `/healthz`，就绪后用 `wx.cloud.connectContainer` 连接 `/ws?wechat=1`。上传前重新执行默认构建。

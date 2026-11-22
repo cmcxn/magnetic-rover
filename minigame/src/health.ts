@@ -1,5 +1,7 @@
+import { cloudTarget } from "./cloud.ts";
+
 type ProbeResult = { statusCode: number; data: unknown };
-type Probe = (complete: (result?: ProbeResult) => void) => { abort(): void };
+type Probe = (complete: (result?: ProbeResult) => void) => { abort(): void } | undefined;
 
 const HEARTBEAT_MS = 60_000;
 
@@ -89,13 +91,29 @@ export function createWarmup(probe: Probe) {
 
 export function startWeChatWarmup(wx: any, endpoint: string) {
   const url = endpoint.replace(/^ws/, "http").replace(/\/ws(?:\?.*)?$/, "/healthz");
-  const warmup = createWarmup((complete) => wx.request({
-    url,
-    method: "GET",
-    timeout: 6000,
-    success: complete,
-    fail: () => complete(),
-  }));
+  let cloudInitialized = false;
+  const warmup = createWarmup((complete) => {
+    if (endpoint) {
+      return wx.request({ url, method: "GET", timeout: 6000, success: complete, fail: () => complete() });
+    }
+    try {
+      if (!cloudInitialized) {
+        wx.cloud.init();
+        cloudInitialized = true;
+      }
+      wx.cloud.callContainer({
+        config: cloudTarget.config,
+        path: "/healthz",
+        method: "GET",
+        timeout: 6000,
+        header: { "X-WX-SERVICE": cloudTarget.service },
+      }).then(complete, () => complete());
+    } catch {
+      void Promise.resolve().then(() => complete());
+    }
+    // The cloud Promise cannot be aborted. The warmup generation ignores stale results.
+    return undefined;
+  });
   wx.onHide(() => warmup.pause());
   wx.onShow(() => warmup.start());
   warmup.start();

@@ -1,3 +1,4 @@
+import { cloudSocketPath, cloudTarget } from "../src/cloud.ts";
 import { StateDecoder } from "../../client/src/state-codec.ts";
 import { EntryGuide, GUIDE_KEY } from "../../client/src/onboarding.ts";
 import test from "node:test";
@@ -86,6 +87,8 @@ function harness() {
   }
   const context = {
     StateDecoder,
+    cloudSocketPath,
+    cloudTarget,
     EntryGuide,
     GUIDE_KEY,
     TutorialScene: class {

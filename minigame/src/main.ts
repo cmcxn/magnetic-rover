@@ -1,3 +1,4 @@
+import { cloudSocketPath, cloudTarget } from "./cloud";
 import type { createWarmup } from "./health";
 import { StateDecoder } from "../../client/src/state-codec";
 import { EntryGuide, GUIDE_KEY } from "../../client/src/onboarding";
@@ -34,7 +35,9 @@ const safeRight = () =>
   );
 
 // A separate client keeps all outcomes authoritative on the unchanged Skynet server.
-const endpoint = __ROVER_ENDPOINT__ + "?wechat=1";
+const endpoint = __ROVER_ENDPOINT__
+  ? __ROVER_ENDPOINT__ + "?wechat=1"
+  : `${cloudTarget.config.env}/${cloudTarget.service}${cloudSocketPath}`;
 const warmup: ReturnType<typeof createWarmup> = GameGlobal.roverWarmup;
 const tokenKey = "rover.spike.token:" + endpoint;
 let name =
@@ -168,11 +171,17 @@ function resetInput() {
   if (connected && state?.phase === "playing")
     send(world.inputCommand({ x: 0, y: 0, boost: false }));
 }
+let connectionAttempt = 0;
+let joinTimeout: ReturnType<typeof setTimeout> | undefined;
+
 function disconnect() {
+  connectionAttempt++;
+  clearTimeout(joinTimeout);
   resetInput();
   connected = false;
-  socket?.close({});
+  const previous = socket;
   socket = undefined;
+  previous?.close({});
   state = null;
   world.state = null;
   roomId = null;
@@ -185,14 +194,30 @@ function connect() {
   status = "正在连接服务器";
   notice = "";
   uiKey = "";
-  const current = wx.connectSocket({
-    url: endpoint,
-    fail: (e: any) => {
-      disconnect();
-      status = "游戏服务连接失败，请稍后重试。";
-      uiKey = "";
-    },
-  });
+  const attempt = connectionAttempt;
+  function failed(error: { errMsg?: string; message?: string }) {
+    if (attempt !== connectionAttempt) return;
+    disconnect();
+    status = "游戏服务连接失败，请稍后重试。";
+    uiKey = "";
+    console.warn("[rover] connect", error.errMsg || error.message);
+  }
+  joinTimeout = setTimeout(() => failed({ message: "Connection timed out" }), 20000);
+  try {
+    if (__ROVER_ENDPOINT__) {
+      attachSocket(wx.connectSocket({ url: endpoint, fail: failed }));
+      return;
+    }
+    wx.cloud.connectContainer({ ...cloudTarget, path: cloudSocketPath }).then(({ socketTask }: any) => {
+      if (attempt === connectionAttempt) attachSocket(socketTask);
+      else socketTask.close({});
+    }).catch(failed);
+  } catch (error) {
+    failed(error as Error);
+  }
+}
+
+function attachSocket(current: any) {
   socket = current;
   const decoder = new StateDecoder();
   let negotiated = 1,
@@ -205,11 +230,6 @@ function connect() {
     showNotice("审核暂时不可用，请稍后重试");
     uiKey = "";
   }
-  const joinTimeout = setTimeout(() => {
-    if (socket !== current || welcomed) return;
-    disconnect();
-    status = "游戏服务连接失败，请稍后重试。";
-  }, 20000);
   let requestedCode = false;
   function join(credentials: { token?: string; code?: string }) {
     current.send({ data: JSON.stringify({
@@ -323,18 +343,12 @@ function connect() {
     }
   });
   current.onClose(() => {
-    clearTimeout(joinTimeout);
     if (socket !== current) return;
-    resetInput();
-    socket = undefined;
     connected = false;
-    state = null;
-    world.state = null;
-    roomId = null;
+    socket = undefined;
+    disconnect();
     status = "连接已关闭，点击连接重试";
     uiKey = "";
-    ping = null;
-    rtt = null;
   });
 }
 
