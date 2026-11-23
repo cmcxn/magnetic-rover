@@ -30,6 +30,8 @@ export interface PanelModel {
   status: string;
   retryWarmup: boolean;
   warmingUp: boolean;
+  showServerSwitch?: boolean;
+  cloudBaseSelected?: boolean;
   name: string;
   color: string;
   rooms: RoomSummary[];
@@ -47,6 +49,7 @@ export interface PanelModel {
 export interface PanelActions {
   showGuide?(): void;
   connect(): void;
+  selectServer?(cloudBase: boolean): void;
   backToProfile?(): void;
   toggleSound?(): void;
   rename(): void;
@@ -343,6 +346,10 @@ export class CartoonPanel extends Phaser.Scene {
           : "小车大电量\n出发，抢点电！",
         m.keyboardEnabled ? 16 : 27,
       ).setOrigin(0.5);
+      if (m.showServerSwitch && this.actions.selectServer) {
+        this.button(400, 369, 190, "微信云服务器", () => this.actions.selectServer?.(false), m.cloudBaseSelected, true, 42);
+        this.button(600, 369, 200, "腾讯云服务器", () => this.actions.selectServer?.(true), !m.cloudBaseSelected, true, 42);
+      }
       this.guide(428, W);
     } else if (!m.roomId) {
       this.button(
@@ -760,6 +767,8 @@ export class CartoonPanel extends Phaser.Scene {
       this.textures.exists("rover"),
       m.connected,
       m.retryWarmup,
+      m.showServerSwitch,
+      m.cloudBaseSelected,
       m.keyboardEnabled,
       m.name,
       m.color,

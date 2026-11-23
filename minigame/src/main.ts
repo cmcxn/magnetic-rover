@@ -1,5 +1,5 @@
 import { cloudSocketPath, cloudTarget } from "./cloud";
-import type { createWarmup } from "./health";
+import type { startWeChatWarmup } from "./health";
 import { StateDecoder } from "../../client/src/state-codec";
 import { EntryGuide, GUIDE_KEY } from "../../client/src/onboarding";
 import { TutorialScene } from "./guide";
@@ -19,7 +19,6 @@ import {
   type State,
 } from "../../client/src/types";
 declare const __ROVER_BUILD__: string;
-declare const __ROVER_ENDPOINT__: string;
 declare const wx: any;
 declare const GameGlobal: any;
 declare const canvas: HTMLCanvasElement;
@@ -35,11 +34,10 @@ const safeRight = () =>
   );
 
 // A separate client keeps all outcomes authoritative on the unchanged Skynet server.
-const endpoint = __ROVER_ENDPOINT__
-  ? __ROVER_ENDPOINT__ + "?wechat=1"
+const warmup: ReturnType<typeof startWeChatWarmup> = GameGlobal.roverWarmup;
+const socketEndpoint = () => warmup.endpoint
+  ? warmup.endpoint + "?wechat=1"
   : `${cloudTarget.config.env}/${cloudTarget.service}${cloudSocketPath}`;
-const warmup: ReturnType<typeof createWarmup> = GameGlobal.roverWarmup;
-const tokenKey = "rover.spike.token:" + endpoint;
 let name =
   wx.getStorageSync("rover.name") ||
   wx.getStorageSync("rover.spike.name") ||
@@ -195,6 +193,7 @@ function connect() {
   notice = "";
   uiKey = "";
   const attempt = connectionAttempt;
+  const endpoint = socketEndpoint();
   function failed(error: { errMsg?: string; message?: string }) {
     if (attempt !== connectionAttempt) return;
     disconnect();
@@ -204,12 +203,14 @@ function connect() {
   }
   joinTimeout = setTimeout(() => failed({ message: "Connection timed out" }), 20000);
   try {
-    if (__ROVER_ENDPOINT__) {
-      attachSocket(wx.connectSocket({ url: endpoint, fail: failed }));
+    if (warmup.endpoint) {
+      const current = wx.connectSocket({ url: endpoint, fail: failed });
+      if (attempt === connectionAttempt) attachSocket(current, endpoint);
+      else current.close({});
       return;
     }
     wx.cloud.connectContainer({ ...cloudTarget, path: cloudSocketPath }).then(({ socketTask }: any) => {
-      if (attempt === connectionAttempt) attachSocket(socketTask);
+      if (attempt === connectionAttempt) attachSocket(socketTask, endpoint);
       else socketTask.close({});
     }).catch(failed);
   } catch (error) {
@@ -217,8 +218,9 @@ function connect() {
   }
 }
 
-function attachSocket(current: any) {
+function attachSocket(current: any, endpoint: string) {
   socket = current;
+  const tokenKey = "rover.spike.token:" + endpoint;
   const decoder = new StateDecoder();
   let negotiated = 1,
     welcomed = false,
@@ -347,6 +349,7 @@ function attachSocket(current: any) {
     connected = false;
     socket = undefined;
     disconnect();
+    warmup.reconcile();
     status = "连接已关闭，点击连接重试";
     uiKey = "";
   });
@@ -377,6 +380,14 @@ function editable(
     },
   });
 }
+warmup.canSwitch = () => !connected;
+warmup.onChange = () => {
+  disconnect();
+  status = "点击连接，进入真实联机大厅";
+  notice = "";
+  reviewNotice = { text: "", expiresAt: 0 };
+  uiKey = "";
+};
 panel = new CartoonPanel(
   () => ({
     build: __ROVER_BUILD__,
@@ -390,6 +401,8 @@ panel = new CartoonPanel(
     status: warmup.failed ? warmup.message : status,
     warmingUp: !connected && warmup.waiting,
     retryWarmup: warmup.failed,
+    showServerSwitch: warmup.showServerSwitch,
+    cloudBaseSelected: !!warmup.endpoint,
     soundEnabled: sounds.enabled,
     name,
     color,
@@ -413,7 +426,13 @@ panel = new CartoonPanel(
       status = "点击连接，进入真实联机大厅";
       warmup.join(connect);
     },
-    backToProfile: () => { disconnect(); status = "请选择车手和颜色"; notice = ""; },
+    selectServer: (cloudBase) => warmup.select(cloudBase),
+    backToProfile: () => {
+      disconnect();
+      warmup.reconcile();
+      status = "请选择车手和颜色";
+      notice = "";
+    },
     showGuide: () => entryGuide.show(Date.now()),
     toggleSound: () => sounds.toggle(),
     rename: () =>
@@ -680,7 +699,8 @@ Object.defineProperty(GameGlobal, "roverSpike", {
   configurable: true,
   get: () => ({
     build: __ROVER_BUILD__,
-    endpoint,
+    endpoint: socketEndpoint(),
+    cloudBaseAvailable: warmup.cloudBaseAvailable,
     connected,
     audio: sounds.diagnostics,
     visuals: world.vehicleDiagnostics,

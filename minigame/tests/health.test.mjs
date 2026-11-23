@@ -87,6 +87,7 @@ test("failed foreground warmup resumes at heartbeat cadence", (t) => {
 test("default warmup checks the WeChat Cloud Run service and resumes queued entry", async (t) => {
   t.mock.timers.enable({ apis: ["setTimeout", "Date"] });
   let options;
+  let hide;
   let resolve;
   const wx = {
     cloud: {
@@ -96,7 +97,8 @@ test("default warmup checks the WeChat Cloud Run service and resumes queued entr
         return new Promise((complete) => { resolve = complete; });
       },
     },
-    onHide() {},
+    request() { return { abort() {} }; },
+    onHide(callback) { hide = callback; },
     onShow() {},
   };
   const warmup = startWeChatWarmup(wx, "");
@@ -108,5 +110,92 @@ test("default warmup checks the WeChat Cloud Run service and resumes queued entr
   resolve({ statusCode: 200, data: { ready: true, wechatWs: true } });
   await Promise.resolve();
   assert.equal(entered, true);
-  warmup.pause();
+  hide();
+});
+
+test("an available saved CloudBase server is restored, re-warmed and hidden after a failed probe", (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout", "Date"] });
+  const requests = [];
+  const ready = { statusCode: 200, data: { ready: true, wechatWs: true } };
+  const storage = new Map([["rover.server", "cloudbase"]]);
+  const wx = {
+    cloud: { init() {}, callContainer() { return Promise.resolve(ready); } },
+    getStorageSync(key) { return storage.get(key); },
+    setStorageSync(key, value) { storage.set(key, value); },
+    request(options) { requests.push(options); return { abort() {} }; },
+    onHide() {},
+    onShow() {},
+  };
+  const servers = startWeChatWarmup(wx, "");
+  assert.equal(servers.cloudBaseAvailable, false);
+  let joined = false;
+  servers.join(() => { joined = true; });
+  requests[0].success(ready);
+  assert.equal(servers.cloudBaseAvailable, true);
+  assert.equal(servers.endpoint, "wss://cb.chenmin.org/ws");
+  assert.equal(joined, false);
+  requests[1].success(ready);
+  assert.equal(joined, true);
+
+  t.mock.timers.tick(30000);
+  requests[2].fail();
+  assert.equal(servers.cloudBaseAvailable, false);
+  assert.equal(servers.endpoint, "");
+  assert.equal(storage.get("rover.server"), "cloudbase");
+});
+
+test("changing servers cancels an earlier queued entry and remembers the user's selection", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout", "Date"] });
+  const publicRequests = [];
+  const wechatRequests = [];
+  const storage = new Map();
+  const ready = { statusCode: 200, data: { ready: true, wechatWs: true } };
+  const wx = {
+    cloud: {
+      init() {},
+      callContainer() { return new Promise(resolve => { wechatRequests.push(resolve); }); },
+    },
+    getStorageSync(key) { return storage.get(key); },
+    setStorageSync(key, value) { storage.set(key, value); },
+    request(options) { publicRequests.push(options); return { abort() {} }; },
+    onHide() {},
+    onShow() {},
+  };
+  const servers = startWeChatWarmup(wx, "");
+  assert.equal(servers.endpoint, "");
+  servers.select(true);
+  assert.equal(servers.endpoint, "");
+  publicRequests[0].success(ready);
+  servers.join(() => assert.fail("old WeChat entry survived switching"));
+  servers.select(true);
+  assert.equal(storage.get("rover.server"), "cloudbase");
+  wechatRequests[0](ready);
+  await Promise.resolve();
+  let joined = false;
+  servers.join(() => { joined = true; });
+  publicRequests[1].success(ready);
+  assert.equal(joined, true);
+  servers.select(false);
+  assert.equal(storage.get("rover.server"), "wechat");
+  assert.equal(wechatRequests.length, 2);
+});
+
+test("the server switch stays hidden when only Tencent Cloud is healthy", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout", "Date"] });
+  const requests = [];
+  const ready = { statusCode: 200, data: { ready: true, wechatWs: true } };
+  const servers = startWeChatWarmup({
+    cloud: { init() {}, callContainer: () => Promise.reject(new Error("offline")) },
+    request(options) { requests.push(options); return { abort() {} }; },
+    onHide() {},
+    onShow() {},
+  }, "");
+  let entered = false;
+  servers.join(() => { entered = true; });
+  requests[0].success(ready);
+  await Promise.resolve();
+  assert.equal(servers.endpoint, "wss://cb.chenmin.org/ws");
+  assert.equal(servers.showServerSwitch, false);
+  requests[1].success(ready);
+  assert.equal(entered, true);
 });

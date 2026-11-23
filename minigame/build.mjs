@@ -42,7 +42,6 @@ await build({
   target: "es2017",
   minify: true,
   define: {
-    __ROVER_ENDPOINT__: JSON.stringify(process.env.ROVER_WS_URL || ""),
     __ROVER_BUILD__: JSON.stringify(
       // Fixed UTC+8 build time, independent of the build machine timezone.
       release.version + " · " +

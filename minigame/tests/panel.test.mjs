@@ -381,3 +381,22 @@ test('ready and waiting players retain their exact color and full opacity; only 
  assert.deepEqual(cars.map(c=>c[2]),types.COLORS.slice(0,2));assert.ok(cars.every(c=>c[5]===1));assert.equal(rings,1);
  cars=[];model.state.players[1].color=types.COLORS[2];p.update();assert.equal(cars[1][2],types.COLORS[2]);
 });
+
+test("login hides the switch unless both servers are available", () => {
+  const { p, model } = harness();
+  const selections = [];
+  p.actions.selectServer = (cloudBase) => selections.push(cloudBase);
+  const baseline = p.hits.length;
+
+  model.showServerSwitch = true;
+  p.update();
+  assert.equal(p.hits.length, baseline + 2);
+  const cloudBase = p.hits.at(-1);
+  assert.equal(p.press(cloudBase.x + cloudBase.w / 2, cloudBase.y + cloudBase.h / 2), true);
+  assert.deepEqual(selections, [true]);
+
+  model.showServerSwitch = false;
+  p.update();
+  assert.equal(p.hits.length, baseline);
+  assert.equal(p.press(cloudBase.x + cloudBase.w / 2, cloudBase.y + cloudBase.h / 2), false);
+});
