@@ -1,0 +1,87 @@
+.build/rover/server/vehicle_collision.lua: OK
+[:00000002] LAUNCH snlua bootstrap
+[:00000003] LAUNCH snlua launcher
+[:00000004] LAUNCH snlua cdummy
+[:00000005] LAUNCH harbor 0 4
+[:00000006] LAUNCH snlua datacenterd
+[:00000007] LAUNCH snlua service_mgr
+[:00000008] LAUNCH snlua poc_main
+CASE_PASS hz=20 name=head_on_bounce
+CASE_PASS hz=20 name=oblique_collision_rotation
+CASE_PASS hz=20 name=push_stationary_car
+CASE_PASS hz=20 name=unequal_mass_collision
+CASE_PASS hz=20 name=static_boundary_bounce
+CASE_PASS hz=20 name=eight_car_collision_chain
+CASE_PASS hz=20 name=accelerate_steer_release_decelerate
+CASE_PASS hz=20 name=destroy_recreate_state
+CASE_PASS hz=60 name=head_on_bounce
+CASE_PASS hz=60 name=oblique_collision_rotation
+CASE_PASS hz=60 name=push_stationary_car
+CASE_PASS hz=60 name=unequal_mass_collision
+CASE_PASS hz=60 name=static_boundary_bounce
+CASE_PASS hz=60 name=eight_car_collision_chain
+CASE_PASS hz=60 name=accelerate_steer_release_decelerate
+CASE_PASS hz=60 name=destroy_recreate_state
+BASELINE_ASSERTIONS_PASS
+PHYSICS_PASS
+[:00000009] LAUNCH snlua poc_room
+[:0000000a] LAUNCH snlua poc_room
+[:00000009] lua call [8 to :9 : 10 msgsz = 8] error : [31m./.build/skynet/lualib/skynet.lua:991: ./.build/skynet/lualib/skynet.lua:453: ./poc_room.lua:140: ./poc_room.lua:32: intentional Lua room error
+stack traceback:
+	[C]: in global 'error'
+	./poc_room.lua:140: in upvalue 'f'
+	./.build/skynet/lualib/skynet.lua:403: in function <./.build/skynet/lualib/skynet.lua:375>
+stack traceback:
+	[C]: in upvalue 'assert'
+	./.build/skynet/lualib/skynet.lua:991: in function 'skynet.dispatch_message'[0m
+[:00000009] KILL self
+[:0000000b] LAUNCH snlua poc_room
+[:0000000b] KILL self
+[:0000000c] LAUNCH snlua poc_room
+[:0000000c] KILL self
+[:0000000d] LAUNCH snlua poc_room
+[:0000000d] KILL self
+[:0000000e] LAUNCH snlua poc_room
+[:0000000e] KILL self
+[:0000000f] LAUNCH snlua poc_room
+[:0000000f] KILL self
+[:00000010] LAUNCH snlua poc_room
+[:00000010] KILL self
+[:00000019] LAUNCH snlua poc_room
+[:00000019] KILL self
+[:0000001b] LAUNCH snlua poc_room
+[:0000001b] KILL self
+[:0000001c] LAUNCH snlua poc_room
+[:0000001c] KILL self
+[:0000001d] LAUNCH snlua poc_room
+[:0000001d] KILL self
+[:0000001e] LAUNCH snlua poc_room
+[:0000001e] KILL self
+[:0000001f] LAUNCH snlua poc_room
+[:0000001f] KILL self
+[:00000020] LAUNCH snlua poc_room
+[:00000020] KILL self
+[:00000029] LAUNCH snlua poc_room
+[:00000029] KILL self
+[:0000002b] LAUNCH snlua poc_room
+[:0000002b] KILL self
+[:0000002c] LAUNCH snlua poc_room
+[:0000002c] KILL self
+[:0000002d] LAUNCH snlua poc_room
+[:0000002d] KILL self
+[:0000002e] LAUNCH snlua poc_room
+[:0000002e] KILL self
+[:0000002f] LAUNCH snlua poc_room
+[:0000002f] KILL self
+[:00000030] LAUNCH snlua poc_room
+[:00000030] KILL self
+[:00000039] LAUNCH snlua poc_room
+[:00000039] KILL self
+[:0000003b] LAUNCH snlua poc_room
+[:0000003b] KILL self
+[:0000003c] LAUNCH snlua poc_room
+[:0000003c] KILL self
+[:0000003d] LAUNCH snlua poc_room
+[:0000003d] KILL self
+ACTOR_PASS isolated=true rpc_error_contained=true recreate_cycles=24
+POC_PASS

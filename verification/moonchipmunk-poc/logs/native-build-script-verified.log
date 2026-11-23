@@ -1,0 +1,50 @@
+Already applied: skynet-verified-client-tls.patch
+Already applied: skynet-socket-flow-control.patch
+Already applied: moonchipmunk-lua55-multistate.patch
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:03 --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:04 --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:05 --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:06 --:--:--     0
+  0  482k    0     0    0     0      0      0 --:--:--  0:00:06 --:--:--     0
+100  482k  100  482k    0     0  74393      0  0:00:06  0:00:06 --:--:--  132k
+autoconf.deb: OK
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:--  0:00:03 --:--:--     0
+100  287k  100  287k    0     0  81095      0  0:00:03  0:00:03 --:--:-- 81113
+m4.deb: OK
+make: Entering directory '<POC>/.build/skynet'
+make all PLAT=linux SKYNET_LIBS="-lpthread -lm -ldl -lrt" SHARED="-fPIC --shared" EXPORT="-Wl,-E" MALLOC_STATICLIB="3rd/jemalloc/lib/libjemalloc_pic.a" SKYNET_DEFINES=""
+make[1]: Entering directory '<POC>/.build/skynet'
+cc -g -O2 -Wall -I3rd/lua  -fPIC --shared -Iskynet-src -L/usr/lib/x86_64-linux-gnu -I/usr/include lualib-src/ltls.c -o luaclib/ltls.so -lssl -lcrypto
+make[1]: Leaving directory '<POC>/.build/skynet'
+make: Leaving directory '<POC>/.build/skynet'
+In file included from <POC>/.build/chipmunk/include/chipmunk/chipmunk_private.h:25,
+                 from <POC>/.build/chipmunk/src/cpBBTree.c:25:
+<POC>/.build/chipmunk/src/cpBBTree.c: In function ‘partitionNodes’:
+<POC>/.build/chipmunk/include/chipmunk/chipmunk.h:72:26: warning: argument 1 range [18446744071562067968, 18446744073709551615] exceeds maximum object size 9223372036854775807 [-Walloc-size-larger-than=]
+   72 |         #define cpcalloc calloc
+<POC>/.build/chipmunk/src/cpBBTree.c:760:38: note: in expansion of macro ‘cpcalloc’
+  760 |         cpFloat *bounds = (cpFloat *)cpcalloc(count*2, sizeof(cpFloat));
+      |                                      ^~~~~~~~
+In file included from <POC>/.build/chipmunk/src/cpBBTree.c:22:
+/usr/include/stdlib.h:675:14: note: in a call to allocation function ‘calloc’ declared here
+  675 | extern void *calloc (size_t __nmemb, size_t __size)
+      |              ^~~~~~
+	linux-vdso.so.1 (0x00007f83cf4f4000)
+	libchipmunk.so => <POC>/.build/lib/libchipmunk.so (0x00007f83cf48c000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f83cf379000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f83cf185000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f83cf4f6000)
+Lua 5.5.1  Copyright (C) 1994-2026 Lua.org, PUC-Rio
+Build complete. This alone does not establish Skynet integration or test success.

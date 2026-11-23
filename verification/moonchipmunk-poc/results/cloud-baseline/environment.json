@@ -1,0 +1,19 @@
+{
+  "os": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "cpu_model": [
+    "AMD EPYC 9V74 80-Core Processor"
+  ],
+  "logical_cpus": 9,
+  "affinity_cpus": 9,
+  "meminfo": [
+    "MemTotal:       10206472 kB",
+    "MemFree:         9394432 kB",
+    "MemAvailable:    9342060 kB"
+  ],
+  "cpu_max": null,
+  "memory_max": null,
+  "cgroup": "0::/",
+  "gcc": "cc (Debian 14.2.0-19) 14.2.0",
+  "lua": "Lua 5.5.1  Copyright (C) 1994-2026 Lua.org, PUC-Rio",
+  "skynet_workers": 4
+}

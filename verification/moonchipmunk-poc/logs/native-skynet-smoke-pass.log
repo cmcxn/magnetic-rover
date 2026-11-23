@@ -1,0 +1,8 @@
+[:00000002] LAUNCH snlua bootstrap
+[:00000003] LAUNCH snlua launcher
+[:00000004] LAUNCH snlua cdummy
+[:00000005] LAUNCH harbor 0 4
+[:00000006] LAUNCH snlua datacenterd
+[:00000007] LAUNCH snlua service_mgr
+[:00000008] LAUNCH snlua test
+SKYNET_NATIVE_REQUIRE_STEP_PASS	Lua 5.5	MoonChipmunk 0.1	Chipmunk 7.0.3

@@ -1,0 +1,171 @@
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/arbiter.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/body.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/circle.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/collision_handler.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/compat-5.3.c:7:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/constraint.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/damped_rotary_spring.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/damped_spring.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/datastructs.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/enums.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/flags.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/gear_joint.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/groove_joint.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/main.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/misc.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/objects.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/pin_joint.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/pivot_joint.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/poly.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/ratchet_joint.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/rotary_limit_joint.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/segment.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/shape.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/simple_motor.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/slide_joint.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/space.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/tracing.c:26:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/udata.h:34,
+                 from moonchipmunk/src/udata.c:29:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~
+In file included from moonchipmunk/src/moonchipmunk.h:32,
+                 from moonchipmunk/src/internal.h:32,
+                 from moonchipmunk/src/utils.c:27:
+moonchipmunk/src/compat-5.3.h:405:4: error: #error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+  405 | #  error "unsupported Lua version (i.e. not Lua 5.1, 5.2, or 5.3)"
+      |    ^~~~~

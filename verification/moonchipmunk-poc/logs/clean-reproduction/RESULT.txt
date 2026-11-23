@@ -1,0 +1,3 @@
+Fresh directory, no .build or preexisting binaries copied.
+Ran ./build.sh && ./smoke.sh && ./run.sh test
+Outcome: exit code 0; native Skynet smoke PASS; full assertions POC_PASS.

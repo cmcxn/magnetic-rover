@@ -1,0 +1,12 @@
+In file included from chipmunk/include/chipmunk/chipmunk_private.h:25,
+                 from chipmunk/src/cpBBTree.c:25:
+chipmunk/src/cpBBTree.c: In function ‘partitionNodes’:
+chipmunk/include/chipmunk/chipmunk.h:72:26: warning: argument 1 range [18446744071562067968, 18446744073709551615] exceeds maximum object size 9223372036854775807 [-Walloc-size-larger-than=]
+   72 |         #define cpcalloc calloc
+chipmunk/src/cpBBTree.c:760:38: note: in expansion of macro ‘cpcalloc’
+  760 |         cpFloat *bounds = (cpFloat *)cpcalloc(count*2, sizeof(cpFloat));
+      |                                      ^~~~~~~~
+In file included from chipmunk/src/cpBBTree.c:22:
+/usr/include/stdlib.h:675:14: note: in a call to allocation function ‘calloc’ declared here
+  675 | extern void *calloc (size_t __nmemb, size_t __size)
+      |              ^~~~~~

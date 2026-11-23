@@ -1,0 +1,6 @@
+.build/
+__pycache__/
+
+# Include raw verification evidence despite repository-wide *.log rule.
+!logs/**/*.log
+!results/**/*.log

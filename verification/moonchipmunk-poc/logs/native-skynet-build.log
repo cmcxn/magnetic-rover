@@ -1,0 +1,57 @@
+make all PLAT=linux SKYNET_LIBS="-lpthread -lm -ldl -lrt" SHARED="-fPIC --shared" EXPORT="-Wl,-E" MALLOC_STATICLIB="3rd/jemalloc/lib/libjemalloc_pic.a" SKYNET_DEFINES=""
+make[1]: Entering directory '<POC>/.build/skynet'
+cd 3rd/jemalloc && ./autogen.sh --disable-cxx --with-jemalloc-prefix=je_ --enable-prof
+cd 3rd/lua && make CC='cc -std=gnu99' linux
+mkdir cservice
+autoconf
+./autogen.sh: 5: autoconf: not found
+Error 0 in autoconf
+mkdir luaclib
+make[1]: *** [Makefile:44: 3rd/jemalloc/Makefile] Error 1
+make[1]: *** Waiting for unfinished jobs....
+make[2]: Entering directory '<POC>/.build/skynet/3rd/lua'
+make all SYSCFLAGS="-DLUA_USE_LINUX" SYSLIBS="-Wl,-E -ldl"
+make[3]: Entering directory '<POC>/.build/skynet/3rd/lua'
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lapi.o lapi.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g  -c lcode.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lctype.o lctype.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o ldebug.o ldebug.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o ldo.o ldo.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o ldump.o ldump.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lfunc.o lfunc.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lgc.o lgc.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g  -c llex.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lmem.o lmem.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lobject.o lobject.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lopcodes.o lopcodes.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g  -c lparser.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lstate.o lstate.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lstring.o lstring.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o ltable.o ltable.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o ltm.o ltm.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lundump.o lundump.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lvm.o lvm.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lzio.o lzio.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lauxlib.o lauxlib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lbaselib.o lbaselib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lcorolib.o lcorolib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o ldblib.o ldblib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o liolib.o liolib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lmathlib.o lmathlib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o loadlib.o loadlib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o loslib.o loslib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lstrlib.o lstrlib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o ltablib.o ltablib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lutf8lib.o lutf8lib.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o linit.o linit.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o lua.o lua.c
+cc -std=gnu99 -O2 -Wall -Wextra -DLUA_USE_LINUX -I../../skynet-src -g   -c -o luac.o luac.c
+ar rcu liblua.a lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o lundump.o lvm.o lzio.o lauxlib.o lbaselib.o lcorolib.o ldblib.o liolib.o lmathlib.o loadlib.o loslib.o lstrlib.o ltablib.o lutf8lib.o linit.o 
+ar: `u' modifier ignored since `D' is the default (see `U')
+ranlib liblua.a
+cc -std=gnu99 -o lua   lua.o liblua.a -lm -Wl,-E -ldl 
+cc -std=gnu99 -o luac   luac.o liblua.a -lm -Wl,-E -ldl 
+make[3]: Leaving directory '<POC>/.build/skynet/3rd/lua'
+make[2]: Leaving directory '<POC>/.build/skynet/3rd/lua'
+make[1]: Leaving directory '<POC>/.build/skynet'
+make: *** [platform.mk:42: linux] Error 2
